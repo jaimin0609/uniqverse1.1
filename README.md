@@ -1,8 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Uniqverse E-Commerce Platform
+
+A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, Tailwind CSS, and Prisma. Designed to provide a seamless shopping experience with support for product customization, variants, and integration with popular payment gateways.
+
+## Features
+
+- 🛒 Full-featured shopping cart and checkout
+- 👤 User authentication with NextAuth.js
+- 💻 Responsive design with mobile-first approach
+- 🖥️ Admin dashboard for product and order management
+- 🔍 Advanced search and filtering
+- 💳 Stripe payment integration
+- 📱 Progressive Web App (PWA) capabilities
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment:
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. Set up your environment variables (copy `.env.example` to `.env.local`)
+4. Run the development server:
 
 ```bash
 npm run dev
@@ -10,27 +36,24 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Documentation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+For more detailed documentation, see:
+- [Project Documentation](./docs/PROJECT_DOCUMENTATION.md)
+- [Project Progress](./docs/PROJECT_PROGRESS.md)
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js, TypeScript, Tailwind CSS, React Hook Form, Zod
+- **State Management**: Zustand
+- **Authentication**: NextAuth.js
+- **Database**: PostgreSQL with Prisma ORM
+- **Payments**: Stripe
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[MIT](LICENSE)
