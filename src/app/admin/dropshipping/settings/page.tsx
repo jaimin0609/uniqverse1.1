@@ -83,7 +83,12 @@ export default function DropshippingSettingsPage() {
                 throw new Error("Failed to fetch dropshipping settings");
             }
             const data = await response.json();
-            setSettings(data.settings);
+            // Ensure that supplierNotes is never null
+            const updatedSettings = {
+                ...data.settings,
+                supplierNotes: data.settings.supplierNotes || ""
+            };
+            setSettings(updatedSettings);
         } catch (error) {
             console.error("Error fetching dropshipping settings:", error);
             toast.error("Failed to load settings");
@@ -236,16 +241,14 @@ export default function DropshippingSettingsPage() {
                                 <Label htmlFor="defaultSupplier">Default Supplier</Label>
                                 <p className="text-sm text-gray-500 mb-2">
                                     Used for products without a specific supplier
-                                </p>
-                                <Select
-                                    value={settings.defaultSupplier || ""}
-                                    onValueChange={(value) => handleChange("defaultSupplier", value || null)}
+                                </p>                                <Select
+                                    value={settings.defaultSupplier || "none"}
+                                    onValueChange={(value) => handleChange("defaultSupplier", value === "none" ? null : value)}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a default supplier" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">No default supplier</SelectItem>
+                                    </SelectTrigger><SelectContent>
+                                        <SelectItem value="none">No default supplier</SelectItem>
                                         {suppliers.filter(s => s.id).map(supplier => (
                                             <SelectItem key={supplier.id} value={supplier.id}>
                                                 {supplier.name}
