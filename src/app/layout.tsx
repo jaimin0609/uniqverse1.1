@@ -12,6 +12,8 @@ import FooterWithConditional from "@/components/layout/footer-with-conditional";
 import { ThemeProvider } from "@/contexts/theme-provider";
 import { CurrencyProvider } from "@/contexts/currency-provider";
 import ChatBotWrapper from "@/components/support/ChatBotWrapper";
+import ToastListener from "@/components/ui/toast-listener";
+import { CartProvider } from "@/components/cart/cart-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -67,15 +69,20 @@ export default async function RootLayout({
         >
           <CurrencyProvider defaultCurrency="USD">
             <AuthProvider session={session}>
-              <Header />
-              <PromotionBanner className="sticky top-0 z-10" />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <FooterWithConditional />
-              <Toaster position="top-center" closeButton richColors />
-              {/* AI Chatbot component */}
-              <ChatBotWrapper />
+              {/* Cart provider ensures cart syncs between browser and database */}
+              <CartProvider>
+                <Header />
+                <PromotionBanner className="sticky top-0 z-10" />
+                <main className="flex-grow">
+                  {children}
+                </main>
+                <FooterWithConditional />
+                <Toaster position="top-center" closeButton richColors />
+                {/* AI Chatbot component */}
+                <ChatBotWrapper />
+                {/* Toast notification listener */}
+                <ToastListener />
+              </CartProvider>
             </AuthProvider>
           </CurrencyProvider>
         </ThemeProvider>

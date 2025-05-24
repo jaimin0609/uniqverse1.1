@@ -6,7 +6,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { X, ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { useServerSyncedCart } from "@/hooks/use-server-synced-cart";
 import { Button } from "@/components/ui/button";
+import { ClientPrice } from "@/components/ui/client-price";
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -15,8 +17,17 @@ interface CartDrawerProps {
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     const router = useRouter();
-    const { items, subtotal, itemCount, updateQuantity, removeItem, clearCart } = useCartStore();
+    // Use the server-synced cart hook instead of the store directly
+    const { items, subtotal, itemCount, updateQuantity, removeItem, clearCart, syncCartWithServer } = useServerSyncedCart();
     const [isNavigating, setIsNavigating] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Reset navigation state when drawer is opened
+    useEffect(() => {
+        if (isOpen) {
+            setIsNavigating(false);
+        }
+    }, [isOpen]);
 
     // Handle escape key press to close drawer
     useEffect(() => {
@@ -36,26 +47,63 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             document.removeEventListener("keydown", handleEscapeKey);
             document.body.style.overflow = "auto";
         };
-    }, [isOpen, onClose]);
-
-    // Function to handle quantity changes
-    const handleQuantityChange = (id: string, newQuantity: number) => {
+    }, [isOpen, onClose]);    // Function to handle quantity changes with server sync
+    const handleQuantityChange = async (id: string, newQuantity: number) => {
         if (newQuantity >= 1) {
+            // Update local cart first for immediate UI feedback
             updateQuantity(id, newQuantity);
-        }
-    };
 
-    // Improved function to proceed to checkout - prevents multiple clicks and ensures navigation works
-    const handleCheckout = () => {
+            // Then sync the cart with the server
+            try {
+                setIsLoading(true);
+                await syncCartWithServer();
+            } catch (error) {
+                console.error('Error syncing cart after quantity change:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };    // Improved function to proceed to checkout with server sync
+    const handleCheckout = async () => {
         if (isNavigating) return; // Prevent multiple clicks
 
         setIsNavigating(true);
+        setIsLoading(true);
+
+        try {
+            // Sync cart with server before checkout
+            await syncCartWithServer();
+        } catch (error) {
+            console.error('Error syncing cart before checkout:', error);
+            // Continue with checkout even if sync fails
+        } finally {
+            setIsLoading(false);
+        }
+
         onClose();
 
         // Short delay to ensure the drawer closes cleanly before navigation
         setTimeout(() => {
             router.push("/checkout");
+
+            // Safety timeout to reset navigation state if something goes wrong
+            setTimeout(() => {
+                setIsNavigating(false);
+            }, 5000);
         }, 100);
+    };
+
+    // We can use the clearCart function directly from useServerSyncedCart
+    // as it already handles both client and server clearing
+    const handleClearCart = async () => {
+        try {
+            setIsLoading(true);
+            await clearCart();
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // If drawer is not open, don't render anything
@@ -64,12 +112,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
             {/* Drawer container */}
-            <div className="fixed inset-y-0 right-0 flex flex-col w-full sm:w-96 max-w-full bg-white shadow-xl animate-slide-in-right">
-                {/* Drawer header */}
+            <div className="fixed inset-y-0 right-0 flex flex-col w-full sm:w-96 max-w-full bg-white shadow-xl animate-slide-in-right">            {/* Drawer header */}
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-lg font-semibold flex items-center">
                         <ShoppingCart className="mr-2 h-5 w-5" />
                         Your Cart ({items.length > 0 ? itemCount : 0})
+                        {isLoading && (
+                            <span className="ml-2 inline-block w-4 h-4 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></span>
+                        )}
                     </h2>
                     <button
                         onClick={onClose}
@@ -108,13 +158,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                                     {/* Product Details */}
                                     <div className="ml-4 flex flex-1 flex-col">
-                                        <div className="flex justify-between text-base font-medium text-gray-900">
-                                            <h3>
-                                                <Link href={`/products/${item.productId}`} onClick={onClose} className="hover:underline">
-                                                    {item.name}
-                                                </Link>
-                                            </h3>
-                                            <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                                        <div className="flex justify-between text-base font-medium text-gray-900">                                            <h3>
+                                            <Link href={`/products/${item.productId}`} onClick={onClose} className="hover:underline">
+                                                {item.name}
+                                            </Link>
+                                        </h3>
+                                            <p className="ml-4">
+                                                <ClientPrice amount={item.price * item.quantity} />
+                                            </p>
                                         </div>
 
                                         {item.variantName && (
@@ -145,11 +196,18 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                 </button>
-                                            </div>
-
-                                            <button
+                                            </div>                                        <button
                                                 type="button"
-                                                onClick={() => removeItem(item.id)}
+                                                onClick={async () => {
+                                                    try {
+                                                        setIsLoading(true);
+                                                        await removeItem(item.id, item.variantId);
+                                                    } catch (error) {
+                                                        console.error('Error removing item:', error);
+                                                    } finally {
+                                                        setIsLoading(false);
+                                                    }
+                                                }}
                                                 className="text-red-500 hover:text-red-700"
                                                 aria-label="Remove item"
                                             >
@@ -161,32 +219,26 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             ))}
                         </ul>
                     )}
-                </div>
-
-                {/* Cart footer with subtotal and checkout button */}
+                </div>                {/* Cart footer with subtotal and checkout button */}
                 {items.length > 0 && (
                     <div className="border-t p-4">
                         <div className="flex justify-between text-base font-medium text-gray-900 mb-2">
                             <p>Subtotal</p>
-                            <p>${subtotal.toFixed(2)}</p>
-                        </div>
+                            <p><ClientPrice amount={subtotal} /></p>                        </div>
                         <p className="text-sm text-gray-500 mb-4">
                             Shipping and taxes calculated at checkout.
-                        </p>
-                        <div className="space-y-3">
-                            <Button
-                                className="w-full"
-                                onClick={handleCheckout}
-                                disabled={isNavigating}
-                            >
-                                {isNavigating ? "Navigating..." : "Checkout"}
-                            </Button>
+                        </p><div className="space-y-3">                        <Button
+                            className="w-full hover:bg-blue-200"
+                            onClick={handleCheckout}
+                            disabled={isNavigating || isLoading}
+                        >
+                            {isNavigating ? "Navigating..." : isLoading ? "Syncing cart..." : "Checkout"}
+                        </Button>
                             <Button variant="outline" className="w-full" onClick={onClose}>
                                 Continue Shopping
-                            </Button>
-                            <button
+                            </Button>                            <button
                                 type="button"
-                                onClick={clearCart}
+                                onClick={handleClearCart}
                                 className="text-sm text-red-600 hover:text-red-800 flex items-center justify-center w-full"
                             >
                                 <Trash2 className="h-4 w-4 mr-1" /> Clear cart

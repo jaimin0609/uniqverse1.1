@@ -11,6 +11,7 @@ import PaymentForm from "@/components/checkout/payment-form";
 import OrderComplete from "@/components/checkout/order-complete";
 import { CouponInput } from "@/components/checkout/coupon-input";
 import { CheckCircle, ShoppingBag, Truck, CreditCard } from "lucide-react";
+import { ClientPrice } from "@/components/ui/client-price";
 
 // Define checkout steps
 type CheckoutStep = "cart" | "shipping" | "payment" | "complete";
@@ -89,10 +90,29 @@ export default function CheckoutPage() {
                 subtotal: subtotal,
                 discount: discountAmount,
                 discountCode: couponCode
-            });
+            });            // Clear the cart both from server and local storage
+            try {
+                // Get cart ID from localStorage (for guest users)
+                const cartId = localStorage.getItem('uniqverse-cart-id');
 
-            // Clear the cart
-            clearCart();
+                // Call the API to clear the server cart
+                if (cartId) {
+                    await fetch(`/api/cart?cartId=${cartId}`, {
+                        method: 'DELETE',
+                    });
+                } else {
+                    await fetch('/api/cart', {
+                        method: 'DELETE',
+                    });
+                }
+
+                // Then clear the local cart
+                clearCart();
+            } catch (error) {
+                console.error('Error clearing cart from server:', error);
+                // Still clear local cart even if server request fails
+                clearCart();
+            }
 
             // Move to complete step
             setCurrentStep("complete");
@@ -116,23 +136,27 @@ export default function CheckoutPage() {
                         <div className="mt-6 bg-gray-50 p-6 rounded-lg">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Subtotal</span>
-                                    <span className="font-medium">${subtotal.toFixed(2)}</span>
-                                </div>
+                            <div className="space-y-2">                                <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">Subtotal</span>
+                                <span className="font-medium"><ClientPrice amount={subtotal} /></span>
+                            </div>
 
                                 {discountAmount > 0 && (
                                     <div className="flex justify-between text-sm text-green-600">
                                         <span>Discount ({couponCode})</span>
-                                        <span>-${discountAmount.toFixed(2)}</span>
+                                        <span>-<ClientPrice amount={discountAmount} /></span>
                                     </div>
                                 )}
+
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Tax</span>
+                                    <span className="font-medium"><ClientPrice amount={taxAmount} /></span>
+                                </div>
 
                                 <div className="border-t border-gray-200 my-2 pt-2">
                                     <div className="flex justify-between font-medium">
                                         <span>Total</span>
-                                        <span>${(subtotal - discountAmount).toFixed(2)}</span>
+                                        <span><ClientPrice amount={subtotal - discountAmount + taxAmount} /></span>
                                     </div>
                                 </div>
                             </div>
@@ -269,31 +293,29 @@ export default function CheckoutPage() {
                                     {/* Order Items Summary */}
                                     <p className="text-gray-600">
                                         {items.reduce((acc, item) => acc + item.quantity, 0)} {items.reduce((acc, item) => acc + item.quantity, 0) === 1 ? "item" : "items"} in cart
-                                    </p>
-
-                                    <div className="border-t pt-3">
+                                    </p>                                    <div className="border-t pt-3">
                                         <div className="flex justify-between mb-2">
                                             <span>Subtotal</span>
-                                            <span>${subtotal.toFixed(2)}</span>
+                                            <span><ClientPrice amount={subtotal} /></span>
                                         </div>
                                         <div className="flex justify-between mb-2">
                                             <span>Shipping</span>
                                             <span>
                                                 {currentStep === "cart"
                                                     ? "Calculated at next step"
-                                                    : `$${shippingCost.toFixed(2)}`}
+                                                    : <ClientPrice amount={shippingCost} />}
                                             </span>
                                         </div>
                                         <div className="flex justify-between mb-2">
                                             <span>Tax</span>
-                                            <span>${taxAmount.toFixed(2)}</span>
+                                            <span><ClientPrice amount={taxAmount} /></span>
                                         </div>
                                         <div className="flex justify-between font-medium text-lg mt-3 border-t pt-3">
                                             <span>Total</span>
                                             <span>
-                                                ${currentStep === "cart"
-                                                    ? (subtotal + taxAmount).toFixed(2)
-                                                    : total.toFixed(2)}
+                                                {currentStep === "cart"
+                                                    ? <ClientPrice amount={subtotal + taxAmount} />
+                                                    : <ClientPrice amount={total} />}
                                             </span>
                                         </div>
                                     </div>
