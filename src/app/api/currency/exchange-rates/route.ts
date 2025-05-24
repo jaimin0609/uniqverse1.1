@@ -9,7 +9,7 @@ const SUPPORTED_CURRENCIES = ["USD", "EUR", "GBP", "AUD", "CAD", "JPY"];
 export async function GET(req: NextRequest) {
     try {
         // Get API key from environment variables
-        const API_KEY = process.env.EXCHANGE_RATE_API_KEY || process.env.CURRENCY_API_KEY;
+        const API_KEY = process.env.EXCHANGE_RATE_API_KEY || process.env.EXCHANGE_RATE_API_KEY;
 
         if (!API_KEY) {
             console.warn("No exchange rate API key found in environment variables");

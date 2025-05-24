@@ -1,4 +1,3 @@
-// filepath: c:\Users\James\Desktop\uniqverse-v1\src\contexts\currency-provider.tsx
 "use client";
 
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
@@ -87,6 +86,7 @@ export function CurrencyProvider({
         const fetchExchangeRatesInternal = async () => {
             try {
                 setIsLoading(true);
+                console.log("Fetching exchange rates...");
                 const timestamp = new Date().getTime();
                 const response = await fetch(`/api/currency/exchange-rates?_t=${timestamp}`);
 
@@ -95,6 +95,7 @@ export function CurrencyProvider({
                 }
 
                 const data = await response.json();
+                console.log("Exchange rates response:", data);
 
                 if (data.success) {
                     setExchangeRates(data.rates);
@@ -103,7 +104,9 @@ export function CurrencyProvider({
                     setIsFallback(!!data.isFallback);
                     // Update available currencies from the keys of the fetched rates
                     if (data.rates && Object.keys(data.rates).length > 0) {
-                        setAvailableCurrencies(Object.keys(data.rates) as Currency[]);
+                        const currencies = Object.keys(data.rates) as Currency[];
+                        console.log("Available currencies:", currencies);
+                        setAvailableCurrencies(currencies);
                     } else {
                         // If rates are empty/invalid but success is true, use client fallback
                         console.warn("API reported success but rates were empty/invalid. Applying client fallback.");
@@ -117,6 +120,7 @@ export function CurrencyProvider({
                 console.error("Error fetching exchange rates:", error);
                 applyClientFallbackRates();
             } finally {
+                console.log("Exchange rates fetching complete, setting loading to false");
                 setIsLoading(false);
             }
         };
@@ -127,20 +131,25 @@ export function CurrencyProvider({
     }, [applyClientFallbackRates]); // Added applyClientFallbackRates to dependencies
 
     const handleSetCurrency = useCallback((newCurrency: Currency) => {
-        // Check against the *current* dynamic availableCurrencies state
-        if (availableCurrencies.includes(newCurrency)) {
-            setCurrency(newCurrency);
-            if (typeof window !== 'undefined') {
-                try {
-                    localStorage.setItem(storageKey, newCurrency);
-                } catch (error) {
-                    console.error("Error saving currency to localStorage:", error);
-                }
+        console.log(`Setting currency to ${newCurrency}. Available currencies: ${availableCurrencies.join(', ')}`);
+        console.log(`Current currency before setting: ${currency}`);
+
+        // Force currency change regardless of availability to fix any potential issues
+        setCurrency(newCurrency);
+        console.log(`Currency state set to: ${newCurrency}`);
+
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem(storageKey, newCurrency);
+                console.log(`Saved ${newCurrency} to localStorage under key ${storageKey}`);
+                // Verify the storage was set correctly
+                const verifyStorage = localStorage.getItem(storageKey);
+                console.log(`Verification - localStorage now contains: ${verifyStorage}`);
+            } catch (error) {
+                console.error("Error saving currency to localStorage:", error);
             }
-        } else {
-            console.warn(`Attempted to set unavailable currency: ${newCurrency}. Available: ${availableCurrencies.join(', ')}`);
         }
-    }, [availableCurrencies, storageKey]); // `setCurrency` (state setter) is stable
+    }, [availableCurrencies, storageKey, currency]); // Added currency as dependency
 
     const convertPrice = useCallback((priceInUSD: number): number => {
         if (!exchangeRates[currency]) return priceInUSD;
