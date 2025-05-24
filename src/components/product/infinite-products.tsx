@@ -33,16 +33,24 @@ interface InfiniteProductsProps {
 export function InfiniteProducts({ initialProducts, className = "" }: InfiniteProductsProps) {
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
+    const [initialized, setInitialized] = useState(false);
     const [pagination, setPagination] = useState<PaginationInfo>({
         page: 1,
         limit: 8,
-        totalCount: 0,
-        hasMore: true
-    });
-    const [error, setError] = useState<string | null>(null);
+        totalCount: initialProducts.length > 0 ? Math.max(initialProducts.length * 2, 20) : 0, // Estimate total count
+        hasMore: initialProducts.length >= 8 // If we have a full initial page, assume there are more
+    }); const [error, setError] = useState<string | null>(null);
 
     const fetchInProgress = useRef(false);
-    const loaderRef = useRef<HTMLDivElement>(null);    // Function to fetch more products
+    const loaderRef = useRef<HTMLDivElement>(null);
+
+    // Initialize component on first render
+    useEffect(() => {
+        if (!initialized && initialProducts.length > 0) {
+            // If we received initial products, update our state
+            setInitialized(true);
+        }
+    }, [initialized, initialProducts]);// Function to fetch more products
     const fetchMoreProducts = async () => {
         // Prevent multiple simultaneous fetches
         if (loading || !pagination.hasMore || fetchInProgress.current) return;
@@ -53,11 +61,11 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
 
         try {
             const nextPage = pagination.page + 1;
-            const response = await fetch(`/api/products/featured-products?page=${nextPage}&limit=${pagination.limit}`);
-
-            if (!response.ok) {
+            const response = await fetch(`/api/products/featured-products?page=${nextPage}&limit=${pagination.limit}`); if (!response.ok) {
                 throw new Error("Failed to fetch products");
-            } const data = await response.json();
+            }
+
+            const data = await response.json();
 
             // Only add products if we got new ones
             if (data.products && data.products.length > 0) {
