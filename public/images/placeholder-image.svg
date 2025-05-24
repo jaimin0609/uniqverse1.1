@@ -1,0 +1,5 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#e2e8f0"/>
+  <text x="400" y="300" font-family="Arial" font-size="32" text-anchor="middle" fill="#475569">Image Not Available</text>
+  <text x="400" y="350" font-family="Arial" font-size="20" text-anchor="middle" fill="#64748b">This image could not be loaded</text>
+</svg>
