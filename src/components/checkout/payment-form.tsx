@@ -16,6 +16,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { formatCurrency } from "@/utils/format";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
+import { ClientPrice } from "@/components/ui/client-price";
 
 // Load Stripe outside of component render to avoid recreating on every render
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
@@ -351,22 +352,21 @@ function PaymentFormContent({ onSubmit, isProcessing, shippingData }: PaymentFor
                     {/* Payment Summary */}
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
                         <h3 className="text-lg font-medium mb-3">Order Summary</h3>
-                        <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                                <span>Subtotal</span>
-                                <span>{formatCurrency(subtotal)}</span>
-                            </div>
+                        <div className="space-y-1 text-sm">                            <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span><ClientPrice amount={subtotal} /></span>
+                        </div>
                             <div className="flex justify-between">
                                 <span>Shipping ({shippingData?.shippingMethod || "standard"})</span>
-                                <span>{formatCurrency(shippingCost)}</span>
+                                <span><ClientPrice amount={shippingCost} /></span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Tax</span>
-                                <span>{formatCurrency(taxAmount)}</span>
+                                <span><ClientPrice amount={taxAmount} /></span>
                             </div>
                             <div className="flex justify-between pt-2 border-t mt-2 font-medium">
                                 <span>Total</span>
-                                <span>{formatCurrency(total)}</span>
+                                <span><ClientPrice amount={total} /></span>
                             </div>
                         </div>
                     </div>
@@ -484,7 +484,7 @@ function PaymentFormContent({ onSubmit, isProcessing, shippingData }: PaymentFor
                             disabled={!stripe || isProcessing || processing}
                             className="px-8"
                         >
-                            {isProcessing || processing ? "Processing..." : `Pay ${formatCurrency(total)}`}
+                            {isProcessing || processing ? "Processing..." : <>Pay <ClientPrice amount={total} /></>}
                         </Button>
                     </div>
                 </form>

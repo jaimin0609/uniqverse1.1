@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ArrowLeft, ShoppingBag, Heart, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuickAddToCart } from '@/components/product/quick-add-to-cart';
+import { ClientPrice } from '@/components/ui/client-price';
 
 interface WishlistItem {
     id: string;
@@ -178,15 +179,14 @@ export default function WishlistPage() {
                                 <p className="text-sm text-gray-500 mb-2">{item.category.name}</p>
 
                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="flex items-center">
-                                            {item.compareAtPrice && (
-                                                <span className="text-gray-500 line-through text-sm mr-2">
-                                                    ${item.compareAtPrice.toFixed(2)}
-                                                </span>
-                                            )}
-                                            <span className="font-semibold">${item.price.toFixed(2)}</span>
-                                        </div>
+                                    <div>                                        <div className="flex items-center">
+                                        {item.compareAtPrice && (
+                                            <span className="text-gray-500 line-through text-sm mr-2">
+                                                <ClientPrice amount={item.compareAtPrice} />
+                                            </span>
+                                        )}
+                                        <span className="font-semibold"><ClientPrice amount={item.price} /></span>
+                                    </div>
                                     </div>
 
                                     <QuickAddToCart

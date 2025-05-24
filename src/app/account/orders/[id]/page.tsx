@@ -28,6 +28,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
+import { ClientPrice } from '@/components/ui/client-price';
 import {
     Dialog,
     DialogContent,
@@ -302,13 +303,12 @@ export default function OrderDetailPage() {
                                                             SKU: {item.product.sku}
                                                         </p>
                                                     )}
-                                                </div>
-                                                <div className="mt-2 sm:mt-0 text-right">
+                                                </div>                                                <div className="mt-2 sm:mt-0 text-right">
                                                     <div className="text-gray-700">
-                                                        {formatCurrency(item.price)} x {item.quantity}
+                                                        <ClientPrice amount={item.price} /> x {item.quantity}
                                                     </div>
                                                     <div className="font-medium">
-                                                        {formatCurrency(item.total)}
+                                                        <ClientPrice amount={item.total} />
                                                     </div>
                                                 </div>
                                             </div>
@@ -408,26 +408,25 @@ export default function OrderDetailPage() {
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg">Order Summary</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Subtotal</span>
-                                <span>{formatCurrency(order.subtotal)}</span>
-                            </div>
+                        <CardContent className="space-y-3">                            <div className="flex justify-between">
+                            <span className="text-gray-500">Subtotal</span>
+                            <span><ClientPrice amount={order.subtotal} /></span>
+                        </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Shipping</span>
-                                <span>{formatCurrency(order.shippingCost)}</span>
+                                <span><ClientPrice amount={order.shippingCost} /></span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Tax</span>
-                                <span>{formatCurrency(order.tax)}</span>
+                                <span><ClientPrice amount={order.tax} /></span>
                             </div>
 
                             {order.discount > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Discount</span>
-                                    <span className="text-red-600">-{formatCurrency(order.discount)}</span>
+                                    <span className="text-red-600">-<ClientPrice amount={order.discount} /></span>
                                 </div>
                             )}
 
@@ -435,7 +434,7 @@ export default function OrderDetailPage() {
 
                             <div className="flex justify-between font-medium">
                                 <span>Total</span>
-                                <span>{formatCurrency(order.total)}</span>
+                                <span><ClientPrice amount={order.total} /></span>
                             </div>
 
                             <div className="flex justify-between text-sm">

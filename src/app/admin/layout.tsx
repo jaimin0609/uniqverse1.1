@@ -17,7 +17,8 @@ import {
     X,
     LogOut,
     MessageSquare, Truck, // Add Truck icon for dropshipping
-    Tag, // Add Tag icon for promotions
+    Tag,
+    HomeIcon, // Add Tag icon for promotions
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -95,7 +96,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             icon: <FileText className="h-5 w-5" />,
             subItems: [
                 { title: "Pages", href: "/admin/content/pages" },
-                { title: "Blog Posts", href: "/admin/content/blog" }
+                { title: "Blog Posts", href: "/admin/content/blog" },
+                { title: "Blog Categories", href: "/admin/content/blog-categories" }
             ]
         },
         {
@@ -112,6 +114,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Settings",
             href: "/admin/settings",
             icon: <Settings className="h-5 w-5" />
+        },
+        {
+            title: "Home",
+            href: "/",
+            icon: <HomeIcon className="h-5 w-5" />
         }
     ];
 

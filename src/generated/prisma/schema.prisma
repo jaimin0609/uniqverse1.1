@@ -178,21 +178,22 @@ model Category {
 }
 
 model Supplier {
-  id              String          @id @default(cuid())
-  name            String
-  description     String?
-  website         String?
-  apiKey          String?
-  apiEndpoint     String?
-  contactEmail    String?
-  contactPhone    String?
-  averageShipping Int?
-  status          SupplierStatus  @default(ACTIVE)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  PricingRule     PricingRule[]
-  products        Product[]
-  SupplierOrder   SupplierOrder[]
+  id                   String                 @id @default(cuid())
+  name                 String
+  description          String?
+  website              String?
+  apiKey               String?
+  apiEndpoint          String?
+  contactEmail         String?
+  contactPhone         String?
+  averageShipping      Int?
+  status               SupplierStatus         @default(ACTIVE)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  PricingRule          PricingRule[]
+  products             Product[]
+  SupplierOrder        SupplierOrder[]
+  DropshippingSettings DropshippingSettings[]
 }
 
 model Order {
@@ -321,22 +322,24 @@ model BlogCategory {
 }
 
 model BlogPost {
-  id           String         @id
-  title        String
-  slug         String         @unique
-  excerpt      String?
-  content      String
-  coverImage   String?
-  isPublished  Boolean        @default(false)
-  publishedAt  DateTime?
-  authorId     String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  metaTitle    String?
-  metaDesc     String?
-  tags         String?
-  User         User           @relation(fields: [authorId], references: [id])
-  BlogCategory BlogCategory[] @relation("BlogPostToCategory")
+  id            String         @id
+  title         String
+  slug          String         @unique
+  excerpt       String?
+  content       String
+  coverImage    String?
+  isPublished   Boolean        @default(false)
+  publishedAt   DateTime?
+  authorId      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  metaTitle     String?
+  metaDesc      String?
+  tags          String?
+  isAdEnabled   Boolean        @default(false)
+  externalLinks Json?
+  User          User           @relation(fields: [authorId], references: [id])
+  BlogCategory  BlogCategory[] @relation("BlogPostToCategory")
 }
 
 model Cart {
@@ -847,4 +850,21 @@ model CouponUsage {
   @@index([couponId])
   @@index([userId])
   @@index([orderId])
+}
+
+model DropshippingSettings {
+  id                       String    @id @default(cuid())
+  autoProcess              Boolean   @default(true)
+  autoSendOrders           Boolean   @default(false)
+  statusCheckInterval      Int       @default(12)
+  defaultShippingDays      Int       @default(7)
+  notificationEmail        String?
+  profitMargin             Int       @default(30)
+  automaticFulfillment     Boolean   @default(true)
+  notifyCustomerOnShipment Boolean   @default(true)
+  defaultSupplier          String?
+  supplierNotes            String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  supplier                 Supplier? @relation(fields: [defaultSupplier], references: [id])
 }

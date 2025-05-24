@@ -352,7 +352,9 @@ exports.Prisma.BlogPostScalarFieldEnum = {
   updatedAt: 'updatedAt',
   metaTitle: 'metaTitle',
   metaDesc: 'metaDesc',
-  tags: 'tags'
+  tags: 'tags',
+  isAdEnabled: 'isAdEnabled',
+  externalLinks: 'externalLinks'
 };
 
 exports.Prisma.CartScalarFieldEnum = {
@@ -676,6 +678,22 @@ exports.Prisma.CouponUsageScalarFieldEnum = {
   usedAt: 'usedAt'
 };
 
+exports.Prisma.DropshippingSettingsScalarFieldEnum = {
+  id: 'id',
+  autoProcess: 'autoProcess',
+  autoSendOrders: 'autoSendOrders',
+  statusCheckInterval: 'statusCheckInterval',
+  defaultShippingDays: 'defaultShippingDays',
+  notificationEmail: 'notificationEmail',
+  profitMargin: 'profitMargin',
+  automaticFulfillment: 'automaticFulfillment',
+  notifyCustomerOnShipment: 'notifyCustomerOnShipment',
+  defaultSupplier: 'defaultSupplier',
+  supplierNotes: 'supplierNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -842,7 +860,8 @@ exports.Prisma.ModelName = {
   Promotion: 'Promotion',
   Event: 'Event',
   Coupon: 'Coupon',
-  CouponUsage: 'CouponUsage'
+  CouponUsage: 'CouponUsage',
+  DropshippingSettings: 'DropshippingSettings'
 };
 
 /**

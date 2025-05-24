@@ -28,13 +28,19 @@
       ]
     },
     "skipDefaultLibCheck": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "jest.config.js",
+    "jest.setup.ts"
   ],
   "exclude": [
     "node_modules"

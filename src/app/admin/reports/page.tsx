@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Loader2, AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ClientPrice } from "@/components/ui/client-price";
 import {
     Card,
     CardContent,
@@ -257,9 +258,8 @@ export default function AdminReportsPage() {
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-500">Total Sales</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">${salesData.totalSales.toFixed(2)}</div>
+                    </CardHeader>                    <CardContent>
+                        <div className="text-2xl font-bold"><ClientPrice amount={salesData.totalSales} /></div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -267,7 +267,7 @@ export default function AdminReportsPage() {
                         <CardTitle className="text-sm font-medium text-gray-500">Average Order Value</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">${salesData.averageOrderValue.toFixed(2)}</div>
+                        <div className="text-2xl font-bold"><ClientPrice amount={salesData.averageOrderValue} /></div>
                     </CardContent>
                 </Card>
                 <Card>

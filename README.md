@@ -11,6 +11,8 @@ A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, 
 - 🔍 Advanced search and filtering
 - 💳 Stripe payment integration
 - 📱 Progressive Web App (PWA) capabilities
+- 🤖 AI Chatbot for customer support
+- 🎫 Support Ticket System
 
 ## Getting Started
 

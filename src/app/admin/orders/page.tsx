@@ -24,6 +24,7 @@ import {
 import { format } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ClientPrice } from "@/components/ui/client-price";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -318,16 +319,15 @@ export default function OrdersPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                            <p className="text-2xl font-bold">{formatCurrency(metrics.revenue)}</p>
-                        </div>
-                        <div className="bg-purple-100 p-3 rounded-full">
-                            <CreditCard className="h-6 w-6 text-purple-600" />
-                        </div>
-                    </CardContent>
+                <Card>                    <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+                        <p className="text-2xl font-bold"><ClientPrice amount={metrics.revenue} /></p>
+                    </div>
+                    <div className="bg-purple-100 p-3 rounded-full">
+                        <CreditCard className="h-6 w-6 text-purple-600" />
+                    </div>
+                </CardContent>
                 </Card>
             </div>
 
@@ -468,9 +468,8 @@ export default function OrdersPage() {
                                             <Package className="h-4 w-4 text-gray-400 mr-1.5" />
                                             <span>{order.items}</span>
                                         </div>
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium">
-                                        ${order.total.toFixed(2)}
+                                    </TableCell>                                    <TableCell className="text-right font-medium">
+                                        <ClientPrice amount={order.total} />
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>

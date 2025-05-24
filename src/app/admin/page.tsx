@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { ClientPrice } from "@/components/ui/client-price";
 import {
     Users,
     Package,
@@ -187,10 +188,9 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm">
                     <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Total Sales</p>
+                        <div>                            <p className="text-sm font-medium text-gray-500">Total Sales</p>
                             <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                                ${stats.totalSales.toFixed(2)}
+                                <ClientPrice amount={stats.totalSales} />
                             </h3>
                         </div>
                         <div className="p-2 bg-blue-100 rounded">
@@ -363,11 +363,10 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                        {stats.salesByDay.slice(0, 4).map((day, index) => (
-                            <div key={index} className="p-2">
-                                <p className="text-xs text-gray-500">{day.date}</p>
-                                <p className="font-medium">${day.sales.toFixed(2)}</p>
-                            </div>
+                        {stats.salesByDay.slice(0, 4).map((day, index) => (<div key={index} className="p-2">
+                            <p className="text-xs text-gray-500">{day.date}</p>
+                            <p className="font-medium"><ClientPrice amount={day.sales} /></p>
+                        </div>
                         ))}
                     </div>
                 </div>

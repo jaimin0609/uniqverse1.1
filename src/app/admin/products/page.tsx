@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ClientPrice } from "@/components/ui/client-price";
 import {
     Search,
     Plus,
@@ -375,12 +376,11 @@ export default function AdminProductsPage() {
                                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                     {product.category.name}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">${product.price.toFixed(2)}</div>
+                                            </td>                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900"><ClientPrice amount={product.price} /></div>
                                                 {product.compareAtPrice && (
                                                     <div className="text-xs text-gray-500 line-through">
-                                                        ${product.compareAtPrice.toFixed(2)}
+                                                        <ClientPrice amount={product.compareAtPrice} />
                                                     </div>
                                                 )}
                                             </td>

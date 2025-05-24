@@ -7,6 +7,7 @@ import { QuickAddToCart } from "@/components/product/quick-add-to-cart";
 import { WishlistButton } from "@/components/product/wishlist-button";
 import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
+import { ClientPrice } from "@/components/ui/client-price";
 
 // Fetch featured products for the homepage
 async function getFeaturedProducts() {
@@ -167,7 +168,7 @@ export default async function Home() {
                         <h3 className="font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">{product.name}</h3>
                       </Link>
                       <p className="text-gray-500 text-sm mb-2">{product.category?.name || 'Uncategorized'}</p>
-                      <p className="text-lg font-semibold">${Number(product.price).toFixed(2)}</p>
+                      <p className="text-lg font-semibold"><ClientPrice amount={Number(product.price)} /></p>
                     </div>
                   </div>
                 ))

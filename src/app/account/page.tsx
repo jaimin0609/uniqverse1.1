@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { User, Package, MapPin, Heart, ShoppingBag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ClientPrice } from '@/components/ui/client-price';
 
 interface Order {
     id: string;
@@ -238,10 +239,11 @@ export default function AccountPage() {
                                                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                                 </span>
                                             </div>
-                                        </div>
-                                        <div className="flex justify-between items-center">
+                                        </div>                                        <div className="flex justify-between items-center">
                                             <p className="font-semibold">
-                                                ${typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : '0.00'}
+                                                {typeof order.totalAmount === 'number' ?
+                                                    <ClientPrice amount={order.totalAmount} /> :
+                                                    '$0.00'}
                                             </p>
                                             <Link href={`/account/orders/${order.id}`}>
                                                 <Button variant="outline" size="sm">

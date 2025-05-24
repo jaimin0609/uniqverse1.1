@@ -6,7 +6,7 @@ Uniqverse is a modern, full-featured e-commerce platform built with Next.js and 
 
 The platform is built as a Progressive Web App (PWA), ensuring it works seamlessly across all devices and can be installed as a native app on mobile devices (iOS and Android) while maintaining optimal performance on mobile browsers.
 
-**Last Updated**: May 10, 2025
+**Last Updated**: May 12, 2025
 
 ## Technology Stack
 
@@ -83,6 +83,11 @@ src/
 - **Profile Management**: User details, addresses, order history
 - **Wish List**: Save favorite products
 
+### Customer Support
+- **AI Chatbot**: Automated responses to common queries using pattern matching and AI.
+- **Support Ticket System**: Users can create, manage, and track support tickets.
+- **FAQ Management**: Admin-managed Frequently Asked Questions.
+
 ### Product Management
 - **Product Catalog**: Browsing products with filtering and sorting
 - **Categories**: Hierarchical product categories
@@ -131,6 +136,8 @@ The database schema is managed through Prisma and includes the following main mo
 - **Supplier**: Product supplier management
 - **InventoryHistory**: Tracking of inventory changes
 - **Blog & Page**: Content management
+- **ChatbotPattern, ChatbotTrigger, ChatbotFallback**: For AI chatbot functionality
+- **SupportTicket, TicketReply, TicketAttachment**: For customer support ticketing system
 
 For the complete schema, refer to the `prisma/schema.prisma` file.
 
@@ -171,6 +178,7 @@ Various UI states (modals, drawers, form states) are managed using React's useSt
   - Processing status updates
   - 3D Secure authentication support
 - **Supplier APIs**: For dropshipping integration (planned)
+- **Support System APIs**: Endpoints for managing chatbot patterns, support tickets, and FAQs.
 
 ## Progressive Web App Features
 
@@ -520,7 +528,27 @@ The application is designed to be deployed to Vercel for optimal performance wit
 1. Run the development server: `npm run dev`
 2. Access the application at http://localhost:3000
 3. Make changes to code (hot reloading enabled)
-4. Test your changes
+4. Test your changes: `npm test` (See Testing Strategy section)
+
+## Testing Strategy
+
+A comprehensive testing strategy is being implemented to ensure code quality, stability, and maintainability. The strategy includes:
+
+- **Unit Tests**: For individual functions, utilities, and components.
+  - **Framework**: Jest
+  - **Component Testing**: React Testing Library
+  - **Location**: Typically within a `__tests__` subdirectory alongside the code being tested (e.g., `src/utils/__tests__`, `src/components/ui/__tests__`).
+- **Integration Tests** (Planned): To test interactions between different parts of the application (e.g., API endpoints with database, component interactions).
+- **End-to-End (E2E) Tests** (Planned): To simulate real user scenarios across the entire application.
+
+### Running Tests
+- To run all tests: `npm test`
+- To run tests in watch mode: `npm run test:watch`
+
+### Current Status
+- Jest and React Testing Library have been set up and configured correctly.
+- Initial unit tests for utility functions (e.g., `formatCurrency`, `cn`) and UI components (e.g., `Button`) have been added and are passing successfully.
+- The existing ad-hoc test scripts (e.g., for CJ Dropshipping) will be integrated or refactored into this new testing structure over time.
 
 ## Future Improvements
 
@@ -529,6 +557,9 @@ The application is designed to be deployed to Vercel for optimal performance wit
 - Enhance admin dashboard with comprehensive metrics
 - Set up CI/CD pipeline
 - Add internationalization support
-- Implement comprehensive testing strategy
+- **Expand comprehensive testing strategy**:
+  - Increase unit test coverage across all critical modules.
+  - Implement integration tests for API routes and service layers.
+  - Develop E2E tests for key user flows (e.g., registration, checkout, admin actions).
 - Integrate with multiple payment providers
 - Enhance search functionality with autocomplete and advanced filtering

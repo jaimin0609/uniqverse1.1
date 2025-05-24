@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,92 +16,132 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+
+interface ExternalLink {
+    title: string;
+    url: string;
+}
+
+interface PageFormData {
+    title: string;
+    slug: string;
+    content: string;
+    isPublished: boolean;
+    metaTitle: string;
+    metaDesc: string;
+    externalLinks: ExternalLink[];
+}
 
 export default function CreatePagePage() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<PageFormData>({
         title: "",
         slug: "",
-        status: "draft",
         content: "",
+        isPublished: false,
         metaTitle: "",
-        metaDescription: ""
+        metaDesc: "",
+        externalLinks: [],
     });
+    const [newLinkTitle, setNewLinkTitle] = useState("");
+    const [newLinkUrl, setNewLinkUrl] = useState("");
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // Handle input changes
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-        // Auto-generate slug from title if slug is empty
-        if (name === "title" && !formData.slug) {
-            const slug = value
+    // Handle switch toggle
+    const handleSwitchChange = (checked: boolean) => {
+        setFormData((prev) => ({ ...prev, isPublished: checked }));
+    };
+
+    // Auto-generate slug from title
+    useEffect(() => {
+        if (formData.title && !formData.slug) {
+            const slug = formData.title
                 .toLowerCase()
                 .replace(/[^\w\s-]/g, "")
-                .replace(/\s+/g, "-");
+                .replace(/\s+/g, "-")
+                .replace(/--+/g, "-")
+                .trim();
+            setFormData((prev) => ({ ...prev, slug }));
+        }
+    }, [formData.title, formData.slug]);
 
-            setFormData(prev => ({
-                ...prev,
-                slug
-            }));
+    // Add external link
+    const addExternalLink = () => {
+        if (newLinkTitle && newLinkUrl) {
+            let url = newLinkUrl;
+            if (!url.startsWith("http")) {
+                url = `https://${url}`;
+            }
+
+            try {
+                // Validate URL
+                new URL(url);
+                const newLink = { title: newLinkTitle, url };
+                setFormData((prev) => ({
+                    ...prev,
+                    externalLinks: [...prev.externalLinks, newLink],
+                }));
+                setNewLinkTitle("");
+                setNewLinkUrl("");
+            } catch (e) {
+                toast.error("Please enter a valid URL");
+            }
+        } else {
+            toast.error("Both title and URL are required for external links");
         }
     };
 
-    const handleSelectChange = (name: string, value: string) => {
-        setFormData(prev => ({
+    // Remove external link
+    const removeExternalLink = (index: number) => {
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            externalLinks: prev.externalLinks.filter((_, i) => i !== index),
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // Form submission
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
-            // Validation
-            if (!formData.title.trim()) {
-                toast.error("Page title is required");
-                setIsSubmitting(false);
-                return;
+            // Basic validation
+            if (!formData.title) throw new Error("Title is required");
+            if (!formData.slug) throw new Error("Slug is required");
+            if (!formData.content || formData.content.length < 10)
+                throw new Error("Content must be at least 10 characters");
+
+            const response = await fetch("/api/admin/pages", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to create page");
             }
 
-            if (!formData.slug.trim()) {
-                toast.error("Page URL slug is required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!formData.content.trim()) {
-                toast.error("Page content is required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            // Here you would normally make an API call to create the page
-            // For now, we'll just simulate a successful creation
-
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
+            const result = await response.json();
             toast.success(`Page "${formData.title}" created successfully`);
 
             // Redirect to pages list
             router.push("/admin/content/pages");
         } catch (error) {
             console.error("Error creating page:", error);
-            toast.error("Failed to create page. Please try again.");
+            toast.error(error instanceof Error ? error.message : "Failed to create page. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -145,8 +185,10 @@ export default function CreatePagePage() {
                                         value={formData.title}
                                         onChange={handleChange}
                                         placeholder="Enter page title"
+                                        required
                                     />
                                 </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="slug">URL Slug</Label>
                                     <div className="flex items-center">
@@ -157,12 +199,14 @@ export default function CreatePagePage() {
                                             value={formData.slug}
                                             onChange={handleChange}
                                             placeholder="page-url-slug"
+                                            required
                                         />
                                     </div>
                                     <p className="text-sm text-gray-500">
                                         The URL-friendly version of the name. This will form the URL of the page.
                                     </p>
                                 </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="content">Content</Label>
                                     <Textarea
@@ -172,6 +216,7 @@ export default function CreatePagePage() {
                                         onChange={handleChange}
                                         placeholder="Enter page content"
                                         className="min-h-[300px] font-mono"
+                                        required
                                     />
                                     <p className="text-sm text-gray-500">
                                         You can use HTML tags for formatting
@@ -191,23 +236,18 @@ export default function CreatePagePage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="status">Status</Label>
-                                    <Select
-                                        value={formData.status}
-                                        onValueChange={(value) => handleSelectChange("status", value)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="draft">Draft</SelectItem>
-                                            <SelectItem value="published">Published</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-sm text-gray-500">
-                                        Draft pages are not visible to the public
-                                    </p>
+                                <div className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="isPublished">Published</Label>
+                                        <p className="text-sm text-gray-500">
+                                            Make this page visible to the public
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="isPublished"
+                                        checked={formData.isPublished}
+                                        onCheckedChange={handleSwitchChange}
+                                    />
                                 </div>
                             </CardContent>
                             <CardFooter>
@@ -217,7 +257,10 @@ export default function CreatePagePage() {
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? (
-                                        <>Saving...</>
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Saving...
+                                        </>
                                     ) : (
                                         <>
                                             <Save className="h-4 w-4 mr-2" />
@@ -249,12 +292,13 @@ export default function CreatePagePage() {
                                         Defaults to the page title if left empty
                                     </p>
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label htmlFor="metaDescription">Meta Description</Label>
+                                    <Label htmlFor="metaDesc">Meta Description</Label>
                                     <Textarea
-                                        id="metaDescription"
-                                        name="metaDescription"
-                                        value={formData.metaDescription}
+                                        id="metaDesc"
+                                        name="metaDesc"
+                                        value={formData.metaDesc}
                                         onChange={handleChange}
                                         placeholder="Brief description for search results"
                                         className="h-20"
@@ -265,9 +309,73 @@ export default function CreatePagePage() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>External Links</CardTitle>
+                                <CardDescription>
+                                    Add related external links to this page
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkTitle">Link Title</Label>
+                                    <Input
+                                        id="linkTitle"
+                                        value={newLinkTitle}
+                                        onChange={(e) => setNewLinkTitle(e.target.value)}
+                                        placeholder="Enter link title"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkUrl">Link URL</Label>
+                                    <Input
+                                        id="linkUrl"
+                                        value={newLinkUrl}
+                                        onChange={(e) => setNewLinkUrl(e.target.value)}
+                                        placeholder="https://example.com"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={addExternalLink}
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Link
+                                </Button>
+
+                                {formData.externalLinks.length > 0 && (
+                                    <div className="mt-4 space-y-3">
+                                        <Label>Added Links</Label>
+                                        {formData.externalLinks.map((link, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between p-2 border rounded-md"
+                                            >
+                                                <div className="truncate mr-2">
+                                                    <div className="font-medium">{link.title}</div>
+                                                    <div className="text-sm text-gray-500 truncate">{link.url}</div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => removeExternalLink(index)}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </form>
         </div>
     );
 }
+

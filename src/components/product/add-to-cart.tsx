@@ -6,6 +6,7 @@ import { v4 as uuid } from "uuid";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, type CartItem } from "@/store/cart";
+import { ClientPrice } from "@/components/ui/client-price";
 
 interface ProductVariant {
     id: string;
@@ -99,15 +100,16 @@ export function AddToCart({
                                 key={variant.id}
                                 onClick={() => handleVariantChange(variant.id)}
                                 className={`p-2 border rounded-md text-sm ${selectedVariantId === variant.id
-                                        ? "border-blue-500 bg-blue-50"
-                                        : "border-gray-300 hover:border-gray-400"
+                                    ? "border-blue-500 bg-blue-50"
+                                    : "border-gray-300 hover:border-gray-400"
                                     }`}
                                 type="button"
-                            >
-                                <span className="block font-medium truncate">
+                            >                                <span className="block font-medium truncate">
                                     {variant.name || "Default"}
                                 </span>
-                                <span className="block text-gray-500">${variant.price.toFixed(2)}</span>
+                                <span className="block text-gray-500">
+                                    <ClientPrice amount={variant.price} />
+                                </span>
                             </button>
                         ))}
                     </div>

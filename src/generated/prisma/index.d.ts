@@ -218,6 +218,11 @@ export type Coupon = $Result.DefaultSelection<Prisma.$CouponPayload>
  * 
  */
 export type CouponUsage = $Result.DefaultSelection<Prisma.$CouponUsagePayload>
+/**
+ * Model DropshippingSettings
+ * 
+ */
+export type DropshippingSettings = $Result.DefaultSelection<Prisma.$DropshippingSettingsPayload>
 
 /**
  * Enums
@@ -956,6 +961,16 @@ export class PrismaClient<
     * ```
     */
   get couponUsage(): Prisma.CouponUsageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.dropshippingSettings`: Exposes CRUD operations for the **DropshippingSettings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DropshippingSettings
+    * const dropshippingSettings = await prisma.dropshippingSettings.findMany()
+    * ```
+    */
+  get dropshippingSettings(): Prisma.DropshippingSettingsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1436,7 +1451,8 @@ export namespace Prisma {
     Promotion: 'Promotion',
     Event: 'Event',
     Coupon: 'Coupon',
-    CouponUsage: 'CouponUsage'
+    CouponUsage: 'CouponUsage',
+    DropshippingSettings: 'DropshippingSettings'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1455,7 +1471,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "product" | "productImage" | "productVariant" | "category" | "supplier" | "order" | "orderItem" | "address" | "review" | "adminAuditLog" | "blogCategory" | "blogPost" | "cart" | "cartItem" | "homepageSection" | "inventoryHistory" | "inventorySettings" | "media" | "page" | "pageMetric" | "pageSection" | "performanceMetric" | "pricingRule" | "resourceMetric" | "siteSettings" | "supplierOrder" | "userSecuritySettings" | "chatbotPattern" | "chatbotTrigger" | "chatbotFallback" | "supportTicket" | "ticketReply" | "ticketAttachment" | "promotion" | "event" | "coupon" | "couponUsage"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "product" | "productImage" | "productVariant" | "category" | "supplier" | "order" | "orderItem" | "address" | "review" | "adminAuditLog" | "blogCategory" | "blogPost" | "cart" | "cartItem" | "homepageSection" | "inventoryHistory" | "inventorySettings" | "media" | "page" | "pageMetric" | "pageSection" | "performanceMetric" | "pricingRule" | "resourceMetric" | "siteSettings" | "supplierOrder" | "userSecuritySettings" | "chatbotPattern" | "chatbotTrigger" | "chatbotFallback" | "supportTicket" | "ticketReply" | "ticketAttachment" | "promotion" | "event" | "coupon" | "couponUsage" | "dropshippingSettings"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4493,6 +4509,80 @@ export namespace Prisma {
           }
         }
       }
+      DropshippingSettings: {
+        payload: Prisma.$DropshippingSettingsPayload<ExtArgs>
+        fields: Prisma.DropshippingSettingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DropshippingSettingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DropshippingSettingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          findFirst: {
+            args: Prisma.DropshippingSettingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DropshippingSettingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          findMany: {
+            args: Prisma.DropshippingSettingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>[]
+          }
+          create: {
+            args: Prisma.DropshippingSettingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          createMany: {
+            args: Prisma.DropshippingSettingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DropshippingSettingsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>[]
+          }
+          delete: {
+            args: Prisma.DropshippingSettingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          update: {
+            args: Prisma.DropshippingSettingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.DropshippingSettingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DropshippingSettingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DropshippingSettingsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>[]
+          }
+          upsert: {
+            args: Prisma.DropshippingSettingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DropshippingSettingsPayload>
+          }
+          aggregate: {
+            args: Prisma.DropshippingSettingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDropshippingSettings>
+          }
+          groupBy: {
+            args: Prisma.DropshippingSettingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DropshippingSettingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DropshippingSettingsCountArgs<ExtArgs>
+            result: $Utils.Optional<DropshippingSettingsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4618,6 +4708,7 @@ export namespace Prisma {
     event?: EventOmit
     coupon?: CouponOmit
     couponUsage?: CouponUsageOmit
+    dropshippingSettings?: DropshippingSettingsOmit
   }
 
   /* Types for Logging */
@@ -5091,12 +5182,14 @@ export namespace Prisma {
     PricingRule: number
     products: number
     SupplierOrder: number
+    DropshippingSettings: number
   }
 
   export type SupplierCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     PricingRule?: boolean | SupplierCountOutputTypeCountPricingRuleArgs
     products?: boolean | SupplierCountOutputTypeCountProductsArgs
     SupplierOrder?: boolean | SupplierCountOutputTypeCountSupplierOrderArgs
+    DropshippingSettings?: boolean | SupplierCountOutputTypeCountDropshippingSettingsArgs
   }
 
   // Custom InputTypes
@@ -5129,6 +5222,13 @@ export namespace Prisma {
    */
   export type SupplierCountOutputTypeCountSupplierOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SupplierOrderWhereInput
+  }
+
+  /**
+   * SupplierCountOutputType without action
+   */
+  export type SupplierCountOutputTypeCountDropshippingSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DropshippingSettingsWhereInput
   }
 
 
@@ -15987,6 +16087,7 @@ export namespace Prisma {
     PricingRule?: boolean | Supplier$PricingRuleArgs<ExtArgs>
     products?: boolean | Supplier$productsArgs<ExtArgs>
     SupplierOrder?: boolean | Supplier$SupplierOrderArgs<ExtArgs>
+    DropshippingSettings?: boolean | Supplier$DropshippingSettingsArgs<ExtArgs>
     _count?: boolean | SupplierCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["supplier"]>
 
@@ -16040,6 +16141,7 @@ export namespace Prisma {
     PricingRule?: boolean | Supplier$PricingRuleArgs<ExtArgs>
     products?: boolean | Supplier$productsArgs<ExtArgs>
     SupplierOrder?: boolean | Supplier$SupplierOrderArgs<ExtArgs>
+    DropshippingSettings?: boolean | Supplier$DropshippingSettingsArgs<ExtArgs>
     _count?: boolean | SupplierCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type SupplierIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -16051,6 +16153,7 @@ export namespace Prisma {
       PricingRule: Prisma.$PricingRulePayload<ExtArgs>[]
       products: Prisma.$ProductPayload<ExtArgs>[]
       SupplierOrder: Prisma.$SupplierOrderPayload<ExtArgs>[]
+      DropshippingSettings: Prisma.$DropshippingSettingsPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -16462,6 +16565,7 @@ export namespace Prisma {
     PricingRule<T extends Supplier$PricingRuleArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$PricingRuleArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PricingRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     products<T extends Supplier$productsArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$productsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     SupplierOrder<T extends Supplier$SupplierOrderArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$SupplierOrderArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    DropshippingSettings<T extends Supplier$DropshippingSettingsArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$DropshippingSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -16960,6 +17064,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: SupplierOrderScalarFieldEnum | SupplierOrderScalarFieldEnum[]
+  }
+
+  /**
+   * Supplier.DropshippingSettings
+   */
+  export type Supplier$DropshippingSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    where?: DropshippingSettingsWhereInput
+    orderBy?: DropshippingSettingsOrderByWithRelationInput | DropshippingSettingsOrderByWithRelationInput[]
+    cursor?: DropshippingSettingsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DropshippingSettingsScalarFieldEnum | DropshippingSettingsScalarFieldEnum[]
   }
 
   /**
@@ -24296,6 +24424,7 @@ export namespace Prisma {
     metaTitle: string | null
     metaDesc: string | null
     tags: string | null
+    isAdEnabled: boolean | null
   }
 
   export type BlogPostMaxAggregateOutputType = {
@@ -24313,6 +24442,7 @@ export namespace Prisma {
     metaTitle: string | null
     metaDesc: string | null
     tags: string | null
+    isAdEnabled: boolean | null
   }
 
   export type BlogPostCountAggregateOutputType = {
@@ -24330,6 +24460,8 @@ export namespace Prisma {
     metaTitle: number
     metaDesc: number
     tags: number
+    isAdEnabled: number
+    externalLinks: number
     _all: number
   }
 
@@ -24349,6 +24481,7 @@ export namespace Prisma {
     metaTitle?: true
     metaDesc?: true
     tags?: true
+    isAdEnabled?: true
   }
 
   export type BlogPostMaxAggregateInputType = {
@@ -24366,6 +24499,7 @@ export namespace Prisma {
     metaTitle?: true
     metaDesc?: true
     tags?: true
+    isAdEnabled?: true
   }
 
   export type BlogPostCountAggregateInputType = {
@@ -24383,6 +24517,8 @@ export namespace Prisma {
     metaTitle?: true
     metaDesc?: true
     tags?: true
+    isAdEnabled?: true
+    externalLinks?: true
     _all?: true
   }
 
@@ -24473,6 +24609,8 @@ export namespace Prisma {
     metaTitle: string | null
     metaDesc: string | null
     tags: string | null
+    isAdEnabled: boolean
+    externalLinks: JsonValue | null
     _count: BlogPostCountAggregateOutputType | null
     _min: BlogPostMinAggregateOutputType | null
     _max: BlogPostMaxAggregateOutputType | null
@@ -24507,6 +24645,8 @@ export namespace Prisma {
     metaTitle?: boolean
     metaDesc?: boolean
     tags?: boolean
+    isAdEnabled?: boolean
+    externalLinks?: boolean
     User?: boolean | UserDefaultArgs<ExtArgs>
     BlogCategory?: boolean | BlogPost$BlogCategoryArgs<ExtArgs>
     _count?: boolean | BlogPostCountOutputTypeDefaultArgs<ExtArgs>
@@ -24527,6 +24667,8 @@ export namespace Prisma {
     metaTitle?: boolean
     metaDesc?: boolean
     tags?: boolean
+    isAdEnabled?: boolean
+    externalLinks?: boolean
     User?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["blogPost"]>
 
@@ -24545,6 +24687,8 @@ export namespace Prisma {
     metaTitle?: boolean
     metaDesc?: boolean
     tags?: boolean
+    isAdEnabled?: boolean
+    externalLinks?: boolean
     User?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["blogPost"]>
 
@@ -24563,9 +24707,11 @@ export namespace Prisma {
     metaTitle?: boolean
     metaDesc?: boolean
     tags?: boolean
+    isAdEnabled?: boolean
+    externalLinks?: boolean
   }
 
-  export type BlogPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "excerpt" | "content" | "coverImage" | "isPublished" | "publishedAt" | "authorId" | "createdAt" | "updatedAt" | "metaTitle" | "metaDesc" | "tags", ExtArgs["result"]["blogPost"]>
+  export type BlogPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "excerpt" | "content" | "coverImage" | "isPublished" | "publishedAt" | "authorId" | "createdAt" | "updatedAt" | "metaTitle" | "metaDesc" | "tags" | "isAdEnabled" | "externalLinks", ExtArgs["result"]["blogPost"]>
   export type BlogPostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     User?: boolean | UserDefaultArgs<ExtArgs>
     BlogCategory?: boolean | BlogPost$BlogCategoryArgs<ExtArgs>
@@ -24599,6 +24745,8 @@ export namespace Prisma {
       metaTitle: string | null
       metaDesc: string | null
       tags: string | null
+      isAdEnabled: boolean
+      externalLinks: Prisma.JsonValue | null
     }, ExtArgs["result"]["blogPost"]>
     composites: {}
   }
@@ -25038,6 +25186,8 @@ export namespace Prisma {
     readonly metaTitle: FieldRef<"BlogPost", 'String'>
     readonly metaDesc: FieldRef<"BlogPost", 'String'>
     readonly tags: FieldRef<"BlogPost", 'String'>
+    readonly isAdEnabled: FieldRef<"BlogPost", 'Boolean'>
+    readonly externalLinks: FieldRef<"BlogPost", 'Json'>
   }
     
 
@@ -54095,6 +54245,1229 @@ export namespace Prisma {
 
 
   /**
+   * Model DropshippingSettings
+   */
+
+  export type AggregateDropshippingSettings = {
+    _count: DropshippingSettingsCountAggregateOutputType | null
+    _avg: DropshippingSettingsAvgAggregateOutputType | null
+    _sum: DropshippingSettingsSumAggregateOutputType | null
+    _min: DropshippingSettingsMinAggregateOutputType | null
+    _max: DropshippingSettingsMaxAggregateOutputType | null
+  }
+
+  export type DropshippingSettingsAvgAggregateOutputType = {
+    statusCheckInterval: number | null
+    defaultShippingDays: number | null
+    profitMargin: number | null
+  }
+
+  export type DropshippingSettingsSumAggregateOutputType = {
+    statusCheckInterval: number | null
+    defaultShippingDays: number | null
+    profitMargin: number | null
+  }
+
+  export type DropshippingSettingsMinAggregateOutputType = {
+    id: string | null
+    autoProcess: boolean | null
+    autoSendOrders: boolean | null
+    statusCheckInterval: number | null
+    defaultShippingDays: number | null
+    notificationEmail: string | null
+    profitMargin: number | null
+    automaticFulfillment: boolean | null
+    notifyCustomerOnShipment: boolean | null
+    defaultSupplier: string | null
+    supplierNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DropshippingSettingsMaxAggregateOutputType = {
+    id: string | null
+    autoProcess: boolean | null
+    autoSendOrders: boolean | null
+    statusCheckInterval: number | null
+    defaultShippingDays: number | null
+    notificationEmail: string | null
+    profitMargin: number | null
+    automaticFulfillment: boolean | null
+    notifyCustomerOnShipment: boolean | null
+    defaultSupplier: string | null
+    supplierNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DropshippingSettingsCountAggregateOutputType = {
+    id: number
+    autoProcess: number
+    autoSendOrders: number
+    statusCheckInterval: number
+    defaultShippingDays: number
+    notificationEmail: number
+    profitMargin: number
+    automaticFulfillment: number
+    notifyCustomerOnShipment: number
+    defaultSupplier: number
+    supplierNotes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DropshippingSettingsAvgAggregateInputType = {
+    statusCheckInterval?: true
+    defaultShippingDays?: true
+    profitMargin?: true
+  }
+
+  export type DropshippingSettingsSumAggregateInputType = {
+    statusCheckInterval?: true
+    defaultShippingDays?: true
+    profitMargin?: true
+  }
+
+  export type DropshippingSettingsMinAggregateInputType = {
+    id?: true
+    autoProcess?: true
+    autoSendOrders?: true
+    statusCheckInterval?: true
+    defaultShippingDays?: true
+    notificationEmail?: true
+    profitMargin?: true
+    automaticFulfillment?: true
+    notifyCustomerOnShipment?: true
+    defaultSupplier?: true
+    supplierNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DropshippingSettingsMaxAggregateInputType = {
+    id?: true
+    autoProcess?: true
+    autoSendOrders?: true
+    statusCheckInterval?: true
+    defaultShippingDays?: true
+    notificationEmail?: true
+    profitMargin?: true
+    automaticFulfillment?: true
+    notifyCustomerOnShipment?: true
+    defaultSupplier?: true
+    supplierNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DropshippingSettingsCountAggregateInputType = {
+    id?: true
+    autoProcess?: true
+    autoSendOrders?: true
+    statusCheckInterval?: true
+    defaultShippingDays?: true
+    notificationEmail?: true
+    profitMargin?: true
+    automaticFulfillment?: true
+    notifyCustomerOnShipment?: true
+    defaultSupplier?: true
+    supplierNotes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DropshippingSettingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DropshippingSettings to aggregate.
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DropshippingSettings to fetch.
+     */
+    orderBy?: DropshippingSettingsOrderByWithRelationInput | DropshippingSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DropshippingSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DropshippingSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DropshippingSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DropshippingSettings
+    **/
+    _count?: true | DropshippingSettingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DropshippingSettingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DropshippingSettingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DropshippingSettingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DropshippingSettingsMaxAggregateInputType
+  }
+
+  export type GetDropshippingSettingsAggregateType<T extends DropshippingSettingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateDropshippingSettings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDropshippingSettings[P]>
+      : GetScalarType<T[P], AggregateDropshippingSettings[P]>
+  }
+
+
+
+
+  export type DropshippingSettingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DropshippingSettingsWhereInput
+    orderBy?: DropshippingSettingsOrderByWithAggregationInput | DropshippingSettingsOrderByWithAggregationInput[]
+    by: DropshippingSettingsScalarFieldEnum[] | DropshippingSettingsScalarFieldEnum
+    having?: DropshippingSettingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DropshippingSettingsCountAggregateInputType | true
+    _avg?: DropshippingSettingsAvgAggregateInputType
+    _sum?: DropshippingSettingsSumAggregateInputType
+    _min?: DropshippingSettingsMinAggregateInputType
+    _max?: DropshippingSettingsMaxAggregateInputType
+  }
+
+  export type DropshippingSettingsGroupByOutputType = {
+    id: string
+    autoProcess: boolean
+    autoSendOrders: boolean
+    statusCheckInterval: number
+    defaultShippingDays: number
+    notificationEmail: string | null
+    profitMargin: number
+    automaticFulfillment: boolean
+    notifyCustomerOnShipment: boolean
+    defaultSupplier: string | null
+    supplierNotes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DropshippingSettingsCountAggregateOutputType | null
+    _avg: DropshippingSettingsAvgAggregateOutputType | null
+    _sum: DropshippingSettingsSumAggregateOutputType | null
+    _min: DropshippingSettingsMinAggregateOutputType | null
+    _max: DropshippingSettingsMaxAggregateOutputType | null
+  }
+
+  type GetDropshippingSettingsGroupByPayload<T extends DropshippingSettingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DropshippingSettingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DropshippingSettingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DropshippingSettingsGroupByOutputType[P]>
+            : GetScalarType<T[P], DropshippingSettingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DropshippingSettingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: boolean
+    defaultShippingDays?: boolean
+    notificationEmail?: boolean
+    profitMargin?: boolean
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: boolean
+    supplierNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }, ExtArgs["result"]["dropshippingSettings"]>
+
+  export type DropshippingSettingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: boolean
+    defaultShippingDays?: boolean
+    notificationEmail?: boolean
+    profitMargin?: boolean
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: boolean
+    supplierNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }, ExtArgs["result"]["dropshippingSettings"]>
+
+  export type DropshippingSettingsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: boolean
+    defaultShippingDays?: boolean
+    notificationEmail?: boolean
+    profitMargin?: boolean
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: boolean
+    supplierNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }, ExtArgs["result"]["dropshippingSettings"]>
+
+  export type DropshippingSettingsSelectScalar = {
+    id?: boolean
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: boolean
+    defaultShippingDays?: boolean
+    notificationEmail?: boolean
+    profitMargin?: boolean
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: boolean
+    supplierNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DropshippingSettingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "autoProcess" | "autoSendOrders" | "statusCheckInterval" | "defaultShippingDays" | "notificationEmail" | "profitMargin" | "automaticFulfillment" | "notifyCustomerOnShipment" | "defaultSupplier" | "supplierNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["dropshippingSettings"]>
+  export type DropshippingSettingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }
+  export type DropshippingSettingsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }
+  export type DropshippingSettingsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | DropshippingSettings$supplierArgs<ExtArgs>
+  }
+
+  export type $DropshippingSettingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DropshippingSettings"
+    objects: {
+      supplier: Prisma.$SupplierPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      autoProcess: boolean
+      autoSendOrders: boolean
+      statusCheckInterval: number
+      defaultShippingDays: number
+      notificationEmail: string | null
+      profitMargin: number
+      automaticFulfillment: boolean
+      notifyCustomerOnShipment: boolean
+      defaultSupplier: string | null
+      supplierNotes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["dropshippingSettings"]>
+    composites: {}
+  }
+
+  type DropshippingSettingsGetPayload<S extends boolean | null | undefined | DropshippingSettingsDefaultArgs> = $Result.GetResult<Prisma.$DropshippingSettingsPayload, S>
+
+  type DropshippingSettingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DropshippingSettingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DropshippingSettingsCountAggregateInputType | true
+    }
+
+  export interface DropshippingSettingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DropshippingSettings'], meta: { name: 'DropshippingSettings' } }
+    /**
+     * Find zero or one DropshippingSettings that matches the filter.
+     * @param {DropshippingSettingsFindUniqueArgs} args - Arguments to find a DropshippingSettings
+     * @example
+     * // Get one DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DropshippingSettingsFindUniqueArgs>(args: SelectSubset<T, DropshippingSettingsFindUniqueArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DropshippingSettings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DropshippingSettingsFindUniqueOrThrowArgs} args - Arguments to find a DropshippingSettings
+     * @example
+     * // Get one DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DropshippingSettingsFindUniqueOrThrowArgs>(args: SelectSubset<T, DropshippingSettingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DropshippingSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsFindFirstArgs} args - Arguments to find a DropshippingSettings
+     * @example
+     * // Get one DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DropshippingSettingsFindFirstArgs>(args?: SelectSubset<T, DropshippingSettingsFindFirstArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DropshippingSettings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsFindFirstOrThrowArgs} args - Arguments to find a DropshippingSettings
+     * @example
+     * // Get one DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DropshippingSettingsFindFirstOrThrowArgs>(args?: SelectSubset<T, DropshippingSettingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DropshippingSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findMany()
+     * 
+     * // Get first 10 DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const dropshippingSettingsWithIdOnly = await prisma.dropshippingSettings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DropshippingSettingsFindManyArgs>(args?: SelectSubset<T, DropshippingSettingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DropshippingSettings.
+     * @param {DropshippingSettingsCreateArgs} args - Arguments to create a DropshippingSettings.
+     * @example
+     * // Create one DropshippingSettings
+     * const DropshippingSettings = await prisma.dropshippingSettings.create({
+     *   data: {
+     *     // ... data to create a DropshippingSettings
+     *   }
+     * })
+     * 
+     */
+    create<T extends DropshippingSettingsCreateArgs>(args: SelectSubset<T, DropshippingSettingsCreateArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DropshippingSettings.
+     * @param {DropshippingSettingsCreateManyArgs} args - Arguments to create many DropshippingSettings.
+     * @example
+     * // Create many DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DropshippingSettingsCreateManyArgs>(args?: SelectSubset<T, DropshippingSettingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DropshippingSettings and returns the data saved in the database.
+     * @param {DropshippingSettingsCreateManyAndReturnArgs} args - Arguments to create many DropshippingSettings.
+     * @example
+     * // Create many DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DropshippingSettings and only return the `id`
+     * const dropshippingSettingsWithIdOnly = await prisma.dropshippingSettings.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DropshippingSettingsCreateManyAndReturnArgs>(args?: SelectSubset<T, DropshippingSettingsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DropshippingSettings.
+     * @param {DropshippingSettingsDeleteArgs} args - Arguments to delete one DropshippingSettings.
+     * @example
+     * // Delete one DropshippingSettings
+     * const DropshippingSettings = await prisma.dropshippingSettings.delete({
+     *   where: {
+     *     // ... filter to delete one DropshippingSettings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DropshippingSettingsDeleteArgs>(args: SelectSubset<T, DropshippingSettingsDeleteArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DropshippingSettings.
+     * @param {DropshippingSettingsUpdateArgs} args - Arguments to update one DropshippingSettings.
+     * @example
+     * // Update one DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DropshippingSettingsUpdateArgs>(args: SelectSubset<T, DropshippingSettingsUpdateArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DropshippingSettings.
+     * @param {DropshippingSettingsDeleteManyArgs} args - Arguments to filter DropshippingSettings to delete.
+     * @example
+     * // Delete a few DropshippingSettings
+     * const { count } = await prisma.dropshippingSettings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DropshippingSettingsDeleteManyArgs>(args?: SelectSubset<T, DropshippingSettingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DropshippingSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DropshippingSettingsUpdateManyArgs>(args: SelectSubset<T, DropshippingSettingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DropshippingSettings and returns the data updated in the database.
+     * @param {DropshippingSettingsUpdateManyAndReturnArgs} args - Arguments to update many DropshippingSettings.
+     * @example
+     * // Update many DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DropshippingSettings and only return the `id`
+     * const dropshippingSettingsWithIdOnly = await prisma.dropshippingSettings.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DropshippingSettingsUpdateManyAndReturnArgs>(args: SelectSubset<T, DropshippingSettingsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DropshippingSettings.
+     * @param {DropshippingSettingsUpsertArgs} args - Arguments to update or create a DropshippingSettings.
+     * @example
+     * // Update or create a DropshippingSettings
+     * const dropshippingSettings = await prisma.dropshippingSettings.upsert({
+     *   create: {
+     *     // ... data to create a DropshippingSettings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DropshippingSettings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DropshippingSettingsUpsertArgs>(args: SelectSubset<T, DropshippingSettingsUpsertArgs<ExtArgs>>): Prisma__DropshippingSettingsClient<$Result.GetResult<Prisma.$DropshippingSettingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DropshippingSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsCountArgs} args - Arguments to filter DropshippingSettings to count.
+     * @example
+     * // Count the number of DropshippingSettings
+     * const count = await prisma.dropshippingSettings.count({
+     *   where: {
+     *     // ... the filter for the DropshippingSettings we want to count
+     *   }
+     * })
+    **/
+    count<T extends DropshippingSettingsCountArgs>(
+      args?: Subset<T, DropshippingSettingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DropshippingSettingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DropshippingSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DropshippingSettingsAggregateArgs>(args: Subset<T, DropshippingSettingsAggregateArgs>): Prisma.PrismaPromise<GetDropshippingSettingsAggregateType<T>>
+
+    /**
+     * Group by DropshippingSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DropshippingSettingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DropshippingSettingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DropshippingSettingsGroupByArgs['orderBy'] }
+        : { orderBy?: DropshippingSettingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DropshippingSettingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDropshippingSettingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DropshippingSettings model
+   */
+  readonly fields: DropshippingSettingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DropshippingSettings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DropshippingSettingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    supplier<T extends DropshippingSettings$supplierArgs<ExtArgs> = {}>(args?: Subset<T, DropshippingSettings$supplierArgs<ExtArgs>>): Prisma__SupplierClient<$Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DropshippingSettings model
+   */
+  interface DropshippingSettingsFieldRefs {
+    readonly id: FieldRef<"DropshippingSettings", 'String'>
+    readonly autoProcess: FieldRef<"DropshippingSettings", 'Boolean'>
+    readonly autoSendOrders: FieldRef<"DropshippingSettings", 'Boolean'>
+    readonly statusCheckInterval: FieldRef<"DropshippingSettings", 'Int'>
+    readonly defaultShippingDays: FieldRef<"DropshippingSettings", 'Int'>
+    readonly notificationEmail: FieldRef<"DropshippingSettings", 'String'>
+    readonly profitMargin: FieldRef<"DropshippingSettings", 'Int'>
+    readonly automaticFulfillment: FieldRef<"DropshippingSettings", 'Boolean'>
+    readonly notifyCustomerOnShipment: FieldRef<"DropshippingSettings", 'Boolean'>
+    readonly defaultSupplier: FieldRef<"DropshippingSettings", 'String'>
+    readonly supplierNotes: FieldRef<"DropshippingSettings", 'String'>
+    readonly createdAt: FieldRef<"DropshippingSettings", 'DateTime'>
+    readonly updatedAt: FieldRef<"DropshippingSettings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DropshippingSettings findUnique
+   */
+  export type DropshippingSettingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which DropshippingSettings to fetch.
+     */
+    where: DropshippingSettingsWhereUniqueInput
+  }
+
+  /**
+   * DropshippingSettings findUniqueOrThrow
+   */
+  export type DropshippingSettingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which DropshippingSettings to fetch.
+     */
+    where: DropshippingSettingsWhereUniqueInput
+  }
+
+  /**
+   * DropshippingSettings findFirst
+   */
+  export type DropshippingSettingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which DropshippingSettings to fetch.
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DropshippingSettings to fetch.
+     */
+    orderBy?: DropshippingSettingsOrderByWithRelationInput | DropshippingSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DropshippingSettings.
+     */
+    cursor?: DropshippingSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DropshippingSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DropshippingSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DropshippingSettings.
+     */
+    distinct?: DropshippingSettingsScalarFieldEnum | DropshippingSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * DropshippingSettings findFirstOrThrow
+   */
+  export type DropshippingSettingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which DropshippingSettings to fetch.
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DropshippingSettings to fetch.
+     */
+    orderBy?: DropshippingSettingsOrderByWithRelationInput | DropshippingSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DropshippingSettings.
+     */
+    cursor?: DropshippingSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DropshippingSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DropshippingSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DropshippingSettings.
+     */
+    distinct?: DropshippingSettingsScalarFieldEnum | DropshippingSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * DropshippingSettings findMany
+   */
+  export type DropshippingSettingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which DropshippingSettings to fetch.
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DropshippingSettings to fetch.
+     */
+    orderBy?: DropshippingSettingsOrderByWithRelationInput | DropshippingSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DropshippingSettings.
+     */
+    cursor?: DropshippingSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DropshippingSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DropshippingSettings.
+     */
+    skip?: number
+    distinct?: DropshippingSettingsScalarFieldEnum | DropshippingSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * DropshippingSettings create
+   */
+  export type DropshippingSettingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DropshippingSettings.
+     */
+    data: XOR<DropshippingSettingsCreateInput, DropshippingSettingsUncheckedCreateInput>
+  }
+
+  /**
+   * DropshippingSettings createMany
+   */
+  export type DropshippingSettingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DropshippingSettings.
+     */
+    data: DropshippingSettingsCreateManyInput | DropshippingSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DropshippingSettings createManyAndReturn
+   */
+  export type DropshippingSettingsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * The data used to create many DropshippingSettings.
+     */
+    data: DropshippingSettingsCreateManyInput | DropshippingSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DropshippingSettings update
+   */
+  export type DropshippingSettingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DropshippingSettings.
+     */
+    data: XOR<DropshippingSettingsUpdateInput, DropshippingSettingsUncheckedUpdateInput>
+    /**
+     * Choose, which DropshippingSettings to update.
+     */
+    where: DropshippingSettingsWhereUniqueInput
+  }
+
+  /**
+   * DropshippingSettings updateMany
+   */
+  export type DropshippingSettingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DropshippingSettings.
+     */
+    data: XOR<DropshippingSettingsUpdateManyMutationInput, DropshippingSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which DropshippingSettings to update
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * Limit how many DropshippingSettings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DropshippingSettings updateManyAndReturn
+   */
+  export type DropshippingSettingsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * The data used to update DropshippingSettings.
+     */
+    data: XOR<DropshippingSettingsUpdateManyMutationInput, DropshippingSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which DropshippingSettings to update
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * Limit how many DropshippingSettings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DropshippingSettings upsert
+   */
+  export type DropshippingSettingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DropshippingSettings to update in case it exists.
+     */
+    where: DropshippingSettingsWhereUniqueInput
+    /**
+     * In case the DropshippingSettings found by the `where` argument doesn't exist, create a new DropshippingSettings with this data.
+     */
+    create: XOR<DropshippingSettingsCreateInput, DropshippingSettingsUncheckedCreateInput>
+    /**
+     * In case the DropshippingSettings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DropshippingSettingsUpdateInput, DropshippingSettingsUncheckedUpdateInput>
+  }
+
+  /**
+   * DropshippingSettings delete
+   */
+  export type DropshippingSettingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+    /**
+     * Filter which DropshippingSettings to delete.
+     */
+    where: DropshippingSettingsWhereUniqueInput
+  }
+
+  /**
+   * DropshippingSettings deleteMany
+   */
+  export type DropshippingSettingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DropshippingSettings to delete
+     */
+    where?: DropshippingSettingsWhereInput
+    /**
+     * Limit how many DropshippingSettings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DropshippingSettings.supplier
+   */
+  export type DropshippingSettings$supplierArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Supplier
+     */
+    select?: SupplierSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Supplier
+     */
+    omit?: SupplierOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierInclude<ExtArgs> | null
+    where?: SupplierWhereInput
+  }
+
+  /**
+   * DropshippingSettings without action
+   */
+  export type DropshippingSettingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DropshippingSettings
+     */
+    select?: DropshippingSettingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DropshippingSettings
+     */
+    omit?: DropshippingSettingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DropshippingSettingsInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -54388,7 +55761,9 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     metaTitle: 'metaTitle',
     metaDesc: 'metaDesc',
-    tags: 'tags'
+    tags: 'tags',
+    isAdEnabled: 'isAdEnabled',
+    externalLinks: 'externalLinks'
   };
 
   export type BlogPostScalarFieldEnum = (typeof BlogPostScalarFieldEnum)[keyof typeof BlogPostScalarFieldEnum]
@@ -54790,6 +56165,25 @@ export namespace Prisma {
   export type CouponUsageScalarFieldEnum = (typeof CouponUsageScalarFieldEnum)[keyof typeof CouponUsageScalarFieldEnum]
 
 
+  export const DropshippingSettingsScalarFieldEnum: {
+    id: 'id',
+    autoProcess: 'autoProcess',
+    autoSendOrders: 'autoSendOrders',
+    statusCheckInterval: 'statusCheckInterval',
+    defaultShippingDays: 'defaultShippingDays',
+    notificationEmail: 'notificationEmail',
+    profitMargin: 'profitMargin',
+    automaticFulfillment: 'automaticFulfillment',
+    notifyCustomerOnShipment: 'notifyCustomerOnShipment',
+    defaultSupplier: 'defaultSupplier',
+    supplierNotes: 'supplierNotes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DropshippingSettingsScalarFieldEnum = (typeof DropshippingSettingsScalarFieldEnum)[keyof typeof DropshippingSettingsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -54998,20 +56392,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'PageLayout'
-   */
-  export type EnumPageLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageLayout'>
-    
-
-
-  /**
-   * Reference to a field of type 'PageLayout[]'
-   */
-  export type ListEnumPageLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageLayout[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -55022,6 +56402,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'PageLayout'
+   */
+  export type EnumPageLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageLayout'>
+    
+
+
+  /**
+   * Reference to a field of type 'PageLayout[]'
+   */
+  export type ListEnumPageLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageLayout[]'>
     
 
 
@@ -55918,6 +57312,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleListRelationFilter
     products?: ProductListRelationFilter
     SupplierOrder?: SupplierOrderListRelationFilter
+    DropshippingSettings?: DropshippingSettingsListRelationFilter
   }
 
   export type SupplierOrderByWithRelationInput = {
@@ -55936,6 +57331,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleOrderByRelationAggregateInput
     products?: ProductOrderByRelationAggregateInput
     SupplierOrder?: SupplierOrderOrderByRelationAggregateInput
+    DropshippingSettings?: DropshippingSettingsOrderByRelationAggregateInput
   }
 
   export type SupplierWhereUniqueInput = Prisma.AtLeast<{
@@ -55957,6 +57353,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleListRelationFilter
     products?: ProductListRelationFilter
     SupplierOrder?: SupplierOrderListRelationFilter
+    DropshippingSettings?: DropshippingSettingsListRelationFilter
   }, "id">
 
   export type SupplierOrderByWithAggregationInput = {
@@ -56610,6 +58007,8 @@ export namespace Prisma {
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
     metaDesc?: StringNullableFilter<"BlogPost"> | string | null
     tags?: StringNullableFilter<"BlogPost"> | string | null
+    isAdEnabled?: BoolFilter<"BlogPost"> | boolean
+    externalLinks?: JsonNullableFilter<"BlogPost">
     User?: XOR<UserScalarRelationFilter, UserWhereInput>
     BlogCategory?: BlogCategoryListRelationFilter
   }
@@ -56629,6 +58028,8 @@ export namespace Prisma {
     metaTitle?: SortOrderInput | SortOrder
     metaDesc?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
+    isAdEnabled?: SortOrder
+    externalLinks?: SortOrderInput | SortOrder
     User?: UserOrderByWithRelationInput
     BlogCategory?: BlogCategoryOrderByRelationAggregateInput
   }
@@ -56651,6 +58052,8 @@ export namespace Prisma {
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
     metaDesc?: StringNullableFilter<"BlogPost"> | string | null
     tags?: StringNullableFilter<"BlogPost"> | string | null
+    isAdEnabled?: BoolFilter<"BlogPost"> | boolean
+    externalLinks?: JsonNullableFilter<"BlogPost">
     User?: XOR<UserScalarRelationFilter, UserWhereInput>
     BlogCategory?: BlogCategoryListRelationFilter
   }, "id" | "slug">
@@ -56670,6 +58073,8 @@ export namespace Prisma {
     metaTitle?: SortOrderInput | SortOrder
     metaDesc?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
+    isAdEnabled?: SortOrder
+    externalLinks?: SortOrderInput | SortOrder
     _count?: BlogPostCountOrderByAggregateInput
     _max?: BlogPostMaxOrderByAggregateInput
     _min?: BlogPostMinOrderByAggregateInput
@@ -56693,6 +58098,8 @@ export namespace Prisma {
     metaTitle?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
     metaDesc?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
     tags?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
+    isAdEnabled?: BoolWithAggregatesFilter<"BlogPost"> | boolean
+    externalLinks?: JsonNullableWithAggregatesFilter<"BlogPost">
   }
 
   export type CartWhereInput = {
@@ -58731,6 +60138,103 @@ export namespace Prisma {
     usedAt?: DateTimeWithAggregatesFilter<"CouponUsage"> | Date | string
   }
 
+  export type DropshippingSettingsWhereInput = {
+    AND?: DropshippingSettingsWhereInput | DropshippingSettingsWhereInput[]
+    OR?: DropshippingSettingsWhereInput[]
+    NOT?: DropshippingSettingsWhereInput | DropshippingSettingsWhereInput[]
+    id?: StringFilter<"DropshippingSettings"> | string
+    autoProcess?: BoolFilter<"DropshippingSettings"> | boolean
+    autoSendOrders?: BoolFilter<"DropshippingSettings"> | boolean
+    statusCheckInterval?: IntFilter<"DropshippingSettings"> | number
+    defaultShippingDays?: IntFilter<"DropshippingSettings"> | number
+    notificationEmail?: StringNullableFilter<"DropshippingSettings"> | string | null
+    profitMargin?: IntFilter<"DropshippingSettings"> | number
+    automaticFulfillment?: BoolFilter<"DropshippingSettings"> | boolean
+    notifyCustomerOnShipment?: BoolFilter<"DropshippingSettings"> | boolean
+    defaultSupplier?: StringNullableFilter<"DropshippingSettings"> | string | null
+    supplierNotes?: StringNullableFilter<"DropshippingSettings"> | string | null
+    createdAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
+    supplier?: XOR<SupplierNullableScalarRelationFilter, SupplierWhereInput> | null
+  }
+
+  export type DropshippingSettingsOrderByWithRelationInput = {
+    id?: SortOrder
+    autoProcess?: SortOrder
+    autoSendOrders?: SortOrder
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    notificationEmail?: SortOrderInput | SortOrder
+    profitMargin?: SortOrder
+    automaticFulfillment?: SortOrder
+    notifyCustomerOnShipment?: SortOrder
+    defaultSupplier?: SortOrderInput | SortOrder
+    supplierNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    supplier?: SupplierOrderByWithRelationInput
+  }
+
+  export type DropshippingSettingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DropshippingSettingsWhereInput | DropshippingSettingsWhereInput[]
+    OR?: DropshippingSettingsWhereInput[]
+    NOT?: DropshippingSettingsWhereInput | DropshippingSettingsWhereInput[]
+    autoProcess?: BoolFilter<"DropshippingSettings"> | boolean
+    autoSendOrders?: BoolFilter<"DropshippingSettings"> | boolean
+    statusCheckInterval?: IntFilter<"DropshippingSettings"> | number
+    defaultShippingDays?: IntFilter<"DropshippingSettings"> | number
+    notificationEmail?: StringNullableFilter<"DropshippingSettings"> | string | null
+    profitMargin?: IntFilter<"DropshippingSettings"> | number
+    automaticFulfillment?: BoolFilter<"DropshippingSettings"> | boolean
+    notifyCustomerOnShipment?: BoolFilter<"DropshippingSettings"> | boolean
+    defaultSupplier?: StringNullableFilter<"DropshippingSettings"> | string | null
+    supplierNotes?: StringNullableFilter<"DropshippingSettings"> | string | null
+    createdAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
+    supplier?: XOR<SupplierNullableScalarRelationFilter, SupplierWhereInput> | null
+  }, "id">
+
+  export type DropshippingSettingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    autoProcess?: SortOrder
+    autoSendOrders?: SortOrder
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    notificationEmail?: SortOrderInput | SortOrder
+    profitMargin?: SortOrder
+    automaticFulfillment?: SortOrder
+    notifyCustomerOnShipment?: SortOrder
+    defaultSupplier?: SortOrderInput | SortOrder
+    supplierNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DropshippingSettingsCountOrderByAggregateInput
+    _avg?: DropshippingSettingsAvgOrderByAggregateInput
+    _max?: DropshippingSettingsMaxOrderByAggregateInput
+    _min?: DropshippingSettingsMinOrderByAggregateInput
+    _sum?: DropshippingSettingsSumOrderByAggregateInput
+  }
+
+  export type DropshippingSettingsScalarWhereWithAggregatesInput = {
+    AND?: DropshippingSettingsScalarWhereWithAggregatesInput | DropshippingSettingsScalarWhereWithAggregatesInput[]
+    OR?: DropshippingSettingsScalarWhereWithAggregatesInput[]
+    NOT?: DropshippingSettingsScalarWhereWithAggregatesInput | DropshippingSettingsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DropshippingSettings"> | string
+    autoProcess?: BoolWithAggregatesFilter<"DropshippingSettings"> | boolean
+    autoSendOrders?: BoolWithAggregatesFilter<"DropshippingSettings"> | boolean
+    statusCheckInterval?: IntWithAggregatesFilter<"DropshippingSettings"> | number
+    defaultShippingDays?: IntWithAggregatesFilter<"DropshippingSettings"> | number
+    notificationEmail?: StringNullableWithAggregatesFilter<"DropshippingSettings"> | string | null
+    profitMargin?: IntWithAggregatesFilter<"DropshippingSettings"> | number
+    automaticFulfillment?: BoolWithAggregatesFilter<"DropshippingSettings"> | boolean
+    notifyCustomerOnShipment?: BoolWithAggregatesFilter<"DropshippingSettings"> | boolean
+    defaultSupplier?: StringNullableWithAggregatesFilter<"DropshippingSettings"> | string | null
+    supplierNotes?: StringNullableWithAggregatesFilter<"DropshippingSettings"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DropshippingSettings"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DropshippingSettings"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -59652,6 +61156,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleCreateNestedManyWithoutSupplierInput
     products?: ProductCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateInput = {
@@ -59670,6 +61175,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleUncheckedCreateNestedManyWithoutSupplierInput
     products?: ProductUncheckedCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderUncheckedCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUpdateInput = {
@@ -59688,6 +61194,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleUpdateManyWithoutSupplierNestedInput
     products?: ProductUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateInput = {
@@ -59706,6 +61213,7 @@ export namespace Prisma {
     PricingRule?: PricingRuleUncheckedUpdateManyWithoutSupplierNestedInput
     products?: ProductUncheckedUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUncheckedUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierCreateManyInput = {
@@ -60438,6 +61946,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     User: UserCreateNestedOneWithoutBlogPostInput
     BlogCategory?: BlogCategoryCreateNestedManyWithoutBlogPostInput
   }
@@ -60457,6 +61967,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryUncheckedCreateNestedManyWithoutBlogPostInput
   }
 
@@ -60474,6 +61986,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     User?: UserUpdateOneRequiredWithoutBlogPostNestedInput
     BlogCategory?: BlogCategoryUpdateManyWithoutBlogPostNestedInput
   }
@@ -60493,6 +62007,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryUncheckedUpdateManyWithoutBlogPostNestedInput
   }
 
@@ -60511,6 +62027,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type BlogPostUpdateManyMutationInput = {
@@ -60527,6 +62045,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type BlogPostUncheckedUpdateManyInput = {
@@ -60544,6 +62064,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type CartCreateInput = {
@@ -62805,6 +64327,117 @@ export namespace Prisma {
     usedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DropshippingSettingsCreateInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    supplier?: SupplierCreateNestedOneWithoutDropshippingSettingsInput
+  }
+
+  export type DropshippingSettingsUncheckedCreateInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: string | null
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DropshippingSettingsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    supplier?: SupplierUpdateOneWithoutDropshippingSettingsNestedInput
+  }
+
+  export type DropshippingSettingsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    defaultSupplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DropshippingSettingsCreateManyInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    defaultSupplier?: string | null
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DropshippingSettingsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DropshippingSettingsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    defaultSupplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -63762,7 +65395,17 @@ export namespace Prisma {
     none?: SupplierOrderWhereInput
   }
 
+  export type DropshippingSettingsListRelationFilter = {
+    every?: DropshippingSettingsWhereInput
+    some?: DropshippingSettingsWhereInput
+    none?: DropshippingSettingsWhereInput
+  }
+
   export type SupplierOrderOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DropshippingSettingsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -64258,6 +65901,29 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type BlogCategoryListRelationFilter = {
     every?: BlogCategoryWhereInput
@@ -64284,6 +65950,8 @@ export namespace Prisma {
     metaTitle?: SortOrder
     metaDesc?: SortOrder
     tags?: SortOrder
+    isAdEnabled?: SortOrder
+    externalLinks?: SortOrder
   }
 
   export type BlogPostMaxOrderByAggregateInput = {
@@ -64301,6 +65969,7 @@ export namespace Prisma {
     metaTitle?: SortOrder
     metaDesc?: SortOrder
     tags?: SortOrder
+    isAdEnabled?: SortOrder
   }
 
   export type BlogPostMinOrderByAggregateInput = {
@@ -64318,6 +65987,33 @@ export namespace Prisma {
     metaTitle?: SortOrder
     metaDesc?: SortOrder
     tags?: SortOrder
+    isAdEnabled?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type CartCountOrderByAggregateInput = {
@@ -64584,29 +66280,6 @@ export namespace Prisma {
     notIn?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
     not?: NestedEnumPageLayoutFilter<$PrismaModel> | $Enums.PageLayout
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type PageSectionListRelationFilter = {
     every?: PageSectionWhereInput
@@ -64672,32 +66345,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPageLayoutFilter<$PrismaModel>
     _max?: NestedEnumPageLayoutFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type EnumDeviceTypeFilter<$PrismaModel = never> = {
@@ -65693,6 +67340,66 @@ export namespace Prisma {
 
   export type CouponUsageSumOrderByAggregateInput = {
     discountAmount?: SortOrder
+  }
+
+  export type DropshippingSettingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    autoProcess?: SortOrder
+    autoSendOrders?: SortOrder
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    notificationEmail?: SortOrder
+    profitMargin?: SortOrder
+    automaticFulfillment?: SortOrder
+    notifyCustomerOnShipment?: SortOrder
+    defaultSupplier?: SortOrder
+    supplierNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DropshippingSettingsAvgOrderByAggregateInput = {
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    profitMargin?: SortOrder
+  }
+
+  export type DropshippingSettingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    autoProcess?: SortOrder
+    autoSendOrders?: SortOrder
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    notificationEmail?: SortOrder
+    profitMargin?: SortOrder
+    automaticFulfillment?: SortOrder
+    notifyCustomerOnShipment?: SortOrder
+    defaultSupplier?: SortOrder
+    supplierNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DropshippingSettingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    autoProcess?: SortOrder
+    autoSendOrders?: SortOrder
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    notificationEmail?: SortOrder
+    profitMargin?: SortOrder
+    automaticFulfillment?: SortOrder
+    notifyCustomerOnShipment?: SortOrder
+    defaultSupplier?: SortOrder
+    supplierNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DropshippingSettingsSumOrderByAggregateInput = {
+    statusCheckInterval?: SortOrder
+    defaultShippingDays?: SortOrder
+    profitMargin?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -67282,6 +68989,13 @@ export namespace Prisma {
     connect?: SupplierOrderWhereUniqueInput | SupplierOrderWhereUniqueInput[]
   }
 
+  export type DropshippingSettingsCreateNestedManyWithoutSupplierInput = {
+    create?: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput> | DropshippingSettingsCreateWithoutSupplierInput[] | DropshippingSettingsUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: DropshippingSettingsCreateOrConnectWithoutSupplierInput | DropshippingSettingsCreateOrConnectWithoutSupplierInput[]
+    createMany?: DropshippingSettingsCreateManySupplierInputEnvelope
+    connect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+  }
+
   export type PricingRuleUncheckedCreateNestedManyWithoutSupplierInput = {
     create?: XOR<PricingRuleCreateWithoutSupplierInput, PricingRuleUncheckedCreateWithoutSupplierInput> | PricingRuleCreateWithoutSupplierInput[] | PricingRuleUncheckedCreateWithoutSupplierInput[]
     connectOrCreate?: PricingRuleCreateOrConnectWithoutSupplierInput | PricingRuleCreateOrConnectWithoutSupplierInput[]
@@ -67301,6 +69015,13 @@ export namespace Prisma {
     connectOrCreate?: SupplierOrderCreateOrConnectWithoutSupplierInput | SupplierOrderCreateOrConnectWithoutSupplierInput[]
     createMany?: SupplierOrderCreateManySupplierInputEnvelope
     connect?: SupplierOrderWhereUniqueInput | SupplierOrderWhereUniqueInput[]
+  }
+
+  export type DropshippingSettingsUncheckedCreateNestedManyWithoutSupplierInput = {
+    create?: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput> | DropshippingSettingsCreateWithoutSupplierInput[] | DropshippingSettingsUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: DropshippingSettingsCreateOrConnectWithoutSupplierInput | DropshippingSettingsCreateOrConnectWithoutSupplierInput[]
+    createMany?: DropshippingSettingsCreateManySupplierInputEnvelope
+    connect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
   }
 
   export type EnumSupplierStatusFieldUpdateOperationsInput = {
@@ -67349,6 +69070,20 @@ export namespace Prisma {
     deleteMany?: SupplierOrderScalarWhereInput | SupplierOrderScalarWhereInput[]
   }
 
+  export type DropshippingSettingsUpdateManyWithoutSupplierNestedInput = {
+    create?: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput> | DropshippingSettingsCreateWithoutSupplierInput[] | DropshippingSettingsUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: DropshippingSettingsCreateOrConnectWithoutSupplierInput | DropshippingSettingsCreateOrConnectWithoutSupplierInput[]
+    upsert?: DropshippingSettingsUpsertWithWhereUniqueWithoutSupplierInput | DropshippingSettingsUpsertWithWhereUniqueWithoutSupplierInput[]
+    createMany?: DropshippingSettingsCreateManySupplierInputEnvelope
+    set?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    disconnect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    delete?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    connect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    update?: DropshippingSettingsUpdateWithWhereUniqueWithoutSupplierInput | DropshippingSettingsUpdateWithWhereUniqueWithoutSupplierInput[]
+    updateMany?: DropshippingSettingsUpdateManyWithWhereWithoutSupplierInput | DropshippingSettingsUpdateManyWithWhereWithoutSupplierInput[]
+    deleteMany?: DropshippingSettingsScalarWhereInput | DropshippingSettingsScalarWhereInput[]
+  }
+
   export type PricingRuleUncheckedUpdateManyWithoutSupplierNestedInput = {
     create?: XOR<PricingRuleCreateWithoutSupplierInput, PricingRuleUncheckedCreateWithoutSupplierInput> | PricingRuleCreateWithoutSupplierInput[] | PricingRuleUncheckedCreateWithoutSupplierInput[]
     connectOrCreate?: PricingRuleCreateOrConnectWithoutSupplierInput | PricingRuleCreateOrConnectWithoutSupplierInput[]
@@ -67389,6 +69124,20 @@ export namespace Prisma {
     update?: SupplierOrderUpdateWithWhereUniqueWithoutSupplierInput | SupplierOrderUpdateWithWhereUniqueWithoutSupplierInput[]
     updateMany?: SupplierOrderUpdateManyWithWhereWithoutSupplierInput | SupplierOrderUpdateManyWithWhereWithoutSupplierInput[]
     deleteMany?: SupplierOrderScalarWhereInput | SupplierOrderScalarWhereInput[]
+  }
+
+  export type DropshippingSettingsUncheckedUpdateManyWithoutSupplierNestedInput = {
+    create?: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput> | DropshippingSettingsCreateWithoutSupplierInput[] | DropshippingSettingsUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: DropshippingSettingsCreateOrConnectWithoutSupplierInput | DropshippingSettingsCreateOrConnectWithoutSupplierInput[]
+    upsert?: DropshippingSettingsUpsertWithWhereUniqueWithoutSupplierInput | DropshippingSettingsUpsertWithWhereUniqueWithoutSupplierInput[]
+    createMany?: DropshippingSettingsCreateManySupplierInputEnvelope
+    set?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    disconnect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    delete?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    connect?: DropshippingSettingsWhereUniqueInput | DropshippingSettingsWhereUniqueInput[]
+    update?: DropshippingSettingsUpdateWithWhereUniqueWithoutSupplierInput | DropshippingSettingsUpdateWithWhereUniqueWithoutSupplierInput[]
+    updateMany?: DropshippingSettingsUpdateManyWithWhereWithoutSupplierInput | DropshippingSettingsUpdateManyWithWhereWithoutSupplierInput[]
+    deleteMany?: DropshippingSettingsScalarWhereInput | DropshippingSettingsScalarWhereInput[]
   }
 
   export type AddressCreateNestedOneWithoutOrdersInput = {
@@ -68521,6 +70270,22 @@ export namespace Prisma {
     update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutCouponUsagesInput, OrderUpdateWithoutCouponUsagesInput>, OrderUncheckedUpdateWithoutCouponUsagesInput>
   }
 
+  export type SupplierCreateNestedOneWithoutDropshippingSettingsInput = {
+    create?: XOR<SupplierCreateWithoutDropshippingSettingsInput, SupplierUncheckedCreateWithoutDropshippingSettingsInput>
+    connectOrCreate?: SupplierCreateOrConnectWithoutDropshippingSettingsInput
+    connect?: SupplierWhereUniqueInput
+  }
+
+  export type SupplierUpdateOneWithoutDropshippingSettingsNestedInput = {
+    create?: XOR<SupplierCreateWithoutDropshippingSettingsInput, SupplierUncheckedCreateWithoutDropshippingSettingsInput>
+    connectOrCreate?: SupplierCreateOrConnectWithoutDropshippingSettingsInput
+    upsert?: SupplierUpsertWithoutDropshippingSettingsInput
+    disconnect?: SupplierWhereInput | boolean
+    delete?: SupplierWhereInput | boolean
+    connect?: SupplierWhereUniqueInput
+    update?: XOR<XOR<SupplierUpdateToOneWithWhereWithoutDropshippingSettingsInput, SupplierUpdateWithoutDropshippingSettingsInput>, SupplierUncheckedUpdateWithoutDropshippingSettingsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -68872,23 +70637,6 @@ export namespace Prisma {
     _min?: NestedEnumReviewStatusFilter<$PrismaModel>
     _max?: NestedEnumReviewStatusFilter<$PrismaModel>
   }
-
-  export type NestedEnumPageLayoutFilter<$PrismaModel = never> = {
-    equals?: $Enums.PageLayout | EnumPageLayoutFieldRefInput<$PrismaModel>
-    in?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
-    not?: NestedEnumPageLayoutFilter<$PrismaModel> | $Enums.PageLayout
-  }
-
-  export type NestedEnumPageLayoutWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.PageLayout | EnumPageLayoutFieldRefInput<$PrismaModel>
-    in?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
-    notIn?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
-    not?: NestedEnumPageLayoutWithAggregatesFilter<$PrismaModel> | $Enums.PageLayout
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumPageLayoutFilter<$PrismaModel>
-    _max?: NestedEnumPageLayoutFilter<$PrismaModel>
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -68911,6 +70659,23 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumPageLayoutFilter<$PrismaModel = never> = {
+    equals?: $Enums.PageLayout | EnumPageLayoutFieldRefInput<$PrismaModel>
+    in?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
+    not?: NestedEnumPageLayoutFilter<$PrismaModel> | $Enums.PageLayout
+  }
+
+  export type NestedEnumPageLayoutWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PageLayout | EnumPageLayoutFieldRefInput<$PrismaModel>
+    in?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PageLayout[] | ListEnumPageLayoutFieldRefInput<$PrismaModel>
+    not?: NestedEnumPageLayoutWithAggregatesFilter<$PrismaModel> | $Enums.PageLayout
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPageLayoutFilter<$PrismaModel>
+    _max?: NestedEnumPageLayoutFilter<$PrismaModel>
   }
 
   export type NestedEnumDeviceTypeFilter<$PrismaModel = never> = {
@@ -69139,6 +70904,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryCreateNestedManyWithoutBlogPostInput
   }
 
@@ -69156,6 +70923,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryUncheckedCreateNestedManyWithoutBlogPostInput
   }
 
@@ -69835,6 +71604,8 @@ export namespace Prisma {
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
     metaDesc?: StringNullableFilter<"BlogPost"> | string | null
     tags?: StringNullableFilter<"BlogPost"> | string | null
+    isAdEnabled?: BoolFilter<"BlogPost"> | boolean
+    externalLinks?: JsonNullableFilter<"BlogPost">
   }
 
   export type CartUpsertWithoutUserInput = {
@@ -70876,6 +72647,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     PricingRule?: PricingRuleCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateWithoutProductsInput = {
@@ -70893,6 +72665,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     PricingRule?: PricingRuleUncheckedCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderUncheckedCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierCreateOrConnectWithoutProductsInput = {
@@ -71270,6 +73043,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     PricingRule?: PricingRuleUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateWithoutProductsInput = {
@@ -71287,6 +73061,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     PricingRule?: PricingRuleUncheckedUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUncheckedUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type ProductImageUpsertWithWhereUniqueWithoutProductInput = {
@@ -72499,6 +74274,46 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DropshippingSettingsCreateWithoutSupplierInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DropshippingSettingsUncheckedCreateWithoutSupplierInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DropshippingSettingsCreateOrConnectWithoutSupplierInput = {
+    where: DropshippingSettingsWhereUniqueInput
+    create: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput>
+  }
+
+  export type DropshippingSettingsCreateManySupplierInputEnvelope = {
+    data: DropshippingSettingsCreateManySupplierInput | DropshippingSettingsCreateManySupplierInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PricingRuleUpsertWithWhereUniqueWithoutSupplierInput = {
     where: PricingRuleWhereUniqueInput
     update: XOR<PricingRuleUpdateWithoutSupplierInput, PricingRuleUncheckedUpdateWithoutSupplierInput>
@@ -72567,6 +74382,41 @@ export namespace Prisma {
     errorMessage?: StringNullableFilter<"SupplierOrder"> | string | null
     createdAt?: DateTimeFilter<"SupplierOrder"> | Date | string
     updatedAt?: DateTimeFilter<"SupplierOrder"> | Date | string
+  }
+
+  export type DropshippingSettingsUpsertWithWhereUniqueWithoutSupplierInput = {
+    where: DropshippingSettingsWhereUniqueInput
+    update: XOR<DropshippingSettingsUpdateWithoutSupplierInput, DropshippingSettingsUncheckedUpdateWithoutSupplierInput>
+    create: XOR<DropshippingSettingsCreateWithoutSupplierInput, DropshippingSettingsUncheckedCreateWithoutSupplierInput>
+  }
+
+  export type DropshippingSettingsUpdateWithWhereUniqueWithoutSupplierInput = {
+    where: DropshippingSettingsWhereUniqueInput
+    data: XOR<DropshippingSettingsUpdateWithoutSupplierInput, DropshippingSettingsUncheckedUpdateWithoutSupplierInput>
+  }
+
+  export type DropshippingSettingsUpdateManyWithWhereWithoutSupplierInput = {
+    where: DropshippingSettingsScalarWhereInput
+    data: XOR<DropshippingSettingsUpdateManyMutationInput, DropshippingSettingsUncheckedUpdateManyWithoutSupplierInput>
+  }
+
+  export type DropshippingSettingsScalarWhereInput = {
+    AND?: DropshippingSettingsScalarWhereInput | DropshippingSettingsScalarWhereInput[]
+    OR?: DropshippingSettingsScalarWhereInput[]
+    NOT?: DropshippingSettingsScalarWhereInput | DropshippingSettingsScalarWhereInput[]
+    id?: StringFilter<"DropshippingSettings"> | string
+    autoProcess?: BoolFilter<"DropshippingSettings"> | boolean
+    autoSendOrders?: BoolFilter<"DropshippingSettings"> | boolean
+    statusCheckInterval?: IntFilter<"DropshippingSettings"> | number
+    defaultShippingDays?: IntFilter<"DropshippingSettings"> | number
+    notificationEmail?: StringNullableFilter<"DropshippingSettings"> | string | null
+    profitMargin?: IntFilter<"DropshippingSettings"> | number
+    automaticFulfillment?: BoolFilter<"DropshippingSettings"> | boolean
+    notifyCustomerOnShipment?: BoolFilter<"DropshippingSettings"> | boolean
+    defaultSupplier?: StringNullableFilter<"DropshippingSettings"> | string | null
+    supplierNotes?: StringNullableFilter<"DropshippingSettings"> | string | null
+    createdAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"DropshippingSettings"> | Date | string
   }
 
   export type AddressCreateWithoutOrdersInput = {
@@ -74041,6 +75891,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     User: UserCreateNestedOneWithoutBlogPostInput
   }
 
@@ -74059,6 +75911,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type BlogPostCreateOrConnectWithoutBlogCategoryInput = {
@@ -75748,6 +77602,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     products?: ProductCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateWithoutPricingRuleInput = {
@@ -75765,6 +77620,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     products?: ProductUncheckedCreateNestedManyWithoutSupplierInput
     SupplierOrder?: SupplierOrderUncheckedCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierCreateOrConnectWithoutPricingRuleInput = {
@@ -75837,6 +77693,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: ProductUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateWithoutPricingRuleInput = {
@@ -75854,6 +77711,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: ProductUncheckedUpdateManyWithoutSupplierNestedInput
     SupplierOrder?: SupplierOrderUncheckedUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type OrderItemCreateWithoutSupplierOrderInput = {
@@ -75913,6 +77771,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     PricingRule?: PricingRuleCreateNestedManyWithoutSupplierInput
     products?: ProductCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateWithoutSupplierOrderInput = {
@@ -75930,6 +77789,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     PricingRule?: PricingRuleUncheckedCreateNestedManyWithoutSupplierInput
     products?: ProductUncheckedCreateNestedManyWithoutSupplierInput
+    DropshippingSettings?: DropshippingSettingsUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierCreateOrConnectWithoutSupplierOrderInput = {
@@ -75979,6 +77839,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     PricingRule?: PricingRuleUpdateManyWithoutSupplierNestedInput
     products?: ProductUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateWithoutSupplierOrderInput = {
@@ -75996,6 +77857,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     PricingRule?: PricingRuleUncheckedUpdateManyWithoutSupplierNestedInput
     products?: ProductUncheckedUpdateManyWithoutSupplierNestedInput
+    DropshippingSettings?: DropshippingSettingsUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type UserCreateWithoutUserSecuritySettingsInput = {
@@ -77405,6 +79267,94 @@ export namespace Prisma {
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
+  export type SupplierCreateWithoutDropshippingSettingsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    website?: string | null
+    apiKey?: string | null
+    apiEndpoint?: string | null
+    contactEmail?: string | null
+    contactPhone?: string | null
+    averageShipping?: number | null
+    status?: $Enums.SupplierStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    PricingRule?: PricingRuleCreateNestedManyWithoutSupplierInput
+    products?: ProductCreateNestedManyWithoutSupplierInput
+    SupplierOrder?: SupplierOrderCreateNestedManyWithoutSupplierInput
+  }
+
+  export type SupplierUncheckedCreateWithoutDropshippingSettingsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    website?: string | null
+    apiKey?: string | null
+    apiEndpoint?: string | null
+    contactEmail?: string | null
+    contactPhone?: string | null
+    averageShipping?: number | null
+    status?: $Enums.SupplierStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    PricingRule?: PricingRuleUncheckedCreateNestedManyWithoutSupplierInput
+    products?: ProductUncheckedCreateNestedManyWithoutSupplierInput
+    SupplierOrder?: SupplierOrderUncheckedCreateNestedManyWithoutSupplierInput
+  }
+
+  export type SupplierCreateOrConnectWithoutDropshippingSettingsInput = {
+    where: SupplierWhereUniqueInput
+    create: XOR<SupplierCreateWithoutDropshippingSettingsInput, SupplierUncheckedCreateWithoutDropshippingSettingsInput>
+  }
+
+  export type SupplierUpsertWithoutDropshippingSettingsInput = {
+    update: XOR<SupplierUpdateWithoutDropshippingSettingsInput, SupplierUncheckedUpdateWithoutDropshippingSettingsInput>
+    create: XOR<SupplierCreateWithoutDropshippingSettingsInput, SupplierUncheckedCreateWithoutDropshippingSettingsInput>
+    where?: SupplierWhereInput
+  }
+
+  export type SupplierUpdateToOneWithWhereWithoutDropshippingSettingsInput = {
+    where?: SupplierWhereInput
+    data: XOR<SupplierUpdateWithoutDropshippingSettingsInput, SupplierUncheckedUpdateWithoutDropshippingSettingsInput>
+  }
+
+  export type SupplierUpdateWithoutDropshippingSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    averageShipping?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumSupplierStatusFieldUpdateOperationsInput | $Enums.SupplierStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    PricingRule?: PricingRuleUpdateManyWithoutSupplierNestedInput
+    products?: ProductUpdateManyWithoutSupplierNestedInput
+    SupplierOrder?: SupplierOrderUpdateManyWithoutSupplierNestedInput
+  }
+
+  export type SupplierUncheckedUpdateWithoutDropshippingSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    apiKey?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    averageShipping?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumSupplierStatusFieldUpdateOperationsInput | $Enums.SupplierStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    PricingRule?: PricingRuleUncheckedUpdateManyWithoutSupplierNestedInput
+    products?: ProductUncheckedUpdateManyWithoutSupplierNestedInput
+    SupplierOrder?: SupplierOrderUncheckedUpdateManyWithoutSupplierNestedInput
+  }
+
   export type AccountCreateManyUserInput = {
     id?: string
     type: string
@@ -77458,6 +79408,8 @@ export namespace Prisma {
     metaTitle?: string | null
     metaDesc?: string | null
     tags?: string | null
+    isAdEnabled?: boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type InventoryHistoryCreateManyUserInput = {
@@ -77733,6 +79685,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryUpdateManyWithoutBlogPostNestedInput
   }
 
@@ -77750,6 +79704,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     BlogCategory?: BlogCategoryUncheckedUpdateManyWithoutBlogPostNestedInput
   }
 
@@ -77767,6 +79723,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type InventoryHistoryUpdateWithoutUserInput = {
@@ -79274,6 +81232,21 @@ export namespace Prisma {
     updatedAt: Date | string
   }
 
+  export type DropshippingSettingsCreateManySupplierInput = {
+    id?: string
+    autoProcess?: boolean
+    autoSendOrders?: boolean
+    statusCheckInterval?: number
+    defaultShippingDays?: number
+    notificationEmail?: string | null
+    profitMargin?: number
+    automaticFulfillment?: boolean
+    notifyCustomerOnShipment?: boolean
+    supplierNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type PricingRuleUpdateWithoutSupplierInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -79493,6 +81466,51 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DropshippingSettingsUpdateWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DropshippingSettingsUncheckedUpdateWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DropshippingSettingsUncheckedUpdateManyWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    autoProcess?: BoolFieldUpdateOperationsInput | boolean
+    autoSendOrders?: BoolFieldUpdateOperationsInput | boolean
+    statusCheckInterval?: IntFieldUpdateOperationsInput | number
+    defaultShippingDays?: IntFieldUpdateOperationsInput | number
+    notificationEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    profitMargin?: IntFieldUpdateOperationsInput | number
+    automaticFulfillment?: BoolFieldUpdateOperationsInput | boolean
+    notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
+    supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderItemCreateManyOrderInput = {
     id?: string
     quantity: number
@@ -79703,6 +81721,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
     User?: UserUpdateOneRequiredWithoutBlogPostNestedInput
   }
 
@@ -79721,6 +81741,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type BlogPostUncheckedUpdateManyWithoutBlogCategoryInput = {
@@ -79738,6 +81760,8 @@ export namespace Prisma {
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
     metaDesc?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
+    externalLinks?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type BlogCategoryUpdateWithoutBlogPostInput = {

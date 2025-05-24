@@ -6,8 +6,7 @@ const nextConfig = {
   // Enable CSS optimization now that we've fixed dependencies
   experimental: {
     optimizeCss: true,
-  },
-  images: {
+  },  images: {
     domains: [
       'localhost',
       'placehold.co',
@@ -40,7 +39,37 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.cjdropshipping.com', // Wildcard pattern for all CJ Dropshipping subdomains
       },
+      // Allow images from common image hosting services
+      {
+        protocol: 'https',
+        hostname: '**.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.imgur.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.giphy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
+      },
     ],
+    // Set a reasonable image size limit for performance
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Allow connections from any host
   webpack: (config) => {

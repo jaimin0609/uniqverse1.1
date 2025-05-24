@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
     FileText, Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Calendar,
-    User, ArrowUpDown, ChevronDown
+    User, ArrowUpDown, ChevronDown, Loader2, AlertCircle, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,11 +28,11 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogClose,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -40,7 +40,12 @@ interface PageData {
     id: string;
     title: string;
     slug: string;
-    status: "published" | "draft";
+    content: string;
+    isPublished: boolean;
+    metaTitle?: string;
+    metaDesc?: string;
+    isAdEnabled: boolean;
+    externalLinks: Array<{ title: string; url: string }>;
     createdAt: string;
     updatedAt: string;
     author: string;
@@ -49,140 +54,95 @@ interface PageData {
 export default function PagesPage() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
-    const [pages, setPages] = useState<PageData[]>([
-        {
-            id: "page-1",
-            title: "Home",
-            slug: "/",
-            status: "published",
-            createdAt: "2025-03-10T14:30:00Z",
-            updatedAt: "2025-04-25T09:15:00Z",
-            author: "James Smith"
-        },
-        {
-            id: "page-2",
-            title: "About Us",
-            slug: "/about",
-            status: "published",
-            createdAt: "2025-03-12T10:45:00Z",
-            updatedAt: "2025-04-30T14:32:00Z",
-            author: "James Smith"
-        },
-        {
-            id: "page-3",
-            title: "Contact",
-            slug: "/contact",
-            status: "published",
-            createdAt: "2025-03-15T11:20:00Z",
-            updatedAt: "2025-04-20T15:40:00Z",
-            author: "Sarah Johnson"
-        },
-        {
-            id: "page-4",
-            title: "Privacy Policy",
-            slug: "/privacy",
-            status: "published",
-            createdAt: "2025-03-18T09:30:00Z",
-            updatedAt: "2025-04-29T16:45:00Z",
-            author: "James Smith"
-        },
-        {
-            id: "page-5",
-            title: "Terms of Service",
-            slug: "/terms",
-            status: "published",
-            createdAt: "2025-03-20T13:15:00Z",
-            updatedAt: "2025-04-15T10:20:00Z",
-            author: "James Smith"
-        },
-        {
-            id: "page-6",
-            title: "Shipping Information",
-            slug: "/shipping",
-            status: "published",
-            createdAt: "2025-03-25T14:50:00Z",
-            updatedAt: "2025-04-10T11:30:00Z",
-            author: "Sarah Johnson"
-        },
-        {
-            id: "page-7",
-            title: "Returns & Exchanges",
-            slug: "/returns",
-            status: "published",
-            createdAt: "2025-04-02T10:10:00Z",
-            updatedAt: "2025-04-18T14:25:00Z",
-            author: "Sarah Johnson"
-        },
-        {
-            id: "page-8",
-            title: "Help Center",
-            slug: "/help",
-            status: "draft",
-            createdAt: "2025-04-10T15:20:00Z",
-            updatedAt: "2025-04-22T12:50:00Z",
-            author: "James Smith"
-        }
-    ]);
+    const [pages, setPages] = useState<PageData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [pageToDelete, setPageToDelete] = useState<PageData | null>(null);
     const [sortField, setSortField] = useState<keyof PageData>("updatedAt");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }).format(date);
-    };
-
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
-    };
-
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    useEffect(() => {
+        const fetchPages = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(`/api/admin/pages?search=${searchQuery}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch pages');
+                }
+                
+                const data = await response.json();
+                setPages(data);
+            } catch (err) {
+                console.error('Error fetching pages:', err);
+                setError('Failed to load pages. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        fetchPages();
+    }, [searchQuery]);
+    
     const handleSort = (field: keyof PageData) => {
-        if (field === sortField) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-        } else {
-            setSortField(field);
-            setSortDirection("asc");
-        }
+        const newDirection = field === sortField && sortDirection === "asc" ? "desc" : "asc";
+        setSortField(field);
+        setSortDirection(newDirection);
     };
-
+    
     const handleDeletePage = (page: PageData) => {
         setPageToDelete(page);
         setDeleteDialogOpen(true);
     };
-
-    const confirmDelete = () => {
-        if (pageToDelete) {
-            // Here you would normally make an API call to delete the page
-            // For now, we'll just update the state
+    
+    const confirmDelete = async () => {
+        if (!pageToDelete) return;
+        
+        setIsDeleting(true);
+        
+        try {
+            const response = await fetch(`/api/admin/pages/${pageToDelete.id}`, {
+                method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to delete page');
+            }
+            
             setPages(pages.filter(page => page.id !== pageToDelete.id));
             toast.success(`Page "${pageToDelete.title}" deleted successfully`);
             setDeleteDialogOpen(false);
             setPageToDelete(null);
+        } catch (err) {
+            console.error('Error deleting page:', err);
+            toast.error('Failed to delete page. Please try again.');
+        } finally {
+            setIsDeleting(false);
         }
     };
-
+    
     // Filter pages based on search query
     const filteredPages = pages.filter(page =>
         page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         page.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        page.author.toLowerCase().includes(searchQuery.toLowerCase())
+        page.content?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
+    
     // Sort pages
     const sortedPages = [...filteredPages].sort((a, b) => {
         if (sortField === "title" || sortField === "slug" || sortField === "author") {
             return sortDirection === "asc"
                 ? a[sortField].localeCompare(b[sortField])
                 : b[sortField].localeCompare(a[sortField]);
-        } else {
+        } else if (sortField === "createdAt" || sortField === "updatedAt") {
             return sortDirection === "asc"
                 ? new Date(a[sortField]).getTime() - new Date(b[sortField]).getTime()
                 : new Date(b[sortField]).getTime() - new Date(a[sortField]).getTime();
+        } else {
+            // Fallback for any other fields
+            return 0;
         }
     });
 
@@ -191,12 +151,12 @@ export default function PagesPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-1">Pages</h1>
-                    <p className="text-gray-500">Manage your website's static pages</p>
+                    <p className="text-gray-500">Create and manage site pages</p>
                 </div>
                 <Button asChild>
                     <Link href="/admin/content/pages/create">
                         <Plus className="h-4 w-4 mr-2" />
-                        Add New Page
+                        New Page
                     </Link>
                 </Button>
             </div>
@@ -207,14 +167,32 @@ export default function PagesPage() {
                     <Input
                         type="search"
                         placeholder="Search pages..."
-                        className="pl-8 w-full"
+                        className="pl-8"
                         value={searchQuery}
-                        onChange={handleSearch}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="border rounded-lg overflow-hidden bg-white">
+            {isLoading ? (
+                <div className="flex justify-center items-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2 text-gray-500">Loading pages...</span>
+                </div>
+            ) : error ? (
+                <div className="bg-red-50 text-red-700 p-4 rounded-md flex flex-col items-center">
+                    <AlertCircle className="h-8 w-8 mb-2" />
+                    <p className="text-center mb-4">{error}</p>
+                    <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => window.location.reload()}
+                    >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try Again
+                    </Button>
+                </div>
+            ) : (
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -225,17 +203,6 @@ export default function PagesPage() {
                                 >
                                     Title
                                     {sortField === "title" && (
-                                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                                    )}
-                                </button>
-                            </TableHead>
-                            <TableHead>
-                                <button
-                                    className="flex items-center"
-                                    onClick={() => handleSort("slug")}
-                                >
-                                    URL
-                                    {sortField === "slug" && (
                                         <ArrowUpDown className="ml-2 h-4 w-4" />
                                     )}
                                 </button>
@@ -252,6 +219,7 @@ export default function PagesPage() {
                                     )}
                                 </button>
                             </TableHead>
+                            <TableHead>AdSense</TableHead>
                             <TableHead>
                                 <button
                                     className="flex items-center"
@@ -270,39 +238,64 @@ export default function PagesPage() {
                         {sortedPages.length > 0 ? (
                             sortedPages.map((page) => (
                                 <TableRow key={page.id}>
-                                    <TableCell className="font-medium">{page.title}</TableCell>
                                     <TableCell>
-                                        <span className="text-gray-500 text-sm">{page.slug}</span>
+                                        <div>
+                                            <div className="font-medium">{page.title}</div>
+                                            <div className="text-gray-500 text-sm">{page.slug}</div>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${page.status === "published"
-                                                ? "bg-green-100 text-green-800"
-                                                : "bg-amber-100 text-amber-800"
-                                            }`}>
-                                            {page.status === "published" ? "Published" : "Draft"}
+                                        <span
+                                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                page.isPublished
+                                                    ? "bg-green-100 text-green-800"
+                                                    : "bg-gray-100 text-gray-800"
+                                            }`}
+                                        >
+                                            {page.isPublished ? "Published" : "Draft"}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>{page.author}</TableCell>
+                                    <TableCell>
+                                        <span
+                                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                page.isAdEnabled
+                                                    ? "bg-blue-100 text-blue-800"
+                                                    : "bg-gray-100 text-gray-800"
+                                            }`}
+                                        >
+                                            {page.isAdEnabled ? "Enabled" : "Disabled"}
                                         </span>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-sm">
-                                            <User className="h-4 w-4 text-gray-400 mr-1.5" />
-                                            <span>{page.author}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center text-sm">
-                                            <Calendar className="h-4 w-4 text-gray-400 mr-1.5" />
-                                            <span>{formatDate(page.updatedAt)}</span>
-                                        </div>
+                                        {new Date(page.updatedAt).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        })}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                    <MoreHorizontal className="h-4 w-4" />
+                                                <Button variant="ghost" size="sm">
+                                                    <span className="sr-only">Open menu</span>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth={1.5}
+                                                        stroke="currentColor"
+                                                        className="w-5 h-5"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+                                                        />
+                                                    </svg>
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="bg-white border shadow-md">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuContent align="end">
                                                 <DropdownMenuItem asChild className="hover:bg-gray-100">
                                                     <Link href={`/admin/content/pages/${page.id}/edit`}>
                                                         <Edit className="h-4 w-4 mr-2" />
@@ -310,7 +303,7 @@ export default function PagesPage() {
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem asChild className="hover:bg-gray-100">
-                                                    <Link href={page.slug} target="_blank">
+                                                    <Link href={`/${page.slug}`} target="_blank">
                                                         <Eye className="h-4 w-4 mr-2" />
                                                         View
                                                     </Link>
@@ -337,23 +330,37 @@ export default function PagesPage() {
                         )}
                     </TableBody>
                 </Table>
-            </div>
+            )}
 
-            {/* Delete Confirmation Dialog */}
+            {/* Delete confirmation dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete Page</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete the page "{pageToDelete?.title}"? This action cannot be undone.
+                            Are you sure you want to delete the page "{pageToDelete?.title}"?
+                            This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={confirmDelete}>
-                            Delete
+                        <DialogClose asChild>
+                            <Button variant="outline" disabled={isDeleting}>
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                "Delete"
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

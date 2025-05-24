@@ -9,6 +9,7 @@ import { AddToCart } from '@/components/product/add-to-cart';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { ProductImageGallery } from '@/components/product/product-image-gallery';
 import { Metadata } from 'next';
+import { ClientPrice } from '@/components/ui/client-price';
 
 // Define params type - using 'any' to bypass strict type checking
 type Params = { params: any }
@@ -233,18 +234,16 @@ export default async function ProductPage({ params }: { params: { slug: string }
                                 </span>
                             )}
                         </div>
-                    </div>
-
-                    {/* Price */}
+                    </div>                    {/* Price */}
                     <div className="space-y-1">
                         <div className="flex items-center">
                             {product.compareAtPrice && (
                                 <span className="text-lg text-gray-500 line-through mr-3">
-                                    ${product.compareAtPrice.toFixed(2)}
+                                    <ClientPrice amount={Number(product.compareAtPrice)} />
                                 </span>
                             )}
                             <span className="text-2xl font-bold text-gray-900">
-                                ${product.price.toFixed(2)}
+                                <ClientPrice amount={Number(product.price)} />
                             </span>
                             {product.compareAtPrice && (
                                 <span className="ml-3 inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md">
@@ -252,7 +251,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                                 </span>
                             )}
                         </div>
-                    </div>                    {/* Description */}
+                    </div>{/* Description */}
                     <div className="prose max-w-none">
                         {typeof product.description === 'string' ? (
                             <div className="text-gray-600" dangerouslySetInnerHTML={{ __html: product.description }} />
@@ -387,12 +386,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
                                         {relatedProduct.category && (
                                             <span className="text-xs text-gray-500">{relatedProduct.category.name}</span>
                                         )}
-                                        <h3 className="font-medium text-sm line-clamp-2 mt-1 mb-2">{relatedProduct.name}</h3>
-                                        <div className="font-bold">
-                                            ${Number(relatedProduct.price).toFixed(2)}
+                                        <h3 className="font-medium text-sm line-clamp-2 mt-1 mb-2">{relatedProduct.name}</h3>                                        <div className="font-bold">
+                                            <ClientPrice amount={Number(relatedProduct.price)} />
                                             {relatedProduct.compareAtPrice && (
                                                 <span className="text-gray-500 line-through ml-2 text-sm">
-                                                    ${Number(relatedProduct.compareAtPrice).toFixed(2)}
+                                                    <ClientPrice amount={Number(relatedProduct.compareAtPrice)} />
                                                 </span>
                                             )}
                                         </div>
