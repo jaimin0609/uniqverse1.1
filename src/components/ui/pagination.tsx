@@ -113,21 +113,32 @@ PaginationEllipsis.displayName = "PaginationEllipsis";
 interface PaginationProps {
     totalPages: number;
     currentPage: number;
-    searchParams: ProductSearchParams;
+    searchParams: Record<string, string | string[]>;
+    basePath?: string; // Add optional basePath parameter
 }
 
 export function PaginationComponent({
     totalPages,
     currentPage,
     searchParams,
-}: PaginationProps) {
-    // Generate the URL for a specific page while preserving other query params
+    basePath = "/shop", // Default to /shop if no basePath provided
+}: PaginationProps) {    // Generate the URL for a specific page while preserving other query params
     const getPageUrl = (page: number) => {
-        const current = new URLSearchParams(
-            Object.entries(searchParams).filter(([key]) => key !== "page")
-        );
+        const current = new URLSearchParams();
+
+        // Safely process searchParams
+        Object.entries(searchParams || {}).forEach(([key, value]) => {
+            if (key !== "page") {
+                if (Array.isArray(value)) {
+                    value.forEach(v => current.append(key, v));
+                } else {
+                    current.append(key, value);
+                }
+            }
+        });
+
         current.set("page", page.toString());
-        return `/shop?${current.toString()}`;
+        return `${basePath}?${current.toString()}`;
     };
 
     // Calculate the range of page numbers to display

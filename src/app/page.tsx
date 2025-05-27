@@ -3,16 +3,14 @@ import Link from "next/link";
 import { ArrowRight, ShoppingBag, Star, Truck, Shield } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
-import { QuickAddToCart } from "@/components/product/quick-add-to-cart";
-import { WishlistButton } from "@/components/product/wishlist-button";
+import { InfiniteProducts } from "@/components/product/infinite-products";
 import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
-import { ClientPrice } from "@/components/ui/client-price";
 
-// Fetch featured products for the homepage
-async function getFeaturedProducts() {
+// Fetch initial featured products for the homepage
+async function getInitialFeaturedProducts() {
   const products = await db.product.findMany({
-    take: 4,
+    take: 8, // Increased initial load to 8 products
     where: {
       isFeatured: true,
       isPublished: true,
@@ -36,7 +34,7 @@ async function getFeaturedProducts() {
 }
 
 export default async function Home() {
-  const featuredProducts = await getFeaturedProducts();
+  const featuredProducts = await getInitialFeaturedProducts();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -112,69 +110,19 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Featured Products Section */}
+        {/* Featured Products Section with Infinite Scrolling */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl font-bold">Featured Products</h2>
-              <Link href="/shop" className="text-blue-600 hover:text-blue-800 flex items-center">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {featuredProducts.length > 0 ? (
-                featuredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="group relative bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-                  >
-                    <Link
-                      href={`/products/${product.slug}`}
-                      className="block"
-                    >
-                      <div className="relative h-64">
-                        <Image
-                          src={product.images[0]?.url || '/placeholder-product.jpg'}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-
-                        {/* Action buttons */}
-                        <div className="absolute top-2 right-2 flex flex-col gap-2">
-                          <WishlistButton
-                            productId={product.id}
-                            productName={product.name}
-                            small
-                          />
-                        </div>
-
-                        {/* Quick add to cart button */}
-                        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <QuickAddToCart
-                            productId={product.id}
-                            productName={product.name}
-                            productPrice={Number(product.price)}
-                            productImage={product.images[0]?.url || ''}
-                            small
-                          />
-                        </div>
-                      </div>
-                    </Link>
-                    <div className="p-4">
-                      <Link href={`/products/${product.slug}`}>
-                        <h3 className="font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">{product.name}</h3>
-                      </Link>
-                      <p className="text-gray-500 text-sm mb-2">{product.category?.name || 'Uncategorized'}</p>
-                      <p className="text-lg font-semibold"><ClientPrice amount={Number(product.price)} /></p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                // Show skeletons if no products are found
-                [1, 2, 3, 4].map((product) => (
+            {featuredProducts.length > 0 ? (
+              <InfiniteProducts initialProducts={featuredProducts} />
+            ) : (
+              // Show skeletons if no products are found initially
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((product) => (
                   <div key={product} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="relative h-64">
                       <div className="absolute inset-0 bg-gray-200 animate-pulse" />
@@ -185,9 +133,9 @@ export default async function Home() {
                       <div className="h-6 bg-gray-200 rounded w-1/3 animate-pulse" />
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

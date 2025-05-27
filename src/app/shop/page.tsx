@@ -28,11 +28,10 @@ export default async function ShopPage({
     searchParams,
 }: {
     searchParams: ProductSearchParams;
-}) {
-    // Get all categories for filter sidebar
+}) {    // Get all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: { name: "asc" },
-        select: { id: true, name: true, slug: true },
+        select: { id: true, name: true, slug: true, parentId: true },
     });
 
     // Await searchParams before accessing its properties

@@ -374,9 +374,9 @@ export default function AdminProductsPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                    {product.category.name}
-                                                </span>
-                                            </td>                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                    {product.category.name}                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900"><ClientPrice amount={product.price} /></div>
                                                 {product.compareAtPrice && (
                                                     <div className="text-xs text-gray-500 line-through">

@@ -7,6 +7,7 @@ import ProductList from "@/components/product/product-list";
 import ProductFilters from "@/components/product/product-filters";
 import ProductSort from "@/components/product/product-sort";
 import type { ProductSearchParams } from "@/app/shop/page";
+import DiscountLevelFilter from "@/components/product/discount-level-filter";
 
 export const metadata: Metadata = {
     title: "Sale Items | UniQVerse",
@@ -17,17 +18,25 @@ export default async function SaleItemsPage({
     searchParams,
 }: {
     searchParams: { [key: string]: string | string[] | undefined };
-}) {
-    // Fetch all categories for filter sidebar
+}) {    // Fetch all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: {
             name: 'asc'
-        }
-    });
+        },
+        select: { id: true, name: true, slug: true, parentId: true },
+    });    // Add parameters to filter for sale items
+    // Create a serializable copy of the search params
+    const serializedSearchParams: Record<string, string | string[]> = {};
 
-    // Add parameters to filter for sale items
-    const saleSearchParams: ProductSearchParams = {
-        ...searchParams,
+    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(searchParams)) {
+        if (value !== undefined) {
+            serializedSearchParams[key] = value;
+        }
+    }
+
+    const saleSearchParams = {
+        ...serializedSearchParams,
         sale: "true",
     };
 
@@ -136,7 +145,11 @@ export default async function SaleItemsPage({
                             <Filter className="h-5 w-5" />
                             Filters
                         </h2>
-                        <ProductFilters categories={categories} />
+                        <ProductFilters
+                            categories={categories} selectedCategory={typeof serializedSearchParams.category === 'string' ? serializedSearchParams.category : undefined}
+                            minPrice={typeof serializedSearchParams.minPrice === 'string' ? serializedSearchParams.minPrice : undefined}
+                            maxPrice={typeof serializedSearchParams.maxPrice === 'string' ? serializedSearchParams.maxPrice : undefined}
+                        />
                     </div>
                 </div>
 
@@ -152,28 +165,10 @@ export default async function SaleItemsPage({
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500">Sort by:</span>
-                            <ProductSort defaultSort={defaultSort} />
+                            <ProductSort sort={typeof serializedSearchParams.sort === 'string' ? serializedSearchParams.sort : undefined} defaultSort={defaultSort} />
                         </div>
-                    </div>
-
-                    {/* Discount Level Filter */}
-                    <div className="flex items-center gap-2 mb-6">
-                        <span className="text-sm font-medium text-gray-700">Discount Level:</span>
-                        <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" className="bg-red-50 text-red-600">
-                                All Discounts
-                            </Button>
-                            <Button variant="outline" size="sm">
-                                10-30%
-                            </Button>
-                            <Button variant="outline" size="sm">
-                                30-50%
-                            </Button>
-                            <Button variant="outline" size="sm">
-                                50%+
-                            </Button>
-                        </div>
-                    </div>
+                    </div>                    {/* Discount Level Filter */}
+                    <DiscountLevelFilter />
 
                     {/* Product List */}
                     <ProductList searchParams={saleSearchParams} />

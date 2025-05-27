@@ -8,16 +8,20 @@ import { SupplierOrderData, SupplierOrderResponse, SupplierOrderStatusResponse }
  */
 export class CJDropshippingApiClient {
     private readonly apiKey: string;
-    private readonly apiEndpoint: string;
-    private readonly supplierId: string;
+    private readonly apiEndpoint: string; private readonly supplierId: string;
     private tokenStore: CJTokenStore;
+
+    // Cache for categories to reduce API calls
+    private categoryCache: any = null;
+    private categoryCacheTimestamp: number = 0;
+    private readonly CATEGORY_CACHE_TTL = 3600000; // 1 hour in milliseconds
 
     constructor(apiKey: string, apiEndpoint: string, supplierId: string) {
         this.apiKey = apiKey;
         this.apiEndpoint = apiEndpoint.endsWith('/') ? apiEndpoint : apiEndpoint + '/';
         this.supplierId = supplierId;
         this.tokenStore = CJTokenStore.getInstance();
-    }    /**
+    }/**
      * Utility method to format product IDs
      * CJ Dropshipping API expects product IDs in the format "pid:NUMBER:null"
      * rather than just the numeric part
@@ -281,8 +285,30 @@ export class CJDropshippingApiClient {
         }
     }    /**
      * Make a request to the CJ Dropshipping API with proper authentication
-     */    protected async makeRequest(path: string, options: RequestInit = {}): Promise<any> {
+     */    // Track last request time to maintain rate limits
+    private lastRequestTime: number = 0;
+
+    // Delay execution to respect rate limits (1 request per second)
+    private async respectRateLimit(): Promise<void> {
+        const now = Date.now();
+        const timeSinceLastRequest = now - this.lastRequestTime;
+        const minTimeBetweenRequests = 1100; // 1.1 seconds to be safe
+
+        if (this.lastRequestTime > 0 && timeSinceLastRequest < minTimeBetweenRequests) {
+            // Need to wait to respect rate limit
+            const waitTime = minTimeBetweenRequests - timeSinceLastRequest;
+            console.log(`Waiting ${waitTime}ms for CJ Dropshipping rate limit...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+
+        this.lastRequestTime = Date.now();
+    }
+
+    protected async makeRequest(path: string, options: RequestInit = {}): Promise<any> {
         try {
+            // Respect rate limits before making a request
+            await this.respectRateLimit();
+
             const token = await this.getAccessToken();
 
             // Create a new headers object to avoid modifying the original
@@ -332,6 +358,10 @@ export class CJDropshippingApiClient {
 
             // Check if the HTTP status indicates an error
             if (!response.ok) {
+                if (response.status === 429) {
+                    // Handle rate limit specific error
+                    throw new Error(`HTTP error ${response.status}: Rate limit exceeded. QPS limit is 1 time/1second. Response: ${responseText.substring(0, 200)}`);
+                }
                 throw new Error(`HTTP error ${response.status}: ${response.statusText}.Response: ${responseText.substring(0, 200)} `);
             }
 
@@ -373,30 +403,87 @@ export class CJDropshippingApiClient {
     }    /**
      * Get CJ Dropshipping product category list
      * @returns List of product categories
-     */
-    async getCategoryList(): Promise<any> {
+     */    async getCategoryList(): Promise<any> {
         try {
+            // Check if we have valid cached categories
+            const now = Date.now();
+            if (this.categoryCache && now - this.categoryCacheTimestamp < this.CATEGORY_CACHE_TTL) {
+                console.log('Using cached CJ Dropshipping category list');
+                return {
+                    success: true,
+                    categories: this.categoryCache,
+                    cached: true
+                };
+            }
+
+            console.log('Fetching CJ Dropshipping category list...');
             const response = await this.makeRequest('v1/product/getCategory', {
                 method: 'GET'
             });
 
-            if (!response.result) {
-                throw new Error(`CJ Dropshipping categories error: ${response.message || 'Unknown error'} `);
+            console.log('CJ Category API response:', response);
+
+            if (!response) {
+                throw new Error('Received empty response from CJ API');
             }
+
+            if (!response.result) {
+                throw new Error(`CJ Dropshipping categories error: ${response.message || 'Unknown error'}`);
+            }
+
+            // Ensure we have an array of categories, even if empty
+            const categories = Array.isArray(response.data) ? response.data : [];
+            console.log(`Retrieved ${categories.length} categories from CJ Dropshipping`);
+
+            // Cache the categories
+            this.categoryCache = categories;
+            this.categoryCacheTimestamp = now;
 
             return {
                 success: true,
-                categories: response.data || []
+                categories: categories
             };
         } catch (error) {
             console.error('Error getting CJ Dropshipping category list:', error);
+
+            // If we have cached categories available and this was a rate limit error, use cache as fallback
+            if (this.categoryCache && error instanceof Error &&
+                (error.message.includes('Rate limit') || error.message.includes('429'))) {
+                console.log('Using cached categories due to rate limit');
+                return {
+                    success: true,
+                    categories: this.categoryCache,
+                    cached: true,
+                    note: 'Using cached data due to rate limit'
+                };
+            }
+
+            // Check for rate limit errors specifically
+            if (error instanceof Error && error.message.includes('CJ_RATE_LIMIT:')) {
+                return {
+                    success: false,
+                    categories: [],
+                    error: error.message
+                };
+            }
+
             return {
                 success: false,
                 categories: [],
                 error: error instanceof Error ? error.message : String(error)
             };
         }
-    }    /**
+    }
+
+    /**
+     * Alias for getCategoryList to maintain consistent naming across the API
+     * @returns List of product categories
+     */
+    async getCategories(): Promise<any> {
+        return this.getCategoryList();
+    }
+
+    /**
      * Search for products in CJ Dropshipping catalog
      * @param params Search parameters
      * @returns Search results with detailed product information
@@ -1020,5 +1107,14 @@ export class CJDropshippingApiClient {
             }
             throw new Error(String(error));
         }
+    }
+
+    /**
+     * Clear the category cache to force a fresh fetch on next request
+     */
+    public clearCategoryCache(): void {
+        console.log('Clearing CJ Dropshipping category cache');
+        this.categoryCache = null;
+        this.categoryCacheTimestamp = 0;
     }
 }

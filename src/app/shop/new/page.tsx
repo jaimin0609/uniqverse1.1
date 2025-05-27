@@ -12,28 +12,35 @@ export const metadata: Metadata = {
     description: "Stay ahead of the curve with our latest collection of new arrivals. Discover fresh styles, innovative products, and the newest trends first.",
 };
 
-// Mock categories data
-const categories = [
-    { id: "1", name: "Clothing", slug: "clothing" },
-    { id: "2", name: "Accessories", slug: "accessories" },
-    { id: "3", name: "Electronics", slug: "electronics" },
-    { id: "4", name: "Home", slug: "home" },
-    { id: "5", name: "Beauty", slug: "beauty" }
-];
+import { db } from "@/lib/db";
 
-export default function NewProductsPage({
+export default async function NewProductsPage({
     searchParams,
 }: {
     searchParams: ProductSearchParams;
 }) {
-    // Add parameters to filter for new products
-    const newProductsSearchParams: ProductSearchParams = {
-        ...searchParams,
+    // Fetch all categories for filter sidebar
+    const categories = await db.category.findMany({
+        orderBy: {
+            name: 'asc'
+        },
+        select: { id: true, name: true, slug: true, parentId: true },
+    });    // Add parameters to filter for new products
+    // Create a serializable copy of the search params
+    const serializedSearchParams: Record<string, string | string[]> = {};
+
+    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(searchParams)) {
+        if (value !== undefined) {
+            serializedSearchParams[key] = value;
+        }
+    } const newProductsSearchParams = {
+        ...serializedSearchParams,
         newArrivals: "true",
     };
 
     // Extract search params for ProductSort component
-    const sort = typeof searchParams.sort === 'string' ? searchParams.sort : undefined;
+    const sort = typeof serializedSearchParams.sort === 'string' ? serializedSearchParams.sort : undefined;
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">

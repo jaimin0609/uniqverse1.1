@@ -9,6 +9,7 @@ interface Category {
     id: string;
     name: string;
     slug: string;
+    parentId: string | null;
 }
 
 interface ProductFiltersProps {
@@ -35,6 +36,7 @@ export default function ProductFilters({
     const [showFiltersMobile, setShowFiltersMobile] = useState(false);
     const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
     const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
     // Handler for applying filters
     const applyFilters = () => {
@@ -101,9 +103,25 @@ export default function ProductFilters({
 
         // Reset price range state
         setPriceRange({ min: "", max: "" });
+    }; const hasActiveFilters = selectedCategory || priceRange.min || priceRange.max;
+
+    // Organize categories into main categories and subcategories
+    const mainCategories = categories.filter(category => category.parentId === null);
+    const subcategories = categories.filter(category => category.parentId !== null);
+
+    // Toggle subcategory expansion
+    const toggleCategoryExpansion = (categoryId: string) => {
+        setExpandedCategories(prev =>
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
+        );
     };
 
-    const hasActiveFilters = selectedCategory || priceRange.min || priceRange.max;
+    // Get subcategories for a given parent category
+    const getSubcategoriesForParent = (parentId: string) => {
+        return subcategories.filter(category => category.parentId === parentId);
+    };
 
     // Mobile toggle button
     const filtersMobileButton = (
@@ -133,9 +151,7 @@ export default function ProductFilters({
                         ) : (
                             <ChevronDown className="h-4 w-4 text-gray-500" />
                         )}
-                    </button>
-
-                    {showCategoriesDropdown && (
+                    </button>                    {showCategoriesDropdown && (
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <button
@@ -145,19 +161,58 @@ export default function ProductFilters({
                                     All Categories
                                 </button>
                             </li>
-                            {categories.map((category) => (
-                                <li key={category.id}>
-                                    <button
+                            {mainCategories.map((category) => {
+                                const categorySubcategories = getSubcategoriesForParent(category.id);
+                                const hasSubcategories = categorySubcategories.length > 0;
+                                const isExpanded = expandedCategories.includes(category.id);
+
+                                return (<li key={category.id} className="mb-1">
+                                    <div className="flex items-center justify-between hover:bg-gray-50 rounded p-1"><button
                                         onClick={() => selectCategory(category.slug)}
-                                        className={`hover:text-blue-600 ${selectedCategory === category.slug
-                                            ? "font-medium text-blue-600"
-                                            : "text-gray-700"
+                                        className={`hover:text-blue-600 flex-1 text-left ${selectedCategory === category.slug
+                                                ? "font-medium text-blue-600"
+                                                : "text-gray-700"
                                             }`}
                                     >
                                         {category.name}
                                     </button>
+
+                                        {hasSubcategories && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleCategoryExpansion(category.id);
+                                                }}
+                                                className="ml-1 p-1 hover:bg-gray-200 rounded-full"
+                                            >
+                                                {isExpanded ? (
+                                                    <ChevronUp className="h-3 w-3 text-gray-500" />
+                                                ) : (
+                                                    <ChevronDown className="h-3 w-3 text-gray-500" />
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {hasSubcategories && isExpanded && (<ul className="ml-4 mt-1 space-y-1 border-l pl-2 border-gray-200">
+                                        {categorySubcategories.map((subcat) => (
+                                            <li key={subcat.id}>
+                                                <button
+                                                    onClick={() => selectCategory(subcat.slug)}
+                                                    className={`hover:text-blue-600 block w-full text-left py-1 px-1 text-sm rounded hover:bg-gray-50 ${selectedCategory === subcat.slug
+                                                            ? "font-medium text-blue-600"
+                                                            : "text-gray-700"
+                                                        }`}
+                                                >
+                                                    {subcat.name}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    )}
                                 </li>
-                            ))}
+                                );
+                            })}
                         </ul>
                     )}
                 </div>

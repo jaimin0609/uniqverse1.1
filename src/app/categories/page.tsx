@@ -39,62 +39,63 @@ export default async function CategoriesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {categories.length > 0 ? (
-                    categories.map((category) => (
-                        <div
-                            key={category.id}
-                            className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-                        >
-                            <Link href={`/shop?category=${category.slug}`}>
-                                <div className="relative h-48 bg-gray-100">
-                                    {category.image ? (
-                                        <Image
-                                            src={category.image}
-                                            alt={category.name}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                                            <span className="text-4xl">📦</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-6">
-                                    <h2 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
-                                        {category.name}
-                                    </h2>
-                                    <p className="text-gray-600 mb-4 line-clamp-2">
-                                        {category.description || `Browse our collection of ${category.name}`}
-                                    </p>
-
-                                    {category.children.length > 0 && (
-                                        <div className="mb-4">
-                                            <p className="text-sm font-medium text-gray-700 mb-2">Subcategories:</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {category.children.slice(0, 4).map((subcat) => (
-                                                    <Link
-                                                        key={subcat.id}
-                                                        href={`/shop?category=${subcat.slug}`}
-                                                        className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full text-gray-800 transition-colors"
-                                                    >
-                                                        {subcat.name}
-                                                    </Link>
-                                                ))}
-                                                {category.children.length > 4 && (
-                                                    <span className="text-sm text-gray-500">+{category.children.length - 4} more</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center text-blue-600 group-hover:text-blue-800">
-                                        <span className="font-medium">Browse Products</span>
-                                        <ArrowRight className="ml-2 h-4 w-4" />
+                    categories.map((category) => (<div
+                        key={category.id}
+                        className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                    >
+                        <div className="relative h-48 bg-gray-100">
+                            <Link href={`/shop?category=${category.slug}`} className="block h-full">
+                                {category.image ? (
+                                    <Image
+                                        src={category.image}
+                                        alt={category.name}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                                        <span className="text-4xl">📦</span>
                                     </div>
-                                </div>
+                                )}
                             </Link>
                         </div>
+                        <div className="p-6">
+                            <Link href={`/shop?category=${category.slug}`} className="block">
+                                <h2 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
+                                    {category.name}
+                                </h2>
+                                <p className="text-gray-600 mb-4 line-clamp-2">
+                                    {category.description || `Browse our collection of ${category.name}`}
+                                </p>
+                            </Link>
+
+                            {category.children.length > 0 && (
+                                <div className="mb-4">
+                                    <p className="text-sm font-medium text-gray-700 mb-2">Subcategories:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {category.children.slice(0, 4).map((subcat) => (
+                                            <Link
+                                                key={subcat.id}
+                                                href={`/shop?category=${subcat.slug}`}
+                                                className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full text-gray-800 transition-colors"
+                                            >
+                                                {subcat.name}
+                                            </Link>
+                                        ))}
+                                        {category.children.length > 4 && (
+                                            <span className="text-sm text-gray-500">+{category.children.length - 4} more</span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <Link href={`/shop?category=${category.slug}`} className="flex items-center text-blue-600 group-hover:text-blue-800">
+                                <span className="font-medium">Browse Products</span>
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        </div>
+                    </div>
                     ))
                 ) : (
                     // Show skeletons if no categories are found

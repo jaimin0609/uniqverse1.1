@@ -11,23 +11,33 @@ export const metadata: Metadata = {
     description: "Discover our handpicked selection of featured products. Premium quality, exceptional value, and customer favorites all in one place.",
 };
 
-// Mock categories data
-const categories = [
-    { id: "1", name: "Clothing", slug: "clothing" },
-    { id: "2", name: "Accessories", slug: "accessories" },
-    { id: "3", name: "Electronics", slug: "electronics" },
-    { id: "4", name: "Home", slug: "home" },
-    { id: "5", name: "Beauty", slug: "beauty" }
-];
+import { db } from "@/lib/db";
 
-export default function FeaturedProductsPage({
+export default async function FeaturedProductsPage({
     searchParams,
 }: {
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    // Add parameters to filter for featured products
+    // Fetch all categories for filter sidebar
+    const categories = await db.category.findMany({
+        orderBy: {
+            name: 'asc'
+        },
+        select: { id: true, name: true, slug: true, parentId: true },
+    });    // Add parameters to filter for featured products
+    // Create a serializable copy of the search params
+    const serializedSearchParams: Record<string, string | string[]> = {};
+
+    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(searchParams)) {
+        if (value !== undefined) {
+            serializedSearchParams[key] = value;
+        }
+    }
+
+    // Add the featured parameter
     const featuredSearchParams = {
-        ...searchParams,
+        ...serializedSearchParams,
         featured: "true",
     };
 

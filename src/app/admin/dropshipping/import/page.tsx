@@ -55,6 +55,7 @@ interface CJProduct {
     sellPrice: number;
     shippingTime?: string;
     variants?: any[];
+    isImported?: boolean;
 }
 
 interface Category {
@@ -79,11 +80,20 @@ export default function ImportCJProductsPage() {
     const [markup, setMarkup] = useState(30); // Default 30% markup
     const [importingProduct, setImportingProduct] = useState<string | null>(null);
 
+    // Added bulk import state
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    const [isBulkImporting, setIsBulkImporting] = useState(false);
+    const [bulkImportResults, setBulkImportResults] = useState<any[]>([]);
+    const [showBulkResults, setShowBulkResults] = useState(false);
+
     // Add rate limit state
     const [isRateLimited, setIsRateLimited] = useState(false);
     const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
     const [rateLimitMessage, setRateLimitMessage] = useState("");
     const [countdown, setCountdown] = useState(0);
+
+    // Add confirmation state
+    const [showConfirm, setShowConfirm] = useState(false);
 
     // Get suppliers on initial load
     useEffect(() => {
@@ -144,6 +154,47 @@ export default function ImportCJProductsPage() {
             toast.error("Failed to load store categories");
         }
     };
+
+    // Fetch supplier categories from CJ Dropshipping
+    const fetchSupplierCategories = async () => {
+        if (!supplierId) return;
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/admin/suppliers/cj-dropshipping/categories?supplierId=${supplierId}`);
+
+            // Check for rate limit
+            if (!response.ok && response.status === 429) {
+                const data = await response.json();
+                setIsRateLimited(true);
+                setRateLimitSeconds(data.rateLimitSeconds || 300);
+                setRateLimitMessage(data.rateLimitMessage || "Rate limit reached. Please try again later.");
+                setCountdown(data.rateLimitSeconds || 300);
+                toast.error(data.rateLimitMessage || "Rate limit reached");
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.categories) {
+                setCategories(data.categories);
+            } else {
+                toast.error(data.error || "Failed to load supplier categories");
+            }
+        } catch (error) {
+            console.error("Error fetching supplier categories:", error);
+            toast.error("Failed to load supplier categories");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Effect to fetch categories when supplier changes
+    useEffect(() => {
+        if (supplierId) {
+            fetchSupplierCategories();
+        }
+    }, [supplierId]);
 
     // Search for products
     const searchProducts = async () => {
@@ -220,24 +271,19 @@ export default function ImportCJProductsPage() {
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
         searchProducts();
-    };
-
-    // Import a product
+    };    // Handle importing a single product
     const importProduct = async (product: CJProduct) => {
-        if (!selectedStoreCategory) {
-            toast.error("Please select a store category first");
+        if (!selectedStoreCategory || !supplierId) {
+            toast.error("Please select a supplier and store category");
             return;
         }
 
         setImportingProduct(product.pid);
 
         try {
-            const response = await fetch('/api/admin/suppliers/cj-dropshipping/import', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            const response = await fetch("/api/admin/suppliers/cj-dropshipping/import", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }, body: JSON.stringify({
                     supplierId,
                     productId: product.pid,
                     categoryId: selectedStoreCategory,
@@ -245,10 +291,9 @@ export default function ImportCJProductsPage() {
                 }),
             });
 
-            const data = await response.json();
-            console.log('Import response:', data);
-
-            if (response.status === 429) {
+            // Handle rate limit
+            if (!response.ok && response.status === 429) {
+                const data = await response.json();
                 setIsRateLimited(true);
                 setRateLimitSeconds(data.rateLimitSeconds || 300);
                 setRateLimitMessage(data.rateLimitMessage || "Rate limit reached. Please try again later.");
@@ -257,28 +302,116 @@ export default function ImportCJProductsPage() {
                 return;
             }
 
-            if (data.success) {
-                toast.success(`Product "${product.productNameEn}" imported successfully`);
+            const data = await response.json();
 
-                // Navigate to the product edit page with the correct route
-                if (data.product && data.product.id) {
-                    router.push(`/admin/products/${data.product.id}/edit`);
-                } else {
-                    // If no specific product data is returned, go to the products list
-                    router.push('/admin/products');
-                }
+            if (data.success) {
+                toast.success(`Imported ${data.product.name} successfully!`);
+
+                // Update the UI to show the product is imported
+                setProducts((prevProducts) =>
+                    prevProducts.map((p) =>
+                        p.pid === product.pid
+                            ? { ...p, isImported: true }
+                            : p
+                    )
+                );                // Navigate to the product edit page after successful import
+                router.push(`/admin/products/${data.product.id}/edit`);
             } else {
                 toast.error(data.error || "Failed to import product");
-                if (data.details) {
-                    console.error("Import failure details:", data.details);
-                    toast.error(data.details);
-                }
             }
         } catch (error) {
             console.error("Error importing product:", error);
-            toast.error("Failed to import product: " + (error instanceof Error ? error.message : "Unknown error"));
+            toast.error("Failed to import product");
         } finally {
             setImportingProduct(null);
+        }
+    };
+
+    // Toggle product selection for bulk import
+    const toggleProductSelection = (productId: string) => {
+        setSelectedProducts(prev => {
+            if (prev.includes(productId)) {
+                return prev.filter(id => id !== productId);
+            } else {
+                return [...prev, productId];
+            }
+        });
+    };
+
+    // Check if a product is selected for bulk import
+    const isProductSelected = (productId: string) => {
+        return selectedProducts.includes(productId);
+    };    // Toggle selection for all products
+    const toggleSelectAll = () => {
+        if (selectedProducts.length === products.filter(p => !p.isImported).length) {
+            setSelectedProducts([]);
+        } else {
+            // Only select products that haven't been imported yet
+            setSelectedProducts(products.filter(p => !p.isImported).map(p => p.pid));
+        }
+    };
+
+    // Confirm dialog for bulk import
+    const confirmBulkImport = () => {
+        if (selectedProducts.length === 0) {
+            toast.error("Please select at least one product to import");
+            return;
+        }
+
+        if (!selectedStoreCategory || !supplierId) {
+            toast.error("Please select a supplier and store category");
+            return;
+        }
+
+        // Show confirmation
+        setShowConfirm(true);
+    };
+
+    // Handle bulk import
+    const handleBulkImport = async () => {
+        setShowConfirm(false);
+        setIsBulkImporting(true);
+        setBulkImportResults([]);
+
+        try {
+            const response = await fetch("/api/admin/suppliers/cj-dropshipping/bulk-import", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+                    supplierId,
+                    categoryId: selectedStoreCategory,
+                    productIds: selectedProducts,
+                    markup: markup / 100, // Convert percentage to decimal
+                }),
+            });
+
+            // Handle rate limit
+            if (!response.ok && response.status === 429) {
+                const data = await response.json();
+                setIsRateLimited(true);
+                setRateLimitSeconds(data.rateLimitSeconds || 300);
+                setRateLimitMessage(data.rateLimitMessage || "Rate limit reached. Please try again later.");
+                setCountdown(data.rateLimitSeconds || 300);
+                toast.error(data.rateLimitMessage || "Rate limit reached");
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(data.message || "Products imported successfully");
+                setBulkImportResults(data.results || []);
+                setShowBulkResults(true);
+
+                // Clear selections
+                setSelectedProducts([]);
+            } else {
+                toast.error(data.error || "Failed to bulk import products");
+            }
+        } catch (error) {
+            console.error("Error bulk importing products:", error);
+            toast.error("Failed to bulk import products");
+        } finally {
+            setIsBulkImporting(false);
         }
     };
 
@@ -369,11 +502,34 @@ export default function ImportCJProductsPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p className="mb-2 text-sm font-medium">CJ Product Category</p>
-                                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                            <div>                                <div className="flex justify-between items-center mb-2">
+                                <p className="text-sm font-medium">CJ Product Category</p>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-2"
+                                    onClick={fetchSupplierCategories}
+                                    disabled={isLoading || isRateLimited || !supplierId}
+                                    title="Refresh Categories"
+                                >
+                                    <svg className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 2v6h-6"></path>
+                                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                                        <path d="M3 22v-6h6"></path>
+                                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                                    </svg>
+                                </Button>
+                            </div>
+                                <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoading}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="All Categories" />
+                                        {isLoading && categories.length === 0 ? (
+                                            <div className="flex items-center">
+                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                <span>Loading categories...</span>
+                                            </div>
+                                        ) : (
+                                            <SelectValue placeholder="All Categories" />
+                                        )}
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Categories</SelectItem>
@@ -428,17 +584,46 @@ export default function ImportCJProductsPage() {
             {products.length > 0 ? (
                 <>
                     <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle>Search Results</CardTitle>
+                        <CardHeader className="pb-2">                            <CardTitle>Search Results</CardTitle>
                             <CardDescription>
-                                Found {products.length} products. Click "Import" to add a product to your store.
+                                Found {products.length} products. Select products and click "Import Selected" to bulk import, or import individually.
                             </CardDescription>
+                            <div className="flex justify-between items-center mt-4">
+                                <div className="flex items-center">                                    <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mr-2"
+                                    checked={selectedProducts.length === products.filter(p => !p.isImported).length && products.filter(p => !p.isImported).length > 0}
+                                    onChange={toggleSelectAll}
+                                />
+                                    <span className="text-sm">
+                                        Select All ({selectedProducts.length} selected / {products.filter(p => !p.isImported).length} available)
+                                    </span>
+                                </div>
+                                <Button
+                                    onClick={confirmBulkImport}
+                                    disabled={selectedProducts.length === 0 || isBulkImporting || isRateLimited}
+                                    className="ml-auto"
+                                >
+                                    {isBulkImporting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Importing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Import Selected ({selectedProducts.length})
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
+                                            <TableHead className="w-[30px]"></TableHead>
                                             <TableHead>Image</TableHead>
                                             <TableHead>Product Name</TableHead>
                                             <TableHead>Cost</TableHead>
@@ -450,21 +635,34 @@ export default function ImportCJProductsPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {products.map((product) => (
-                                            <TableRow key={product.pid}>
+                                            <TableRow key={product.pid} className={product.isImported ? "bg-green-50" : ""}>
+                                                <TableCell>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                        checked={isProductSelected(product.pid)}
+                                                        onChange={() => toggleProductSelection(product.pid)}
+                                                        disabled={product.isImported}
+                                                    />
+                                                </TableCell>
                                                 <TableCell>
                                                     {product.productImage && (
-                                                        <div className="relative w-16 h-16 overflow-hidden rounded border">                                                            <Image
-                                                            src={`/api/image-proxy?url=${encodeURIComponent(product.productImage)}`}
-                                                            alt={product.productNameEn}
-                                                            fill
-                                                            sizes="(max-width: 768px) 100vw, 64px"
-                                                            className="object-cover"
-                                                        />
+                                                        <div className="relative w-16 h-16 overflow-hidden rounded border">
+                                                            <Image
+                                                                src={`/api/image-proxy?url=${encodeURIComponent(product.productImage)}`}
+                                                                alt={product.productNameEn}
+                                                                fill
+                                                                sizes="(max-width: 768px) 100vw, 64px"
+                                                                className="object-cover"
+                                                            />
                                                         </div>
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="font-medium max-w-xs truncate">
                                                     {product.productNameEn}
+                                                    {product.isImported && (
+                                                        <Badge className="ml-2 bg-green-500">Imported</Badge>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     ${typeof product.sellPrice === 'number'
@@ -498,12 +696,18 @@ export default function ImportCJProductsPage() {
                                                         onClick={() => importProduct(product)}
                                                         disabled={
                                                             importingProduct === product.pid ||
-                                                            !selectedStoreCategory
+                                                            !selectedStoreCategory ||
+                                                            product.isImported ||
+                                                            isRateLimited
                                                         }
                                                     >
                                                         {importingProduct === product.pid ? (
                                                             <>
                                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Importing...
+                                                            </>
+                                                        ) : product.isImported ? (
+                                                            <>
+                                                                <Check className="mr-2 h-4 w-4" /> Imported
                                                             </>
                                                         ) : (
                                                             <>
@@ -561,6 +765,86 @@ export default function ImportCJProductsPage() {
                             </p>
                         </div>
                     )}
+                </div>
+            )}            {/* Bulk Import Results Section */}
+            {showBulkResults && bulkImportResults.length > 0 && (
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle>Bulk Import Results</CardTitle>
+                        <CardDescription>
+                            Results of the bulk import operation
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="p-4 bg-gray-50 rounded-md border">
+                            <h4 className="text-sm font-medium mb-2">Import Results</h4>
+                            <ul className="space-y-2">
+                                {bulkImportResults.map((result) => (
+                                    <li
+                                        key={result.productId}
+                                        className={`text-sm ${result.success
+                                            ? "text-green-600"
+                                            : "text-red-600"
+                                            }`}
+                                    >
+                                        {result.success ? (
+                                            <>
+                                                <Check className="inline h-4 w-4 mr-1" />
+                                                {result.productName || result.productId} was imported successfully
+                                            </>
+                                        ) : (
+                                            <>
+                                                <AlertCircle className="inline h-4 w-4 mr-1" />
+                                                {result.productId}: {result.error || "Import failed"}
+                                            </>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Confirmation Dialog for Bulk Import */}            {showConfirm && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowConfirm(false)}></div>
+                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative z-10">
+                        <h3 className="text-lg font-medium mb-4">Confirm Bulk Import</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Are you sure you want to import {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} with {markup}% markup?
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowConfirm(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleBulkImport}
+                                className="bg-primary text-white"
+                            >
+                                Confirm Import
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Processing overlay */}
+            {isBulkImporting && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black/30"></div>
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full relative z-10 flex flex-col items-center">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Processing Import</h3>
+                        <p className="text-sm text-gray-500 text-center">
+                            Please wait while we import your selected products. This may take a few minutes.
+                        </p>
+                    </div>
                 </div>
             )}
         </div>

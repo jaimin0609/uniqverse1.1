@@ -15,9 +15,24 @@ const DEFAULT_PER_PAGE = 12;
 
 export default async function ProductList({
     searchParams,
+    basePath,
 }: {
-    searchParams: ProductSearchParams;
+    searchParams: Record<string, string | string[] | undefined>;
+    basePath?: string;
 }) {
+    // Determine the appropriate basePath based on search params if not explicitly provided
+    let determinedBasePath = basePath || "/shop";
+
+    if (!basePath) {
+        if (searchParams.newArrivals === "true") {
+            determinedBasePath = "/shop/new";
+        } else if (searchParams.featured === "true") {
+            determinedBasePath = "/shop/featured";
+        } else if (searchParams.sale === "true") {
+            determinedBasePath = "/shop/sale";
+        }
+    }
+
     const { products, totalPages, currentPage } = await getProducts(searchParams);
 
     if (products.length === 0) {
@@ -120,14 +135,21 @@ export default async function ProductList({
                         </Link>
                     </div>
                 ))}
-            </div>
-
-            {/* Pagination */}
+            </div>            {/* Pagination */}
             {totalPages > 1 && (
                 <PaginationComponent
                     totalPages={totalPages}
                     currentPage={currentPage}
-                    searchParams={searchParams}
+                    searchParams={Object.fromEntries(
+                        Object.entries(searchParams || {})
+                            .filter(([_, value]) => value !== undefined)
+                            .map(([key, value]) => [
+                                key,
+                                Array.isArray(value) ? value[0] : value
+                            ])
+                            .filter(([_, value]) => value !== undefined)
+                    ) as Record<string, string | string[]>}
+                    basePath={determinedBasePath}
                 />
             )}
         </div>
@@ -135,46 +157,99 @@ export default async function ProductList({
 }
 
 // Helper function to get products based on search params
-async function getProducts(searchParams: ProductSearchParams) {
+async function getProducts(searchParams: Record<string, string | string[] | undefined>) {
+    // Extract string parameters with appropriate type checking
+    const extractStringParam = (key: string): string | undefined => {
+        const value = searchParams[key];
+        return typeof value === 'string' ? value : undefined;
+    };
+
     // Get pagination params with defaults
-    const page = searchParams?.page || DEFAULT_PAGE.toString();
-    const perPage = searchParams?.perPage || DEFAULT_PER_PAGE.toString();
+    const page = extractStringParam('page') || DEFAULT_PAGE.toString();
+    const perPage = extractStringParam('perPage') || DEFAULT_PER_PAGE.toString();
+    const category = extractStringParam('category');
+    const featured = extractStringParam('featured');
+    const newArrivals = extractStringParam('newArrivals');
+    const sale = extractStringParam('sale');
+    const minPrice = extractStringParam('minPrice');
+    const maxPrice = extractStringParam('maxPrice');
+    const search = extractStringParam('search');
+    const sort = extractStringParam('sort');
+    const minDiscount = extractStringParam('minDiscount');
+    const maxDiscount = extractStringParam('maxDiscount');
 
     // Parse pagination params
-    const currentPage = parseInt(String(page)) || DEFAULT_PAGE;
-    const productsPerPage = parseInt(String(perPage)) || DEFAULT_PER_PAGE;
+    const currentPage = parseInt(page) || DEFAULT_PAGE;
+    const productsPerPage = parseInt(perPage) || DEFAULT_PER_PAGE;
     const skip = (currentPage - 1) * productsPerPage;
 
     // Build where clause
     const where: any = {
         isPublished: true,
-    };
-
-    // Apply category filter
-    const category = searchParams?.category;
+    };    // Apply category filter
     if (category) {
-        where.category = {
-            slug: category,
-        };
+        // First, get the selected category and its subcategories
+        const selectedCategory = await db.category.findUnique({
+            where: { slug: category },
+            include: {
+                children: {
+                    select: { id: true }
+                }
+            }
+        });
+
+        if (selectedCategory) {
+            if (selectedCategory.children.length > 0) {
+                // If the category has subcategories, include products from all subcategories
+                where.OR = [
+                    // Include products directly in this category
+                    { categoryId: selectedCategory.id },
+                    // Include products in any subcategory
+                    { category: { parentId: selectedCategory.id } }
+                ];
+            } else {
+                // If no subcategories, just filter by the specific category
+                where.category = { slug: category };
+            }
+        } else {
+            // Fallback to direct category match if category not found
+            where.category = { slug: category };
+        }
     }
 
     // Apply featured filter
-    const featured = searchParams?.featured;
     if (featured === "true") {
         where.isFeatured = true;
     }
 
+    // Apply newArrivals filter
+    if (newArrivals === "true") {
+        // Filter for products created in the last 30 days
+        where.createdAt = {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        };
+    }
+
+    // Apply sale filter
+    if (sale === "true") {
+        where.compareAtPrice = {
+            not: null,
+            gt: 0
+        };
+        // Product is on sale when compareAtPrice > price
+        where.price = {
+            lt: { compareAtPrice: true }
+        };
+    }
+
     // Apply price filter
-    const minPrice = searchParams?.minPrice;
-    const maxPrice = searchParams?.maxPrice;
     if (minPrice || maxPrice) {
-        where.price = {};
-        if (minPrice) where.price.gte = parseFloat(String(minPrice));
-        if (maxPrice) where.price.lte = parseFloat(String(maxPrice));
+        where.price = where.price || {};
+        if (minPrice) where.price.gte = parseFloat(minPrice);
+        if (maxPrice) where.price.lte = parseFloat(maxPrice);
     }
 
     // Apply search filter
-    const search = searchParams?.search;
     if (search) {
         where.OR = [
             { name: { contains: search, mode: "insensitive" } },
@@ -184,7 +259,6 @@ async function getProducts(searchParams: ProductSearchParams) {
 
     // Determine sort order
     let orderBy: any = { createdAt: "desc" };
-    const sort = searchParams?.sort;
 
     if (sort === "price-asc") {
         orderBy = { price: "asc" };
@@ -261,10 +335,53 @@ async function getProducts(searchParams: ProductSearchParams) {
         return { ...rest, avgRating };
     });
 
-    // Get total count for pagination
-    const totalCount = await db.product.count({ where });
-    const totalPages = Math.ceil(totalCount / productsPerPage); return {
-        products: productsWithAvgRating,
+    // Apply discount percentage filtering in memory if needed
+    let filteredProducts = productsWithAvgRating;
+
+    // Check if we should filter by discount percentage
+    const shouldFilterByDiscount = sale === "true" && (minDiscount || maxDiscount);
+
+    if (shouldFilterByDiscount) {
+        filteredProducts = productsWithAvgRating.filter(product => {
+            // Skip products without valid compareAtPrice
+            if (!product.compareAtPrice || product.compareAtPrice <= product.price) {
+                return false; // Not on sale
+            }
+
+            // Calculate discount percentage
+            const discountPercentage = Math.round((1 - product.price / product.compareAtPrice) * 100);
+
+            // Apply minimum discount filter if present
+            if (minDiscount && discountPercentage < parseFloat(minDiscount)) {
+                return false;
+            }
+
+            // Apply maximum discount filter if present
+            if (maxDiscount && discountPercentage > parseFloat(maxDiscount)) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    // Get total count for either all matching products or the filtered subset
+    const totalCount = shouldFilterByDiscount
+        ? filteredProducts.length
+        : await db.product.count({ where });
+
+    const totalPages = Math.ceil(totalCount / productsPerPage);
+
+    // If we're doing in-memory filtering for discounts, we need to handle pagination manually
+    if (shouldFilterByDiscount) {
+        // Apply pagination to the filtered results
+        const start = (currentPage - 1) * productsPerPage;
+        const end = start + productsPerPage;
+        filteredProducts = filteredProducts.slice(start, end);
+    }
+
+    return {
+        products: filteredProducts,
         totalPages,
         currentPage,
     };

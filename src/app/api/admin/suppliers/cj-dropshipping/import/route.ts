@@ -15,15 +15,19 @@ export async function POST(request: NextRequest) {
         // Check if user is authenticated and has admin role
         if (!session?.user || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        // Parse request body
+        }        // Parse request body
         const body = await request.json();
         const {
             supplierId,
             productId,
             categoryId,
-            markup = 0.3 // Default 30% markup
+            markup: rawMarkup = 0.3 // Default 30% markup
         } = body;
+
+        // Ensure markup is a valid number and within reasonable range (0% to 500%)
+        const markup = typeof rawMarkup === 'number' && !isNaN(rawMarkup) && rawMarkup >= 0 && rawMarkup <= 5
+            ? rawMarkup
+            : 0.3; // Default to 30% if invalid
 
         // Initialize variant tracking variables at the top of the function
         const variantTypes = new Set<string>();
