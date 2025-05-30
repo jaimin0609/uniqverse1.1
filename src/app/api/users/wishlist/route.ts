@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { cache } from "@/lib/redis";
 
 // Schema for adding to wishlist
 const wishlistItemSchema = z.object({
@@ -19,6 +20,14 @@ export async function GET(req: Request) {
                 { message: "Authentication required" },
                 { status: 401 }
             );
+        }
+
+        const cacheKey = `user:wishlist:${session.user.id}`;
+
+        // Try to get from cache first
+        const cachedWishlist = await cache.get(cacheKey);
+        if (cachedWishlist) {
+            return NextResponse.json({ products: cachedWishlist });
         }
 
         const user = await db.user.findUnique({
@@ -59,9 +68,7 @@ export async function GET(req: Request) {
                 { message: "User not found" },
                 { status: 404 }
             );
-        }
-
-        // Format wishlist items
+        }        // Format wishlist items
         const wishlistItems = user.Product.map(product => ({
             id: product.id,
             name: product.name,
@@ -77,6 +84,9 @@ export async function GET(req: Request) {
             },
             addedAt: new Date() // Unfortunately, we don't store the time when item was added to wishlist
         }));
+
+        // Cache wishlist for 1 hour
+        await cache.set(cacheKey, wishlistItems, 3600);
 
         return NextResponse.json({
             message: "Wishlist retrieved successfully",
@@ -148,9 +158,7 @@ export async function POST(req: Request) {
                 message: "Product is already in your wishlist",
                 added: false
             });
-        }
-
-        // Add product to wishlist
+        }        // Add product to wishlist
         await db.user.update({
             where: {
                 id: session.user.id
@@ -163,6 +171,10 @@ export async function POST(req: Request) {
                 }
             }
         });
+
+        // Invalidate wishlist cache
+        const cacheKey = `user:wishlist:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Product added to wishlist",
@@ -218,9 +230,7 @@ export async function DELETE(req: NextRequest) {
                 { message: "Product is not in your wishlist" },
                 { status: 404 }
             );
-        }
-
-        // Remove product from wishlist
+        }        // Remove product from wishlist
         await db.user.update({
             where: {
                 id: session.user.id
@@ -233,6 +243,10 @@ export async function DELETE(req: NextRequest) {
                 }
             }
         });
+
+        // Invalidate wishlist cache
+        const cacheKey = `user:wishlist:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Product removed from wishlist",

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { cache } from "@/lib/redis";
 
 // Schema for address creation and updates
 const addressSchema = z.object({
@@ -32,6 +33,14 @@ export async function GET(req: Request) {
             );
         }
 
+        const cacheKey = `user:addresses:${session.user.id}`;
+
+        // Try to get from cache first
+        const cachedAddresses = await cache.get(cacheKey);
+        if (cachedAddresses) {
+            return NextResponse.json({ addresses: cachedAddresses });
+        }
+
         const addresses = await db.address.findMany({
             where: { userId: session.user.id },
             orderBy: [
@@ -39,6 +48,9 @@ export async function GET(req: Request) {
                 { updatedAt: 'desc' }
             ]
         });
+
+        // Cache addresses for 1 hour
+        await cache.set(cacheKey, addresses, 3600);
 
         return NextResponse.json({ addresses });
 
@@ -96,15 +108,17 @@ export async function POST(req: Request) {
 
         if (existingAddresses === 0) {
             addressData.isDefault = true;
-        }
-
-        const address = await db.address.create({
+        } const address = await db.address.create({
             data: {
                 ...addressData,
                 userId: session.user.id,
                 updatedAt: new Date()
             }
         });
+
+        // Invalidate addresses cache
+        const cacheKey = `user:addresses:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Address created successfully",
@@ -180,15 +194,17 @@ export async function PATCH(req: NextRequest) {
                 },
                 data: { isDefault: false }
             });
-        }
-
-        const updatedAddress = await db.address.update({
+        } const updatedAddress = await db.address.update({
             where: { id },
             data: {
                 ...addressData,
                 updatedAt: new Date()
             }
         });
+
+        // Invalidate addresses cache
+        const cacheKey = `user:addresses:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Address updated successfully",
@@ -244,9 +260,7 @@ export async function DELETE(req: NextRequest) {
         // Delete the address
         await db.address.delete({
             where: { id }
-        });
-
-        // If this was a default address, set another address as default if available
+        });        // If this was a default address, set another address as default if available
         if (existingAddress.isDefault) {
             const nextAddress = await db.address.findFirst({
                 where: {
@@ -263,6 +277,10 @@ export async function DELETE(req: NextRequest) {
                 });
             }
         }
+
+        // Invalidate addresses cache
+        const cacheKey = `user:addresses:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Address deleted successfully"

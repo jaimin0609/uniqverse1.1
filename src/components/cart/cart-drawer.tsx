@@ -159,7 +159,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                     {/* Product Details */}
                                     <div className="ml-4 flex flex-1 flex-col">
                                         <div className="flex justify-between text-base font-medium text-gray-900">                                            <h3>
-                                            <Link href={`/products/${item.productId}`} onClick={onClose} className="hover:underline">
+                                            <Link href={`/products/${item.slug}`} onClick={onClose} className="hover:underline">
                                                 {item.name}
                                             </Link>
                                         </h3>

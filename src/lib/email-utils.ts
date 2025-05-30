@@ -1,0 +1,639 @@
+import nodemailer from 'nodemailer';
+import { db } from '@/lib/db';
+
+/**
+ * Configure the email transport
+ */
+export function getEmailTransporter() {
+    // In production, use environment variables for these settings
+    return nodemailer.createTransport({
+        host: process.env.EMAIL_SERVER_HOST || 'smtp.example.com',
+        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+        secure: process.env.EMAIL_SERVER_SECURE === 'true',
+        auth: {
+            user: process.env.EMAIL_SERVER_USER || 'your-email@example.com',
+            pass: process.env.EMAIL_SERVER_PASSWORD || 'your-password'
+        }
+    });
+}
+
+/**
+ * Send a password reset email
+ */
+export async function sendPasswordResetEmail(email: string, token: string) {
+    try {
+        const transporter = getEmailTransporter();
+
+        // Create the reset URL
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+
+        // In development, log the reset URL to console instead of sending email
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Password reset link for ${email}:`);
+            console.log(resetUrl);
+            return;
+        }
+
+        // Send the email
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: email,
+            subject: 'Reset Your Uniqverse Password',
+            text: `
+        Hello,
+        
+        You requested to reset your password on Uniqverse.
+        
+        Please click the link below to reset your password:
+        ${resetUrl}
+        
+        This link is valid for 24 hours.
+        
+        If you didn't request this, please ignore this email.
+        
+        Thanks,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #6366f1, #3b82f6); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Uniqverse Password Reset</h1>
+            </div>
+            <div class="content">
+              <p>Hello,</p>
+              <p>You requested to reset your password on Uniqverse.</p>
+              <p>Please click the button below to reset your password:</p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" class="button">Reset My Password</a>
+              </p>
+              <p>This link is valid for 24 hours.</p>
+              <p>If you didn't request this, please ignore this email.</p>
+              <p>Thanks,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        throw new Error('Failed to send password reset email');
+    }
+}
+
+/**
+ * Send an order confirmation email
+ */
+export async function sendOrderConfirmationEmail(orderId: string) {
+    try {
+        // Get order details with customer and items information
+        const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: {
+                user: true,
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                name: true,
+                                images: {
+                                    take: 1,
+                                    select: { url: true }
+                                }
+                            }
+                        },
+                        variant: {
+                            select: {
+                                name: true,
+                                options: true
+                            }
+                        }
+                    }
+                },
+                shippingAddress: true
+            }
+        });
+
+        if (!order || !order.user?.email) {
+            console.error(`Order ${orderId} not found or customer email missing`);
+            return;
+        }
+
+        const transporter = getEmailTransporter();
+
+        // In development, log the email content instead of sending
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Order confirmation email for ${order.user.email}:`);
+            console.log(`Order #${order.orderNumber} - Total: $${order.total.toFixed(2)}`);
+            return;
+        }
+
+        // Format order items for email
+        const itemsList = order.items.map(item => {
+            const variantInfo = item.variant ?
+                ` (${JSON.parse(item.variant.options || '{}').size || item.variant.name || ''})` : '';
+            return `• ${item.product.name}${variantInfo} - Qty: ${item.quantity} - $${item.price.toFixed(2)}`;
+        }).join('\n');
+
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const orderUrl = `${baseUrl}/account/orders/${order.id}`;
+
+        // Send the email
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: order.user.email,
+            subject: `Order Confirmation - #${order.orderNumber}`,
+            text: `
+        Hi ${order.user.name || 'there'},
+        
+        Thank you for your order! We've received your order and will process it shortly.
+        
+        Order Details:
+        Order Number: #${order.orderNumber}
+        Total: $${order.total.toFixed(2)}
+        
+        Items Ordered:
+        ${itemsList}
+        
+        You can track your order status at: ${orderUrl}
+        
+        Thanks for shopping with Uniqverse!
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #6366f1, #3b82f6); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; }
+            .order-summary { background: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; }
+            .items-list { margin: 15px 0; }
+            .item { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Order Confirmation</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${order.user.name || 'there'},</p>
+              <p>Thank you for your order! We've received your order and will process it shortly.</p>
+              
+              <div class="order-summary">
+                <h3>Order #${order.orderNumber}</h3>
+                <p><strong>Total: $${order.total.toFixed(2)}</strong></p>
+                <p>Order Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
+              </div>
+              
+              <div class="items-list">
+                <h4>Items Ordered:</h4>
+                ${order.items.map(item => `
+                  <div class="item">
+                    ${item.product.name}${item.variant ? ` (${JSON.parse(item.variant.options || '{}').size || item.variant.name || ''})` : ''} 
+                    - Qty: ${item.quantity} - $${item.price.toFixed(2)}
+                  </div>
+                `).join('')}
+              </div>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${orderUrl}" class="button">Track Your Order</a>
+              </p>
+              
+              <p>Thanks for shopping with Uniqverse!</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`Order confirmation email sent to ${order.user.email} for order ${order.orderNumber}`);
+    } catch (error) {
+        console.error('Error sending order confirmation email:', error);
+        throw new Error('Failed to send order confirmation email');
+    }
+}
+
+/**
+ * Send a payment failure notification email
+ */
+export async function sendPaymentFailureEmail(orderId: string, errorMessage?: string) {
+    try {
+        const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: {
+                user: true
+            }
+        });
+
+        if (!order || !order.user?.email) {
+            console.error(`Order ${orderId} not found or customer email missing`);
+            return;
+        }
+
+        const transporter = getEmailTransporter();
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Payment failure email for ${order.user.email}:`);
+            console.log(`Order #${order.orderNumber} - Payment failed: ${errorMessage || 'Unknown error'}`);
+            return;
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const orderUrl = `${baseUrl}/account/orders/${order.id}`;
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: order.user.email,
+            subject: `Payment Failed - Order #${order.orderNumber}`,
+            text: `
+        Hi ${order.user.name || 'there'},
+        
+        We were unable to process the payment for your order #${order.orderNumber}.
+        
+        ${errorMessage ? `Error: ${errorMessage}` : 'Please check your payment method and try again.'}
+        
+        Order Total: $${order.total.toFixed(2)}
+        
+        You can retry your payment at: ${orderUrl}
+        
+        If you continue to experience issues, please contact our support team.
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #ef4444, #dc2626); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; }
+            .error-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Payment Failed</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${order.user.name || 'there'},</p>
+              <p>We were unable to process the payment for your order #${order.orderNumber}.</p>
+              
+              ${errorMessage ? `
+                <div class="error-box">
+                  <strong>Error Details:</strong> ${errorMessage}
+                </div>
+              ` : ''}
+              
+              <p><strong>Order Total: $${order.total.toFixed(2)}</strong></p>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${orderUrl}" class="button">Retry Payment</a>
+              </p>
+              
+              <p>If you continue to experience issues, please contact our support team.</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`Payment failure email sent to ${order.user.email} for order ${order.orderNumber}`);
+    } catch (error) {
+        console.error('Error sending payment failure email:', error);
+        throw new Error('Failed to send payment failure email');
+    }
+}
+
+/**
+ * Send a payment cancellation notification email
+ */
+export async function sendPaymentCancellationEmail(orderId: string) {
+    try {
+        const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: {
+                user: true
+            }
+        });
+
+        if (!order || !order.user?.email) {
+            console.error(`Order ${orderId} not found or customer email missing`);
+            return;
+        }
+
+        const transporter = getEmailTransporter();
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Payment cancellation email for ${order.user.email}:`);
+            console.log(`Order #${order.orderNumber} - Payment cancelled`);
+            return;
+        }
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: order.user.email,
+            subject: `Order Cancelled - #${order.orderNumber}`,
+            text: `
+        Hi ${order.user.name || 'there'},
+        
+        Your order #${order.orderNumber} has been cancelled due to payment cancellation.
+        
+        Order Total: $${order.total.toFixed(2)}
+        Cancellation Date: ${new Date().toLocaleDateString()}
+        
+        Any inventory that was reserved for this order has been restored.
+        
+        If you'd like to place a new order, you can visit our website anytime.
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #f59e0b, #d97706); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; }
+            .info-box { background: #fffbeb; border: 1px solid #fed7aa; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Order Cancelled</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${order.user.name || 'there'},</p>
+              <p>Your order #${order.orderNumber} has been cancelled due to payment cancellation.</p>
+              
+              <div class="info-box">
+                <p><strong>Order Total:</strong> $${order.total.toFixed(2)}</p>
+                <p><strong>Cancellation Date:</strong> ${new Date().toLocaleDateString()}</p>
+              </div>
+              
+              <p>Any inventory that was reserved for this order has been restored.</p>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}" class="button">Shop Again</a>
+              </p>
+              
+              <p>If you'd like to place a new order, you can visit our website anytime.</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`Payment cancellation email sent to ${order.user.email} for order ${order.orderNumber}`);
+    } catch (error) {
+        console.error('Error sending payment cancellation email:', error);
+        throw new Error('Failed to send payment cancellation email');
+    }
+}
+
+/**
+ * Send a refund notification email
+ */
+export async function sendRefundNotificationEmail(orderId: string, isFullRefund: boolean, amount: number) {
+    try {
+        const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: {
+                user: true
+            }
+        });
+
+        if (!order || !order.user?.email) {
+            console.error(`Order ${orderId} not found or customer email missing`);
+            return;
+        }
+
+        const transporter = getEmailTransporter();
+        const refundType = isFullRefund ? 'Full Refund' : 'Partial Refund';
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Refund notification email for ${order.user.email}:`);
+            console.log(`Order #${order.orderNumber} - ${refundType}: $${amount.toFixed(2)}`);
+            return;
+        }
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: order.user.email,
+            subject: `${refundType} Processed - Order #${order.orderNumber}`,
+            text: `
+        Hi ${order.user.name || 'there'},
+        
+        We've processed a ${refundType.toLowerCase()} for your order #${order.orderNumber}.
+        
+        Refund Details:
+        - Refund Amount: $${amount.toFixed(2)}
+        - Original Order Total: $${order.total.toFixed(2)}
+        - Refund Type: ${refundType}
+        - Processing Date: ${new Date().toLocaleDateString()}
+        
+        Your refund will appear on your original payment method within 3-5 business days.
+        
+        ${isFullRefund ? 'Any inventory from this order has been restored to our system.' : ''}
+        
+        If you have any questions about this refund, please contact our support team.
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #10b981, #059669); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .refund-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${refundType} Processed</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${order.user.name || 'there'},</p>
+              <p>We've processed a ${refundType.toLowerCase()} for your order #${order.orderNumber}.</p>
+              
+              <div class="refund-box">
+                <h4>Refund Details:</h4>
+                <p><strong>Refund Amount:</strong> $${amount.toFixed(2)}</p>
+                <p><strong>Original Order Total:</strong> $${order.total.toFixed(2)}</p>
+                <p><strong>Refund Type:</strong> ${refundType}</p>
+                <p><strong>Processing Date:</strong> ${new Date().toLocaleDateString()}</p>
+              </div>
+              
+              <p>Your refund will appear on your original payment method within 3-5 business days.</p>
+              
+              ${isFullRefund ? '<p>Any inventory from this order has been restored to our system.</p>' : ''}
+              
+              <p>If you have any questions about this refund, please contact our support team.</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`${refundType} notification email sent to ${order.user.email} for order ${order.orderNumber}`);
+    } catch (error) {
+        console.error('Error sending refund notification email:', error);
+        throw new Error('Failed to send refund notification email');
+    }
+}
+
+/**
+ * Send an action required email for payment completion
+ */
+export async function sendActionRequiredEmail(orderId: string, actionType?: string) {
+    try {
+        const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: {
+                user: true
+            }
+        });
+
+        if (!order || !order.user?.email) {
+            console.error(`Order ${orderId} not found or customer email missing`);
+            return;
+        }
+
+        const transporter = getEmailTransporter();
+        const action = actionType || 'additional verification';
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEV MODE] Action required email for ${order.user.email}:`);
+            console.log(`Order #${order.orderNumber} - Action required: ${action}`);
+            return;
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const orderUrl = `${baseUrl}/account/orders/${order.id}`;
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+            to: order.user.email,
+            subject: `Action Required - Order #${order.orderNumber}`,
+            text: `
+        Hi ${order.user.name || 'there'},
+        
+        Your order #${order.orderNumber} requires additional action to complete the payment.
+        
+        Action Required: ${action}
+        Order Total: $${order.total.toFixed(2)}
+        
+        Please complete the required action at: ${orderUrl}
+        
+        If you don't complete this action within 24 hours, your order may be cancelled automatically.
+        
+        If you have any questions, please contact our support team.
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, #f59e0b, #d97706); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #f59e0b; color: white; text-decoration: none; border-radius: 4px; }
+            .urgent-box { background: #fffbeb; border: 1px solid #fed7aa; padding: 15px; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Action Required</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${order.user.name || 'there'},</p>
+              <p>Your order #${order.orderNumber} requires additional action to complete the payment.</p>
+              
+              <div class="urgent-box">
+                <p><strong>Action Required:</strong> ${action}</p>
+                <p><strong>Order Total:</strong> $${order.total.toFixed(2)}</p>
+              </div>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${orderUrl}" class="button">Complete Action</a>
+              </p>
+              
+              <p><strong>Important:</strong> If you don't complete this action within 24 hours, your order may be cancelled automatically.</p>
+              
+              <p>If you have any questions, please contact our support team.</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+        });
+
+        console.log(`Action required email sent to ${order.user.email} for order ${order.orderNumber}`);
+    } catch (error) {
+        console.error('Error sending action required email:', error);
+        throw new Error('Failed to send action required email');
+    }
+}

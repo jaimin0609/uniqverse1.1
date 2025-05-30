@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { cache, cacheKeys } from "@/lib/redis";
 import { z } from "zod";
 
 // Schema for product creation and updates
@@ -54,6 +55,18 @@ export async function GET(req: NextRequest) {
         // Sorting parameters
         const sortField = url.searchParams.get("sortField") || "createdAt";
         const sortOrder = url.searchParams.get("sortOrder") || "desc";
+
+        // Generate cache key for this specific query
+        const queryParams = {
+            page, limit, category, minPrice, maxPrice, search, featured, sortField, sortOrder
+        };
+        const cacheKey = cacheKeys.products(JSON.stringify(queryParams));
+
+        // Try to get from cache first
+        const cachedResult = await cache.get(cacheKey);
+        if (cachedResult) {
+            return NextResponse.json(cachedResult);
+        }
 
         // Build filter conditions
         const where: any = {
@@ -122,7 +135,7 @@ export async function GET(req: NextRequest) {
             };
         });
 
-        return NextResponse.json({
+        const result = {
             products: productsWithStats,
             pagination: {
                 page,
@@ -130,7 +143,12 @@ export async function GET(req: NextRequest) {
                 totalItems: total,
                 totalPages: Math.ceil(total / limit)
             }
-        });
+        };
+
+        // Cache the result for 10 minutes
+        await cache.set(cacheKey, result, 600);
+
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error("Error fetching products:", error);

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { cache, cacheKeys } from "@/lib/redis";
 
 // Using Response.json() for better performance
 export async function GET(req: NextRequest) {
@@ -10,6 +11,15 @@ export async function GET(req: NextRequest) {
         // Return empty results if no query
         if (!query || query.length < 2) {
             return Response.json({ suggestions: [] });
+        }
+
+        // Generate cache key for this search
+        const cacheKey = cacheKeys.search(query, 'suggestions');
+
+        // Try to get from cache first
+        const cachedResult = await cache.get(cacheKey);
+        if (cachedResult) {
+            return Response.json({ suggestions: cachedResult });
         }
 
         try {
@@ -76,6 +86,9 @@ export async function GET(req: NextRequest) {
                 image: product.images?.[0]?.url || null,
                 category: product.category?.name || "Uncategorized"
             }));
+
+            // Cache the results for 5 minutes
+            await cache.set(cacheKey, suggestions, 300);
 
             // Return with caching headers for 5 minutes
             // This helps with repeated searches but still refreshes data periodically

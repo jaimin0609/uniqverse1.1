@@ -8,6 +8,7 @@ import { useCartStore, type CartItem } from "@/store/cart";
 
 interface QuickAddToCartProps {
     productId: string;
+    productSlug: string; // Added slug for proper cart URLs
     productName: string;
     productPrice: number;
     productImage: string;
@@ -17,6 +18,7 @@ interface QuickAddToCartProps {
 
 export function QuickAddToCart({
     productId,
+    productSlug,
     productName,
     productPrice,
     productImage,
@@ -32,11 +34,10 @@ export function QuickAddToCart({
         e.preventDefault();
         e.stopPropagation();
 
-        setIsAdding(true);
-
-        const item: CartItem = {
+        setIsAdding(true); const item: CartItem = {
             id: uuid(), // Generate a unique ID for this cart item
             productId,
+            slug: productSlug, // Added slug for proper URLs
             name: productName,
             price: productPrice,
             quantity: 1,

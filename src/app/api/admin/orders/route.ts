@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cache } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,9 +13,7 @@ export async function GET(request: NextRequest) {
         // Check if user is authenticated and has admin role
         if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "VENDOR")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Parse query parameters
+        }        // Parse query parameters
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get("page") || "1");
         const pageSize = parseInt(searchParams.get("pageSize") || "10");
@@ -22,6 +22,15 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search") || "";
         const sort = searchParams.get("sort") || "date-desc";
         const customerId = searchParams.get("customer");
+
+        // Create cache key based on query parameters
+        const queryParams = { page, pageSize, status, paymentStatus, search, sort, customerId };
+        const cacheKey = `admin:orders:${hashObject(queryParams)}`;
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Calculate pagination
         const skip = (page - 1) * pageSize;
@@ -121,16 +130,14 @@ export async function GET(request: NextRequest) {
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
             customer: order.user, // Map user to customer for frontend compatibility
-        }));
-
-        // Log this admin action
+        }));        // Log this admin action
         await logAdminAction(
             "orders_view",
             `Admin viewed orders list with ${orders.length} results`,
             session.user.id
         );
 
-        return NextResponse.json({
+        const result = {
             orders: formattedOrders,
             pagination: {
                 total: totalOrders,
@@ -139,7 +146,12 @@ export async function GET(request: NextRequest) {
                 totalPages: Math.ceil(totalOrders / pageSize),
             },
             metrics,
-        });
+        };
+
+        // Cache admin orders for 3 minutes (admin data changes moderately frequently)
+        await cache.set(cacheKey, result, 180);
+
+        return NextResponse.json(result);
     } catch (error) {
         console.error("Error fetching orders:", error);
         return NextResponse.json(

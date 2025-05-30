@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
@@ -16,7 +16,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
+
+    // Check for reset password success message or registration success
+    const resetSuccess = searchParams.get("reset") === "success";
+    const registeredSuccess = searchParams.get("registered") === "true";
 
     const {
         register,
@@ -65,10 +70,35 @@ export default function LoginPage() {
                             <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                                 Uniqverse
                             </span>
-                        </Link>
-                        <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+                        </Link>                        <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
                             Welcome back
                         </h2>
+
+                        {/* Success Messages */}
+                        {resetSuccess && (
+                            <div className="mt-4 rounded-md bg-green-50 p-4">
+                                <div className="flex">
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-green-800">
+                                            Password reset successful! You can now log in with your new password.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {registeredSuccess && (
+                            <div className="mt-4 rounded-md bg-green-50 p-4">
+                                <div className="flex">
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-green-800">
+                                            Registration successful! Please log in to your account.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <p className="mt-2 text-sm text-gray-600">
                             Don't have an account?{" "}
                             <Link

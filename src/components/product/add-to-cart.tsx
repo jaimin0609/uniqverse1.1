@@ -7,29 +7,37 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, type CartItem } from "@/store/cart";
 import { ClientPrice } from "@/components/ui/client-price";
+import { VariantSelectors } from "@/components/product/variant-selectors";
 
 interface ProductVariant {
     id: string;
     name?: string | null;
     price: number;
+    image?: string | null;
+    options?: string | null;
+    type?: string | null;
 }
 
 interface AddToCartProps {
     productId: string;
+    productSlug: string; // Added slug for proper cart URLs
     productName: string;
     productPrice: number;
     productImage: string;
     productStock: number;
     variants?: ProductVariant[];
+    onVariantChange?: (variantId: string) => void;
 }
 
 export function AddToCart({
     productId,
+    productSlug,
     productName,
     productPrice,
     productImage,
     productStock,
     variants = [],
+    onVariantChange,
 }: AddToCartProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -59,68 +67,58 @@ export function AddToCart({
         if (!isNaN(value) && value >= 1 && value <= productStock) {
             setQuantity(value);
         }
-    };
-
-    // Handler for variant selection
+    };    // Handler for variant selection
     const handleVariantChange = (variantId: string) => {
-        setSelectedVariantId(variantId);
-    };
+        if (!variantId) {
+            console.warn("Invalid variant ID received");
+            return;
+        }
 
-    // Handler for adding to cart
+        console.log("AddToCart: Variant selected:", variantId);
+        // Only update the state if it's actually changing
+        if (variantId !== selectedVariantId) {
+            setSelectedVariantId(variantId);
+            onVariantChange?.(variantId);
+        }
+    };// Handler for adding to cart
     const handleAddToCart = () => {
         if (productStock <= 0) {
             toast.error("This product is out of stock");
             return;
         }
 
+        // Use variant image if available, otherwise use product image
+        const variantImage = selectedVariant?.image || productImage;
+
         const item: CartItem = {
             id: uuid(), // Generate a unique ID for this cart item
             productId,
+            slug: productSlug, // Added slug for proper URLs
             name: productName,
             price,
             quantity,
-            image: productImage,
+            image: variantImage,
             variantId: selectedVariantId || undefined,
             variantName: selectedVariant?.name || undefined,
         };
 
         addItem(item);
         toast.success(`Added ${quantity} ${quantity > 1 ? "items" : "item"} to your cart`);
-    };
-
-    return (
+    }; return (
         <div className="space-y-4">
-            {/* Variants Selection */}
+            {/* Variant Selectors */}
             {variants.length > 0 && (
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">Select Variant:</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {variants.map((variant) => (
-                            <button
-                                key={variant.id}
-                                onClick={() => handleVariantChange(variant.id)}
-                                className={`p-2 border rounded-md text-sm ${selectedVariantId === variant.id
-                                    ? "border-blue-500 bg-blue-50"
-                                    : "border-gray-300 hover:border-gray-400"
-                                    }`}
-                                type="button"
-                            >                                <span className="block font-medium truncate">
-                                    {variant.name || "Default"}
-                                </span>
-                                <span className="block text-gray-500">
-                                    <ClientPrice amount={variant.price} />
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <VariantSelectors
+                    variants={variants}
+                    selectedVariantId={selectedVariantId}
+                    onVariantChange={handleVariantChange}
+                />
             )}
 
             {/* Quantity and Add to Cart */}
             <div className="flex flex-col sm:flex-row items-stretch gap-4">
-                {/* Quantity Selector */}
-                <div className="flex-grow max-w-[150px]">
-                    <div className="flex h-12 border border-gray-300 rounded-md overflow-hidden">
+                {/* Quantity Selector */}                <div className="flex-grow max-w-[150px]">
+                    <div className="flex h-12 border border-gray-300 rounded-md overflow-hidden flex-nowrap">
                         <button
                             type="button"
                             onClick={() => handleQuantityChange(-1)}
@@ -128,14 +126,14 @@ export function AddToCart({
                             className="flex-none w-12 flex items-center justify-center text-gray-600 text-lg font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             -
-                        </button>
-                        <input
+                        </button>                        <input
                             type="number"
                             min="1"
                             max={productStock}
                             value={quantity}
                             onChange={handleInputChange}
-                            className="flex-grow text-center focus:outline-none"
+                            className="flex-grow w-full text-center focus:outline-none"
+                            style={{ appearance: 'none', MozAppearance: 'textfield' }}
                             aria-label="Product quantity"
                         />
                         <button

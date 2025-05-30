@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { cache } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // Default pagination limits
 const DEFAULT_PAGE = 1;
@@ -25,6 +27,16 @@ export async function GET(req: NextRequest) {
         const priority = searchParams.get('priority');
         const page = parseInt(searchParams.get('page') || String(DEFAULT_PAGE));
         const limit = parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT));
+
+        // Create cache key based on query parameters
+        const queryParams = { status, priority, page, limit };
+        const cacheKey = `admin:tickets:${hashObject(queryParams)}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Calculate pagination
         const skip = (page - 1) * limit;
@@ -70,9 +82,8 @@ export async function GET(req: NextRequest) {
         });
 
         // Get ticket statistics for dashboard
-        const stats = await getTicketStats();
-
-        return NextResponse.json({
+        const stats = await getTicketStats();        // Cache the response for 5 minutes (tickets change moderately frequently)
+        const response = {
             tickets,
             pagination: {
                 page,
@@ -81,7 +92,10 @@ export async function GET(req: NextRequest) {
                 pages: Math.ceil(total / limit),
             },
             stats,
-        });
+        };
+        await cache.set(cacheKey, response, 300);
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching admin tickets:", error);
         return NextResponse.json(

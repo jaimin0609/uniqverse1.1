@@ -4,10 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Star, Check, Info, Truck } from 'lucide-react';
-import { AddToCart } from '@/components/product/add-to-cart';
-import { WishlistButton } from '@/components/product/wishlist-button';
-import { ProductImageGallery } from '@/components/product/product-image-gallery';
+import { ArrowLeft, Star } from 'lucide-react';
+import { ProductDetailClient } from '@/components/product/product-detail-client';
 import { Metadata } from 'next';
 import { ClientPrice } from '@/components/ui/client-price';
 
@@ -15,9 +13,9 @@ import { ClientPrice } from '@/components/ui/client-price';
 type Params = { params: any }
 
 // Generate metadata for the page
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     // Making sure we have the slug value available
-    const slug = await params.slug;
+    const { slug } = await params;
     const product = await getProduct(slug);
 
     if (!product) {
@@ -144,20 +142,17 @@ async function getRelatedProducts(productId: string, categoryId: string | null, 
 }
 
 // Product Detail Page Component
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     // Extract slug from params to avoid the syncing issue
-    const slug = await params.slug;
+    const { slug } = await params;
     const product = await getProduct(slug);
 
     if (!product) {
         notFound();
-    }
-
-    // Calculate average rating
+    }    // Calculate average rating
     const averageRating = product.reviews.length
         ? Math.round(product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length * 10) / 10
-        : 0;    // Get main product image or placeholder
-    const mainImage = product.images[0]?.url || '/placeholder-product.jpg';
+        : 0;
 
     // Get related products - ensure we get 10 products
     const relatedProducts = await getRelatedProducts(product.id, product.categoryId, 10);
@@ -195,115 +190,26 @@ export default async function ProductPage({ params }: { params: { slug: string }
                     <ArrowLeft size={16} className="mr-1" />
                     Back to Shop
                 </Link>
-            </div>
-
-            {/* Product Info Section */}
-            <div className="grid md:grid-cols-2 gap-8 lg:gap-12">                {/* Product Images */}
-                <ProductImageGallery images={product.images} productName={product.name} />
-
-                {/* Product Details */}
-                <div className="space-y-6">
-                    <div>
-                        <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-                        <div className="flex items-center space-x-4">
-                            {/* Rating */}
-                            <div className="flex items-center">
-                                <div className="flex items-center mr-2">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            size={16}
-                                            fill={star <= Math.round(averageRating) ? "currentColor" : "none"}
-                                            className={star <= Math.round(averageRating) ? "text-yellow-400" : "text-gray-300"}
-                                        />
-                                    ))}
-                                </div>
-                                <span className="text-sm text-gray-600">
-                                    {averageRating} ({product.reviews.length} reviews)
-                                </span>
-                            </div>
-
-                            {/* Stock Status */}
-                            {product.inventory > 0 ? (
-                                <span className="inline-flex items-center text-sm text-green-600">
-                                    <Check size={16} className="mr-1" /> In Stock
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center text-sm text-red-600">
-                                    <Info size={16} className="mr-1" /> Out of Stock
-                                </span>
-                            )}
-                        </div>
-                    </div>                    {/* Price */}
-                    <div className="space-y-1">
-                        <div className="flex items-center">
-                            {product.compareAtPrice && (
-                                <span className="text-lg text-gray-500 line-through mr-3">
-                                    <ClientPrice amount={Number(product.compareAtPrice)} />
-                                </span>
-                            )}
-                            <span className="text-2xl font-bold text-gray-900">
-                                <ClientPrice amount={Number(product.price)} />
-                            </span>
-                            {product.compareAtPrice && (
-                                <span className="ml-3 inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md">
-                                    {Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)}% OFF
-                                </span>
-                            )}
-                        </div>
-                    </div>{/* Description */}
-                    <div className="prose max-w-none">
-                        {typeof product.description === 'string' ? (
-                            <div className="text-gray-600" dangerouslySetInnerHTML={{ __html: product.description }} />
-                        ) : (
-                            <div className="text-gray-600">{product.description || ''}</div>
-                        )}
-                    </div>
-
-                    {/* Add to Cart Component */}
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                        <div className="flex-grow">
-                            <AddToCart
-                                productId={product.id}
-                                productName={product.name}
-                                productPrice={Number(product.price)}
-                                productImage={mainImage}
-                                productStock={product.inventory}
-                                variants={product.variants.map(variant => ({
-                                    id: variant.id,
-                                    name: variant.name,
-                                    price: Number(variant.price)
-                                }))}
-                            />
-                        </div>
-                        <div className="flex items-center">
-                            <WishlistButton
-                                productId={product.id}
-                                productName={product.name}
-                            />
-                            <span className="ml-2 text-sm text-gray-600">Add to wishlist</span>
-                        </div>
-                    </div>
-
-                    {/* Shipping & Returns */}
-                    <div className="border-t pt-6 mt-6 text-sm text-gray-600 grid gap-4 md:grid-cols-2">
-                        <div className="flex space-x-3">
-                            <Truck className="flex-shrink-0 h-5 w-5 text-blue-600" />
-                            <div>
-                                <p className="font-medium text-gray-900">Free Shipping</p>
-                                <p>On orders over $50.00</p>
-                            </div>
-                        </div>
-                        <div className="flex space-x-3">
-                            <ArrowLeft className="flex-shrink-0 h-5 w-5 text-blue-600" />
-                            <div>
-                                <p className="font-medium text-gray-900">Easy Returns</p>
-                                <p>30-day return policy</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </div>            {/* Product Info Section */}
+            <ProductDetailClient
+                productId={product.id}
+                productSlug={product.slug} // Added slug for cart URLs
+                productName={product.name}
+                productPrice={Number(product.price)}
+                productCompareAtPrice={product.compareAtPrice ? Number(product.compareAtPrice) : null}
+                productStock={product.inventory}
+                images={product.images} variants={product.variants.map(variant => ({
+                    id: variant.id,
+                    name: variant.name,
+                    price: Number(variant.price),
+                    image: variant.image,
+                    options: variant.options,
+                    type: variant.type
+                }))}
+                averageRating={averageRating}
+                reviewCount={product.reviews.length}
+                description={product.description}
+            />
 
             {/* Product Reviews */}
             <div className="mt-16 border-t pt-8">

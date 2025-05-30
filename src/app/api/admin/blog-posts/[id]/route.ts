@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth-utils";
+import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/blog-posts/[id] - Get a specific blog post
 export async function GET(
@@ -140,6 +141,9 @@ export async function PUT(
             },
         });
 
+        // Invalidate relevant caches
+        await cacheInvalidation.onBlogPostChange(slug);
+
         revalidatePath("/admin/content/blog");
         revalidatePath(`/blog/${slug}`);
         revalidatePath("/blog");
@@ -177,6 +181,9 @@ export async function DELETE(
         await db.blogPost.delete({
             where: { id: params.id },
         });
+
+        // Invalidate relevant caches
+        await cacheInvalidation.onBlogPostChange(blogPost.slug);
 
         revalidatePath("/admin/content/blog");
         revalidatePath("/blog");

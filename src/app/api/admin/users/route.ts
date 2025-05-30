@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { cache, cacheInvalidation } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // Get all users (with pagination, sorting, and filtering)
 export async function GET(request: Request) {
@@ -21,6 +23,16 @@ export async function GET(request: Request) {
         const role = url.searchParams.get("role") || "";
         const sortField = url.searchParams.get("sort") || "createdAt";
         const sortOrder = url.searchParams.get("order") || "desc";
+
+        // Create cache key based on query parameters
+        const queryParams = { page, limit, search, role, sortField, sortOrder };
+        const cacheKey = `admin:users:${hashObject(queryParams)}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Prepare filter conditions
         const filterConditions: any = {};
@@ -66,9 +78,8 @@ export async function GET(request: Request) {
             },
             skip,
             take: limit,
-        });
-
-        return NextResponse.json({
+        });        // Cache the response for 5 minutes (user data changes moderately)
+        const response = {
             users,
             pagination: {
                 page,
@@ -76,7 +87,10 @@ export async function GET(request: Request) {
                 totalUsers,
                 totalPages,
             },
-        });
+        };
+        await cache.set(cacheKey, response, 300);
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching users:", error);
         return NextResponse.json(
@@ -141,9 +155,7 @@ export async function POST(request: Request) {
 
         // Hash the password
         const bcrypt = require('bcrypt');
-        const hashedPassword = await bcrypt.hash(data.password, 10);
-
-        // Create the user
+        const hashedPassword = await bcrypt.hash(data.password, 10);        // Create the user
         const user = await db.user.create({
             data: {
                 name: data.name.trim(),
@@ -161,6 +173,9 @@ export async function POST(request: Request) {
                 createdAt: true,
             },
         });
+
+        // Invalidate admin users cache after creating a new user
+        await cacheInvalidation.onAdminUsersChange();
 
         return NextResponse.json(user, { status: 201 });
     } catch (error) {

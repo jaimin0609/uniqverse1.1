@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sensitive files
+.cj-tokens.json
+*.tmp*
+temp/
+dist/
+
+# database
+*.db
+*.sqlite

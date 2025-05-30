@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cache, cacheKeys } from "@/lib/redis";
 
 export async function GET(
     request: NextRequest,
@@ -7,6 +8,15 @@ export async function GET(
 ) {
     try {
         const slug = params.slug;
+
+        // Create cache key for the category
+        const cacheKey = cacheKeys.category(`blog:${slug}`);
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         const category = await db.blogCategory.findFirst({
             where: {
@@ -20,6 +30,9 @@ export async function GET(
                 { status: 404 }
             );
         }
+
+        // Cache the result for 30 minutes (categories change infrequently)
+        await cache.set(cacheKey, category, 1800);
 
         return NextResponse.json(category);
     } catch (error) {

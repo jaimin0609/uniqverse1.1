@@ -88,14 +88,14 @@ export default async function ProductList({
                                 </div>
 
                                 {/* Quick add to cart button */}
-                                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <QuickAddToCart
-                                        productId={product.id}
-                                        productName={product.name}
-                                        productPrice={product.price}
-                                        productImage={product.images[0]?.url || ''}
-                                        small
-                                    />
+                                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">                                    <QuickAddToCart
+                                    productId={product.id}
+                                    productSlug={product.slug} // Added slug for proper cart URLs
+                                    productName={product.name}
+                                    productPrice={product.price}
+                                    productImage={product.images[0]?.url || ''}
+                                    small
+                                />
                                 </div>
                             </div>
                             <div className="p-3">

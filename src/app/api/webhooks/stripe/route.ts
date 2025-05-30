@@ -3,6 +3,13 @@ import { constructEventFromPayload } from '@/lib/stripe';
 import { db } from '@/lib/db';
 import { OrderStatus, PaymentStatus } from '@/generated/prisma';
 import { DropshippingService } from '@/services/dropshipping/dropshipping-service';
+import {
+    sendOrderConfirmationEmail,
+    sendPaymentFailureEmail,
+    sendPaymentCancellationEmail,
+    sendRefundNotificationEmail,
+    sendActionRequiredEmail
+} from '@/lib/email-utils';
 
 // This API route processes Stripe webhook events
 // https://stripe.com/docs/webhooks
@@ -294,33 +301,5 @@ async function restoreInventoryForOrder(orderId: string) {
                 });
             }
         }
-    }
-
-    console.log(`Restored inventory for order ${orderId}`);
-}
-
-// These are placeholder functions for email notifications - implement actual email sending logic
-async function sendOrderConfirmationEmail(orderId: string) {
-    console.log(`[Email notification] Order confirmation for order ${orderId}`);
-    // Implement your email sending logic here
-}
-
-async function sendPaymentFailureEmail(orderId: string, errorMessage?: string) {
-    console.log(`[Email notification] Payment failed for order ${orderId}: ${errorMessage || 'Unknown error'}`);
-    // Implement your email sending logic here
-}
-
-async function sendPaymentCancellationEmail(orderId: string) {
-    console.log(`[Email notification] Payment cancelled for order ${orderId}`);
-    // Implement your email sending logic here
-}
-
-async function sendRefundNotificationEmail(orderId: string, isFullRefund: boolean, amount: number) {
-    console.log(`[Email notification] ${isFullRefund ? 'Full' : 'Partial'} refund of $${amount.toFixed(2)} for order ${orderId}`);
-    // Implement your email sending logic here
-}
-
-async function sendActionRequiredEmail(orderId: string, actionType?: string) {
-    console.log(`[Email notification] Action required to complete payment for order ${orderId}: ${actionType || 'additional verification'}`);
-    // Implement your email sending logic here
+    } console.log(`Restored inventory for order ${orderId}`);
 }

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
 import { z } from "zod";
+import { cacheInvalidation } from "@/lib/redis";
 
 const orderUpdateSchema = z.object({
     status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "REFUNDED", "ON_HOLD"]).optional(),
@@ -338,6 +339,9 @@ export async function PATCH(
             `Admin updated order #${existingOrder.orderNumber}: ${changeDetails.join(", ")}`,
             session.user.id
         );
+
+        // Invalidate cache
+        await cacheInvalidation.onAdminOrdersChange();
 
         // Format response data
         const formattedOrder = {

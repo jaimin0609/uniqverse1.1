@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/blog-posts - List all blog posts
 export async function GET(request: NextRequest) {
@@ -140,10 +141,13 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        // Invalidate relevant caches
+        await cacheInvalidation.onBlogPostChange(slug);
+
         revalidatePath("/admin/content/blog");
         revalidatePath("/blog");
 
-        return NextResponse.json(blogPost);
+        return NextResponse.json(blogPost, { status: 201 });
     } catch (error) {
         console.error("Error creating blog post:", error);
         return NextResponse.json(

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -10,39 +10,152 @@ interface ProductImage {
     alt: string | null;
 }
 
+interface ProductVariant {
+    id: string;
+    name: string;
+    image: string | null;
+}
+
 interface ProductImageGalleryProps {
     images: ProductImage[];
     productName: string;
+    variants?: ProductVariant[];
+    selectedVariantId?: string;
+    onVariantImageChange?: (imageUrl: string) => void;
 }
 
-export function ProductImageGallery({ images, productName }: ProductImageGalleryProps) {
-    // Ensure we have images before setting state
-    const [selectedImage, setSelectedImage] = useState<string>(images[0]?.url || '/placeholder-product.jpg');
-    const [selectedIndex, setSelectedIndex] = useState<number>(0);
+// Helper function to safely validate and process URLs
+const isValidUrl = (url: string): boolean => {
+    // Basic URL format check before trying the URL constructor
+    if (!url || typeof url !== 'string') return false;
 
-    // Debug log to check the images prop
-    console.log("Product images:", images);
+    // Check if it's a relative URL
+    if (url.startsWith('/')) return true;
+
+    // Check for basic URL structure
+    const pattern = /^(https?:\/\/)/i;
+    if (!pattern.test(url)) return false;
+
+    try {
+        new URL(url);
+        return true;
+    } catch (error) {
+        console.warn("Invalid URL format:", url);
+        return false;
+    }
+};
+
+// Helper function to process image URLs
+const processImageUrl = (url: string): string => {
+    // Handle empty or undefined URLs
+    if (!url || typeof url !== 'string') return '/placeholder-product.jpg';
+
+    // For relative URLs, keep as is
+    if (url.startsWith('/')) {
+        return url;
+    }
+
+    // If it's already a valid URL with http/https, return it directly
+    if (isValidUrl(url)) {
+        return url;
+    }
+
+    // Handle URLs that might be missing protocol
+    if (url.includes('.') && !url.startsWith('http')) {
+        const withProtocol = `https://${url}`;
+        if (isValidUrl(withProtocol)) {
+            return withProtocol;
+        }
+    }
+
+    // For potentially external URLs that failed validation, try to proxy them
+    try {
+        // Clean the URL before proxying
+        const cleanUrl = url.trim();
+        return `/api/proxy-image?url=${encodeURIComponent(cleanUrl)}`;
+    } catch (error) {
+        console.warn("Failed to process image URL:", url);
+        return '/placeholder-product.jpg';
+    }
+};
+
+export function ProductImageGallery({
+    images,
+    productName,
+    variants = [],
+    selectedVariantId,
+    onVariantImageChange
+}: ProductImageGalleryProps) {
+    // Get all available images (product images + variant images) - memoized to avoid unnecessary recalculations
+    const allImages = useMemo(() => [
+        ...images,
+        ...variants
+            .filter(v => v.image)
+            .map(v => {
+                // Instead of strict URL validation, process the URL safely
+                const processedUrl = processImageUrl(v.image!);
+                return {
+                    id: `variant-${v.id}`,
+                    url: processedUrl,
+                    alt: `${productName} - ${v.name}`
+                };
+            })
+    ], [images, variants, productName]);
+
+    // Ensure we have images before setting state
+    const [selectedImage, setSelectedImage] = useState<string>(allImages[0]?.url || '/placeholder-product.jpg');
+    const [selectedIndex, setSelectedIndex] = useState<number>(0);    // Update image when variant changes
+    useEffect(() => {
+        if (selectedVariantId && variants.length > 0) {
+            const selectedVariant = variants.find(v => v.id === selectedVariantId);
+            if (selectedVariant?.image) {
+                console.log("Found variant image:", selectedVariant.image);
+                // Process the image URL safely
+                const processedUrl = processImageUrl(selectedVariant.image);
+                console.log("Processed URL:", processedUrl);
+
+                // Find the variant image in our processed images array
+                const variantImageIndex = allImages.findIndex(img =>
+                    img.id === `variant-${selectedVariant.id}`
+                );
+
+                console.log("Variant image index:", variantImageIndex);
+
+                if (variantImageIndex !== -1) {
+                    setSelectedImage(allImages[variantImageIndex].url);
+                    setSelectedIndex(variantImageIndex);
+                    onVariantImageChange?.(allImages[variantImageIndex].url);
+                } else {
+                    // If not found (edge case), add it dynamically
+                    setSelectedImage(processedUrl);
+                    onVariantImageChange?.(processedUrl);
+                }
+            }
+        }
+    }, [selectedVariantId, variants, allImages, onVariantImageChange]);
 
     const handleImageSelect = (imageUrl: string, index: number) => {
-        console.log("Selected image:", imageUrl);
         setSelectedImage(imageUrl);
         setSelectedIndex(index);
+        onVariantImageChange?.(imageUrl);
     };
 
     const handleNext = () => {
-        if (images.length <= 1) return;
+        if (allImages.length <= 1) return;
 
-        const nextIndex = (selectedIndex + 1) % images.length;
+        const nextIndex = (selectedIndex + 1) % allImages.length;
         setSelectedIndex(nextIndex);
-        setSelectedImage(images[nextIndex].url);
+        setSelectedImage(allImages[nextIndex].url);
+        onVariantImageChange?.(allImages[nextIndex].url);
     };
 
     const handlePrevious = () => {
-        if (images.length <= 1) return;
+        if (allImages.length <= 1) return;
 
-        const prevIndex = selectedIndex === 0 ? images.length - 1 : selectedIndex - 1;
+        const prevIndex = selectedIndex === 0 ? allImages.length - 1 : selectedIndex - 1;
         setSelectedIndex(prevIndex);
-        setSelectedImage(images[prevIndex].url);
+        setSelectedImage(allImages[prevIndex].url);
+        onVariantImageChange?.(allImages[prevIndex].url);
     };
 
     return (
@@ -55,8 +168,12 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
+                    onError={(e) => {
+                        // If image fails to load, set fallback
+                        e.currentTarget.src = '/placeholder-product.jpg';
+                    }}
                 />
-                {images.length > 1 && (
+                {allImages.length > 1 && (
                     <>
                         {/* Previous Button */}
                         <button
@@ -78,25 +195,27 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
 
                         {/* Image Indicators */}
                         <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-2">
-                            {images.map((_, index) => (
+                            {allImages.map((_, index) => (
                                 <span
                                     key={`indicator-${index}`}
-                                    className={`h-1.5 rounded-full transition-all ${index === selectedIndex
-                                            ? 'w-4 bg-white'
-                                            : 'w-1.5 bg-white/50'
+                                    className={`h-1.5 rounded-full transition-all cursor-pointer ${index === selectedIndex
+                                        ? 'w-4 bg-white'
+                                        : 'w-1.5 bg-white/50'
                                         }`}
-                                    onClick={() => handleImageSelect(images[index].url, index)}
+                                    onClick={() => handleImageSelect(allImages[index].url, index)}
                                 />
                             ))}
                         </div>
                     </>
                 )}
-            </div>            {images.length > 1 && (
+            </div>
+
+            {allImages.length > 1 && (
                 <div className="grid grid-cols-4 gap-4">
-                    {images.map((image, index) => (
+                    {allImages.map((image, index) => (
                         <div
                             key={image.id}
-                            className={`aspect-square relative rounded-md overflow-hidden border cursor-pointer ${selectedIndex === index ? 'ring-2 ring-blue-500' : ''
+                            className={`aspect-square relative rounded-md overflow-hidden border cursor-pointer transition-all hover:border-blue-300 ${selectedIndex === index ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-300'
                                 }`}
                             onClick={() => handleImageSelect(image.url, index)}
                         >
@@ -106,6 +225,10 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
                                 fill
                                 className="object-cover hover:opacity-80 transition-opacity"
                                 sizes="(max-width: 768px) 25vw, 15vw"
+                                onError={(e) => {
+                                    // If thumbnail fails to load, use fallback
+                                    e.currentTarget.src = '/placeholder-product.jpg';
+                                }}
                             />
                         </div>
                     ))}

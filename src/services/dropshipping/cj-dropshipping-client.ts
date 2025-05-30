@@ -978,44 +978,52 @@ export class CJDropshippingApiClient {
                 error: error instanceof Error ? error.message : String(error)
             };
         }
-    }
-
-    /**
-     * Create an order with CJ Dropshipping
+    }    /**
+     * Create an order with CJ Dropshipping using the new V2 API
      */
     async createOrder(orderData: SupplierOrderData): Promise<SupplierOrderResponse> {
+        // Map our order data to CJ Dropshipping's CreateOrderV2 format
         const cjOrder = {
             orderNumber: orderData.customer_order_id,
-            shippingAddress: {
-                name: orderData.shipping_address.name,
-                phone: orderData.shipping_address.phone,
-                email: orderData.shipping_address.email,
-                address1: orderData.shipping_address.address1,
-                address2: orderData.shipping_address.address2 || '',
-                city: orderData.shipping_address.city,
-                province: orderData.shipping_address.state || '',
-                country: orderData.shipping_address.country,
-                zip: orderData.shipping_address.postal_code,
-            },
-            productList: orderData.items.map(item => ({
+            shippingZip: orderData.shipping_address.postal_code,
+            shippingCountryCode: orderData.shipping_address.country,
+            shippingCountry: orderData.shipping_address.country,
+            shippingProvince: orderData.shipping_address.state || '',
+            shippingCity: orderData.shipping_address.city,
+            shippingCounty: '', // Optional field
+            shippingPhone: orderData.shipping_address.phone,
+            shippingCustomerName: orderData.shipping_address.name,
+            shippingAddress: orderData.shipping_address.address1,
+            shippingAddress2: orderData.shipping_address.address2 || '',
+            houseNumber: '', // Optional field
+            email: orderData.shipping_address.email,
+            taxId: '', // Optional field
+            remark: orderData.notes || '',
+            consigneeID: '', // Optional field
+            payType: 3, // 3 = No Balance Payment (recommended for API users)
+            shopAmount: '', // Optional field
+            logisticName: 'CJPacket Ordinary', // Default shipping method
+            fromCountryCode: 'CN', // Default warehouse country
+            platform: 'other', // Can be customized based on your platform
+            iossType: '', // Optional IOSS configuration
+            iossNumber: '', // Optional IOSS number
+            products: orderData.items.map(item => ({
                 vid: this.formatProductId(item.product_id),
                 quantity: item.quantity,
+                unitPrice: item.price || '', // Optional unit price
+                podProperties: '', // Optional POD customization
             })),
-            // logisticsName: "CJEPACKET", // Example: Specify if required by API and known
-            // fromWarehouseId: "someWarehouseId" // Example: Specify if required
         };
 
         try {
-            const response = await this.makeRequest('v1/shopping/order/create', {
+            const response = await this.makeRequest('v1/shopping/order/createOrderV2', {
                 method: 'POST',
                 body: JSON.stringify(cjOrder),
-            });
-
-            // CJ API success is indicated by response.result === true or response.code === 200
+            });            // CJ API V2 success is indicated by response.result === true or response.code === 200
             const isSuccess = response.result === true || (response.result === undefined && response.code === 200);
 
             if (!isSuccess) {
-                const errorMessage = `CJ Dropshipping API error creating order: ${response.message || 'Unknown error'} (Code: ${response.code}, Result: ${response.result})`;
+                const errorMessage = `CJ Dropshipping API V2 error creating order: ${response.message || 'Unknown error'} (Code: ${response.code}, Result: ${response.result})`;
                 console.error(errorMessage);
                 return {
                     success: false,
@@ -1028,12 +1036,28 @@ export class CJDropshippingApiClient {
                 };
             }
 
-            const externalId = response.data?.orderId || response.data?.id || response.data?.orderNo || String(Date.now());
+            // Extract order ID from the enhanced V2 response
+            const externalId = response.data?.orderId || response.data?.orderNumber || String(Date.now());
+
+            // Extract additional information from V2 response
+            const orderStatus = response.data?.orderStatus || 'CREATED';
+            const productAmount = response.data?.productAmount || 0;
+            const postageAmount = response.data?.postageAmount || 0;
+            const actualPayment = response.data?.actualPayment || 0;
+
+            console.log('CJ Dropshipping V2 order created:', {
+                orderId: externalId,
+                orderStatus,
+                productAmount,
+                postageAmount,
+                actualPayment,
+                interceptOrderReasons: response.data?.interceptOrderReasons || []
+            });
 
             return {
                 success: true,
                 external_id: externalId,
-                status: 'Pending',
+                status: this.mapCJStatusToInternal(orderStatus),
                 tracking_number: null,
                 tracking_url: null,
                 carrier: null,
@@ -1056,11 +1080,30 @@ export class CJDropshippingApiClient {
     }
 
     /**
-     * Get order status from CJ Dropshipping
+     * Map CJ Dropshipping order status to our internal status format
+     */
+    private mapCJStatusToInternal(cjStatus: string): string {
+        const statusMap: Record<string, string> = {
+            'CREATED': 'Pending',
+            'IN_CART': 'Pending',
+            'UNPAID': 'Pending',
+            'UNSHIPPED': 'Processing',
+            'SHIPPED': 'Shipped',
+            'DELIVERED': 'Delivered',
+            'CANCELLED': 'Cancelled',
+            'OTHER': 'Processing'
+        };
+
+        return statusMap[cjStatus?.toUpperCase()] || 'Processing';
+    }
+
+    /**
+     * Get order status from CJ Dropshipping using the newer API endpoint
      */
     async getOrderStatus(externalOrderId: string): Promise<SupplierOrderStatusResponse> {
         try {
-            const response = await this.makeRequest(`v1/shopping/order/getOrder?orderId=${externalOrderId}`);
+            // Use the getOrderDetail endpoint which provides more comprehensive information
+            const response = await this.makeRequest(`v1/shopping/order/getOrderDetail?orderId=${externalOrderId}`);
 
             const isSuccess = response.result === true || (response.result === undefined && response.code === 200);
 
@@ -1068,29 +1111,33 @@ export class CJDropshippingApiClient {
                 const errorMessage = `CJ Dropshipping API error getting order status for ${externalOrderId}: ${response.message || 'Unknown error'} (Code: ${response.code}, Result: ${response.result})`;
                 console.error(errorMessage);
                 throw new Error(errorMessage);
-            }
+            } const orderDetails = response.data;
 
-            const orderDetails = response.data;
-            let internalStatus: SupplierOrderStatusResponse['status'] = 'Unknown';
-            const cjOrderStatus = String(orderDetails.orderStatus || orderDetails.status || '').toUpperCase();
+            // Use the new mapping method for consistent status handling
+            const cjOrderStatus = String(orderDetails.orderStatus || orderDetails.status || 'CREATED').toUpperCase();
+            const internalStatus = this.mapCJStatusToInternal(cjOrderStatus);
 
-            switch (cjOrderStatus) {
-                case 'PENDING': internalStatus = 'Pending'; break;
-                case 'PROCESSING': internalStatus = 'Processing'; break;
-                case 'PROCESSED': internalStatus = 'Processing'; break;
-                case 'DISPATCHED': internalStatus = 'Shipped'; break;
-                case 'SHIPPED': internalStatus = 'Shipped'; break;
-                case 'COMPLETED': internalStatus = 'Delivered'; break;
-                case 'DELIVERED': internalStatus = 'Delivered'; break;
-                case 'CLOSED': internalStatus = 'Cancelled'; break;
-                case 'CANCELLED': internalStatus = 'Cancelled'; break;
-                default: internalStatus = 'Unknown';
-            }
-
-            const trackingNumber = orderDetails.trackingNumber || orderDetails.trackingNo || orderDetails.logisticsInfo?.trackingNumber || null;
-            const carrier = orderDetails.logisticsName || orderDetails.logisticsInfo?.logisticsName || null;
+            // Extract tracking information with support for more fields
+            const trackingNumber = orderDetails.trackNumber || orderDetails.trackingNumber || orderDetails.trackingNo || orderDetails.logisticsInfo?.trackingNumber || null;
+            const carrier = orderDetails.logisticName || orderDetails.logisticsName || orderDetails.logisticsInfo?.logisticsName || null;
             const trackingUrl = orderDetails.trackingUrl || orderDetails.logisticsInfo?.trackingUrl || null;
-            const estimatedDelivery = orderDetails.estimatedDeliveryTime || orderDetails.estimatedDeliveryDate || null;
+
+            // Enhanced delivery estimation handling
+            const estimatedDelivery = orderDetails.estimatedDeliveryTime ||
+                orderDetails.estimatedDeliveryDate ||
+                orderDetails.outWarehouseTime ||
+                null;
+
+            console.log('CJ Dropshipping order status retrieved:', {
+                orderId: externalOrderId,
+                cjOrderStatus,
+                internalStatus,
+                trackingNumber,
+                carrier,
+                orderWeight: orderDetails.orderWeight,
+                orderAmount: orderDetails.orderAmount,
+                isComplete: orderDetails.isComplete
+            });
 
             return {
                 status: internalStatus,

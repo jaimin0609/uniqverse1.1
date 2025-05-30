@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cache, cacheInvalidation } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
+
 
 // GET all supplier orders
 export async function GET(request: NextRequest) {
@@ -22,6 +25,16 @@ export async function GET(request: NextRequest) {
         const supplierId = searchParams.get("supplierId");
         const from = searchParams.get("from");
         const to = searchParams.get("to");
+
+        // Create cache key based on query parameters
+        const queryParams = { page, pageSize, status, supplierId, from, to };
+        const cacheKey = `admin:supplier-orders:${hashObject(queryParams)}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Build the where clause for filtering
         const where: any = {};
@@ -120,6 +133,18 @@ export async function GET(request: NextRequest) {
             `Admin viewed supplier orders list with ${supplierOrders.length} results`,
             session.user.id
         );
+
+        // Cache the response
+        await cache.set(cacheKey, {
+            supplierOrders,
+            pagination: {
+                total: totalOrders,
+                page,
+                pageSize,
+                totalPages: Math.ceil(totalOrders / pageSize),
+            },
+            metrics,
+        });
 
         return NextResponse.json({
             supplierOrders,
@@ -263,14 +288,15 @@ export async function POST(request: NextRequest) {
                     },
                 });
             }
-        }
-
-        // Log the admin action
+        }        // Log the admin action
         await logAdminAction(
             "supplier_order_create",
             `Admin created supplier order for ${products[0]?.name ? products[0].name + (data.items.length > 1 ? ` and ${data.items.length - 1} other items` : '') : 'products'}`,
             session.user.id
         );
+
+        // Invalidate admin supplier orders cache
+        await cacheInvalidation.onAdminSupplierOrdersChange();
 
         return NextResponse.json(
             {

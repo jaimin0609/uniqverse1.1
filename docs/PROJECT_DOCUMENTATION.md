@@ -6,7 +6,7 @@ Uniqverse is a modern, full-featured e-commerce platform built with Next.js and 
 
 The platform is built as a Progressive Web App (PWA), ensuring it works seamlessly across all devices and can be installed as a native app on mobile devices (iOS and Android) while maintaining optimal performance on mobile browsers.
 
-**Last Updated**: May 12, 2025
+**Last Updated**: May 27, 2025
 
 ## Technology Stack
 
@@ -79,6 +79,7 @@ src/
 
 ### User Management
 - **Authentication**: Email/password and social login (Google OAuth)
+- **Password Reset**: Complete secure password reset flow with email verification
 - **User Roles**: Admin, Customer, Manager
 - **Profile Management**: User details, addresses, order history
 - **Wish List**: Save favorite products
@@ -148,6 +149,48 @@ Authentication is handled by NextAuth.js with the following providers:
 - Google OAuth
 
 User sessions are maintained using JWT tokens and stored in cookies.
+
+### Password Reset Functionality
+
+The platform includes a complete password reset system that allows users to securely reset their passwords via email verification.
+
+#### Features
+- **Forgot Password Flow**: Users can request a password reset from the login page
+- **Email Verification**: Secure token-based email verification system
+- **Token Expiry**: Password reset tokens expire after 1 hour for security
+- **Password Validation**: New passwords must meet security requirements (minimum 8 characters)
+- **Success Feedback**: Clear success messages throughout the process
+- **Secure Reset Process**: One-time use tokens that are invalidated after use
+
+#### User Flow
+1. **Request Reset**: User clicks "Forgot Password?" on the login page
+2. **Email Entry**: User enters their email address on the forgot password page
+3. **Email Sent**: System sends a password reset email with a secure token link
+4. **Token Verification**: User clicks the link in their email (valid for 1 hour)
+5. **New Password**: User enters and confirms their new password
+6. **Reset Complete**: Password is updated and user is redirected to login with success message
+
+#### Technical Implementation
+- **Email Service**: Uses Nodemailer for sending password reset emails
+- **Token Generation**: Cryptographically secure random tokens
+- **Database Storage**: Reset tokens stored with expiry timestamps
+- **Form Validation**: Client and server-side validation using Zod schemas
+- **Security**: Tokens are hashed before storage and automatically cleaned up after use
+
+#### API Endpoints
+- **POST /api/auth/forgot-password**: Request password reset email
+- **POST /api/auth/reset-password**: Reset password with token
+- **GET /api/auth/verify-reset-token**: Verify reset token validity
+
+#### Components
+- **Forgot Password Page** (`/auth/forgot-password`): Email submission form
+- **Reset Password Page** (`/auth/reset-password`): New password form with token validation
+- **Login Page** (`/auth/login`): Displays success messages after password reset completion
+
+#### Success Messages
+- Registration completion success message on login page
+- Password reset completion success message on login page
+- Clear error handling for expired or invalid tokens
 
 ## State Management
 

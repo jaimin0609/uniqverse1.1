@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/blog-categories - List all blog categories
 export async function GET(request: NextRequest) {
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
                 updatedAt: new Date(),
             },
         });
+
+        // Invalidate relevant caches
+        await cacheInvalidation.onCategoryChange(category.id);
 
         return NextResponse.json(category);
     } catch (error) {

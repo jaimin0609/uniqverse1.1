@@ -249,60 +249,70 @@ export async function POST(request: NextRequest) {
         // Create product variants if they exist
         if (result.product.variants && Array.isArray(result.product.variants) && result.product.variants.length > 0) {
             // Extract variant types from the variants
-            console.log('Processing variants:', result.product.variants);
-
-            // First pass: Parse all variants to extract all variant types and options
-            // Some CJ variants might include multiple properties like "Color:Red,Size:XL"
-            // while others might use a different format or single properties
+            console.log('Processing variants:', result.product.variants);            // First pass: Parse all variants to extract all variant types and options
+            // Use variantKey instead of variantNameEn to get clean variant attributes
             for (const variant of result.product.variants) {
-                // Skip variants without proper data
-                if (!variant.variantNameEn) continue;
+                // Skip variants without proper data - prioritize variantKey over variantNameEn
+                const variantData = variant.variantKey || variant.variantNameEn;
+                if (!variantData) continue;
 
-                // Handle comma-separated variant format (e.g., "Color:Red,Size:XL")
-                if (variant.variantNameEn.includes(':') && variant.variantNameEn.includes(',')) {
-                    // Get variant properties from name (e.g., "Color:Red,Size:XL" -> ["Color:Red", "Size:XL"])
-                    const properties = variant.variantNameEn.split(',').map(prop => prop.trim());
+                // Handle comma-separated variant format (e.g., "Red,XL" or "Color:Red,Size:XL")
+                if (variantData.includes(',')) {
+                    const properties = variantData.split(',').map(prop => prop.trim());
 
-                    // Process each property (Color:Red, Size:XL, etc.)
+                    // Process each property
                     for (const prop of properties) {
-                        const [type, value] = prop.split(':').map(p => p.trim());
-
-                        if (type && value) {
-                            // Add type to set of variant types
-                            variantTypes.add(type);
-
-                            // Initialize array for this type if it doesn't exist
-                            if (!variantsByType[type]) {
-                                variantsByType[type] = [];
+                        // Check if it's in "Type:Value" format
+                        if (prop.includes(':')) {
+                            const [type, value] = prop.split(':').map(p => p.trim());
+                            if (type && value) {
+                                variantTypes.add(type);
+                                if (!variantsByType[type]) {
+                                    variantsByType[type] = [];
+                                }
+                                if (!variantsByType[type].includes(value)) {
+                                    variantsByType[type].push(value);
+                                }
                             }
+                        } else {
+                            // Simple format like "Red,XL" - use productKeyEn to determine types
+                            const productKeys = result.product.productKeyEn ?
+                                result.product.productKeyEn.split(',').map(k => k.trim()) :
+                                ['Option'];
 
-                            // Add value to array if it doesn't exist already
-                            if (!variantsByType[type].includes(value)) {
-                                variantsByType[type].push(value);
+                            const typeIndex = properties.indexOf(prop);
+                            const variantType = productKeys[typeIndex] || productKeys[0] || 'Option';
+
+                            variantTypes.add(variantType);
+                            if (!variantsByType[variantType]) {
+                                variantsByType[variantType] = [];
+                            }
+                            if (!variantsByType[variantType].includes(prop)) {
+                                variantsByType[variantType].push(prop);
                             }
                         }
                     }
                 }
-                // Handle simpler variant format without specific type (just option names)
+                // Handle single variant attribute (e.g., just "Blue" or "XL")
                 else {
-                    // Use a default type name if no structured format is found
-                    const defaultType = "Option";
-                    variantTypes.add(defaultType);
+                    // Use productKeyEn to determine the variant type, or default to "Option"
+                    const variantType = result.product.productKeyEn || 'Option';
+                    variantTypes.add(variantType);
 
-                    if (!variantsByType[defaultType]) {
-                        variantsByType[defaultType] = [];
+                    if (!variantsByType[variantType]) {
+                        variantsByType[variantType] = [];
                     }
 
-                    if (!variantsByType[defaultType].includes(variant.variantNameEn)) {
-                        variantsByType[defaultType].push(variant.variantNameEn);
+                    if (!variantsByType[variantType].includes(variantData)) {
+                        variantsByType[variantType].push(variantData);
                     }
                 }
             } console.log('Extracted variant types:', Array.from(variantTypes));
-            console.log('Variants by type:', variantsByType);
-
-            // Create product variants in our database
+            console.log('Variants by type:', variantsByType);            // Create product variants in our database
             for (const variant of result.product.variants) {
-                if (!variant.variantNameEn) continue;
+                // Get clean variant name from variantKey instead of variantNameEn
+                const cleanVariantName = variant.variantKey || variant.variantNameEn;
+                if (!cleanVariantName) continue;
 
                 const variantCost = variant.variantSellPrice || costPrice;
                 const variantPrice = Math.ceil((variantCost * (1 + markup)) * 100) / 100;
@@ -311,17 +321,29 @@ export async function POST(request: NextRequest) {
                 let mainType = "Option"; // Default type if no structure is detected
                 const options: Record<string, string> = {};
 
-                // For variants with structured data like "Color:Red,Size:XL"
-                if (variant.variantNameEn.includes(':') && variant.variantNameEn.includes(',')) {
-                    const properties = variant.variantNameEn.split(',').map(prop => prop.trim());
+                // For variants with comma-separated attributes (e.g., "Red,XL" or "Color:Red,Size:XL")
+                if (cleanVariantName.includes(',')) {
+                    const properties = cleanVariantName.split(',').map(prop => prop.trim());
 
                     for (const prop of properties) {
-                        const parts = prop.split(':').map(p => p.trim());
-                        if (parts.length === 2) {
-                            const [type, value] = parts;
-                            if (type && value) {
-                                options[type] = value;
+                        // Check if it's in "Type:Value" format
+                        if (prop.includes(':')) {
+                            const parts = prop.split(':').map(p => p.trim());
+                            if (parts.length === 2) {
+                                const [type, value] = parts;
+                                if (type && value) {
+                                    options[type] = value;
+                                }
                             }
+                        } else {
+                            // Simple format like "Red,XL" - use productKeyEn to determine types
+                            const productKeys = result.product.productKeyEn ?
+                                result.product.productKeyEn.split(',').map(k => k.trim()) :
+                                ['Option'];
+
+                            const typeIndex = properties.indexOf(prop);
+                            const variantType = productKeys[typeIndex] || productKeys[0] || 'Option';
+                            options[variantType] = prop;
                         }
                     }
 
@@ -330,18 +352,22 @@ export async function POST(request: NextRequest) {
                         mainType = Object.keys(options)[0];
                     }
                 }
-                // For simple variants without a type:value structure
+                // For single variant attribute (e.g., just "Blue" or "XL")
                 else {
-                    options[mainType] = variant.variantNameEn;
-                }
-
-                // Log variant processing for debugging
-                console.log(`Creating variant: ${variant.variantNameEn}, Type: ${mainType}, Price: ${variantPrice}`);
+                    // Use productKeyEn to determine the variant type
+                    mainType = result.product.productKeyEn || 'Option';
+                    options[mainType] = cleanVariantName;
+                }                // Log variant processing for debugging
+                console.log(`Creating variant: ${cleanVariantName}, Type: ${mainType}, Price: ${variantPrice}`);
+                console.log(`Variant data from CJ API:`, JSON.stringify(variant, null, 2));
+                console.log(`Variant has variantImage field:`, 'variantImage' in variant);
+                console.log(`Variant variantImage value:`, variant.variantImage);
+                console.log(`Fallback product image:`, result.product.productImageSet?.[0]);
 
                 await db.productVariant.create({
                     data: {
                         productId: product.id,
-                        name: variant.variantNameEn,
+                        name: cleanVariantName, // Use clean variant name instead of full product name
                         price: variantPrice,
                         costPrice: variantCost,
                         inventory: 999,

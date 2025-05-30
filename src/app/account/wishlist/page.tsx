@@ -187,10 +187,9 @@ export default function WishlistPage() {
                                         )}
                                         <span className="font-semibold"><ClientPrice amount={item.price} /></span>
                                     </div>
-                                    </div>
-
-                                    <QuickAddToCart
+                                    </div>                                    <QuickAddToCart
                                         productId={item.id}
+                                        productSlug={item.slug} // Added slug for proper cart URLs
                                         productName={item.name}
                                         productPrice={item.price}
                                         productImage={item.image}

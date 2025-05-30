@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cache } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // GET all suppliers
 export async function GET(request: NextRequest) {
@@ -12,6 +14,15 @@ export async function GET(request: NextRequest) {
         // Check if user is authenticated and has admin role
         if (!session?.user || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Create cache key for suppliers list
+        const cacheKey = `admin:suppliers:${hashObject({})}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
         }
 
         // Get all suppliers with related product counts
@@ -51,7 +62,10 @@ export async function GET(request: NextRequest) {
             session.user.id
         );
 
-        return NextResponse.json({ suppliers: formattedSuppliers });
+        // Cache suppliers for 15 minutes (suppliers data doesn't change frequently)
+        await cache.set(cacheKey, formattedSuppliers, 900);
+
+        return NextResponse.json(formattedSuppliers);
     } catch (error) {
         console.error("Error fetching suppliers:", error);
         return NextResponse.json(

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET a specific supplier order
 export async function GET(
@@ -250,6 +251,9 @@ export async function PATCH(
             session.user.id
         );
 
+        // Invalidate cache
+        await cacheInvalidation.onAdminSupplierOrdersChange();
+
         return NextResponse.json({
             success: true,
             supplierOrder: updatedOrder,
@@ -329,6 +333,9 @@ export async function DELETE(
                 session.user.id
             );
 
+            // Invalidate cache
+            await cacheInvalidation.onAdminSupplierOrdersChange();
+
             return NextResponse.json({ success: true, action: "cancelled" });
         }
 
@@ -358,6 +365,9 @@ export async function DELETE(
             `Admin deleted supplier order for ${existingOrder.Supplier.name}`,
             session.user.id
         );
+
+        // Invalidate cache
+        await cacheInvalidation.onAdminSupplierOrdersChange();
 
         return NextResponse.json({ success: true, action: "deleted" });
     } catch (error) {

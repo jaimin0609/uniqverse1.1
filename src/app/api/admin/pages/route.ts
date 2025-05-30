@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { cache, cacheInvalidation } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // GET /api/admin/pages - List all pages
 export async function GET(request: NextRequest) {
@@ -9,11 +11,18 @@ export async function GET(request: NextRequest) {
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Get search query if any
+        }        // Get search query if any
         const searchParams = request.nextUrl.searchParams;
         const searchQuery = searchParams.get("search") || "";
+
+        // Create cache key based on search query
+        const cacheKey = `admin:pages:${hashObject({ search: searchQuery })}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Fetch pages with search filter
         const pages = await db.page.findMany({
@@ -23,11 +32,13 @@ export async function GET(request: NextRequest) {
                     { slug: { contains: searchQuery, mode: "insensitive" } },
                     { content: { contains: searchQuery, mode: "insensitive" } },
                 ],
-            },
-            orderBy: {
+            }, orderBy: {
                 updatedAt: "desc",
             },
         });
+
+        // Cache pages for 15 minutes (pages content doesn't change very frequently)
+        await cache.set(cacheKey, pages, 900);
 
         return NextResponse.json(pages);
     } catch (error) {
@@ -90,6 +101,9 @@ export async function POST(request: NextRequest) {
                 updatedAt: new Date(),
             },
         });
+
+        // Invalidate admin pages cache
+        await cacheInvalidation.onAdminPagesChange();
 
         return NextResponse.json(page);
     } catch (error) {

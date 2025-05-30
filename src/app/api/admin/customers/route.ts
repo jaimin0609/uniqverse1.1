@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cache } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,14 +12,21 @@ export async function GET(request: NextRequest) {
         // Check if user is authenticated and has admin role
         if (!session?.user || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // Get query parameters
+        }        // Get query parameters
         const { searchParams } = new URL(request.url);
         const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
         const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
         const role = searchParams.get("role") || "all";
         const search = searchParams.get("search") || "";
+
+        // Create cache key based on query parameters
+        const cacheKey = `admin:customers:${role}:${search}:${page}:${pageSize}`;
+
+        // Try to get data from cache first
+        const cachedData = await cache.get(cacheKey);
+        if (cachedData) {
+            return NextResponse.json(cachedData);
+        }
 
         // Calculate pagination
         const skip = (page - 1) * pageSize;
@@ -92,9 +100,7 @@ export async function GET(request: NextRequest) {
                 orderCount,
                 totalSpent
             };
-        });
-
-        // Log this admin action
+        });        // Log this admin action
         if (session.user?.id) {
             await logAdminAction(
                 "user_list_view",
@@ -103,7 +109,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({
+        const result = {
             customers: formattedUsers,
             pagination: {
                 total: totalUsers,
@@ -111,7 +117,12 @@ export async function GET(request: NextRequest) {
                 pageSize,
                 totalPages
             }
-        });
+        };
+
+        // Cache the result for 5 minutes (300 seconds) since admin data can change frequently
+        await cache.set(cacheKey, result, 300);
+
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error("Error fetching customers:", error);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/pages/[id] - Get a specific page
 export async function GET(
@@ -46,7 +47,8 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const data = await request.json(); const {
+        const data = await request.json();
+        const {
             title,
             slug,
             content,
@@ -88,19 +90,25 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }        // Update the page
+        }
+
+        // Update the page
         const updatedPage = await db.page.update({
             where: { id: params.id },
             data: {
                 title,
                 slug,
                 content,
-                isPublished, metaTitle: metaTitle || title,
+                isPublished,
+                metaTitle: metaTitle || title,
                 metaDesc: metaDesc || "",
                 settings: externalLinks.length ? { externalLinks } : undefined,
                 updatedAt: new Date(),
             },
         });
+
+        // Invalidate admin pages cache
+        await cacheInvalidation.onAdminPagesChange();
 
         return NextResponse.json(updatedPage);
     } catch (error) {
@@ -139,6 +147,9 @@ export async function DELETE(
         await db.page.delete({
             where: { id: params.id },
         });
+
+        // Invalidate admin pages cache
+        await cacheInvalidation.onAdminPagesChange();
 
         return NextResponse.json({ success: true });
     } catch (error) {

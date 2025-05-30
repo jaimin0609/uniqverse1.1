@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
 import { format, subDays, startOfDay, endOfDay, subMonths, subYears } from "date-fns";
+import { cache } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // Function to get date range based on the parameter
 function getDateRange(range: string) {
@@ -77,6 +79,14 @@ export async function GET(request: NextRequest) {
         // Get date range parameter
         const { searchParams } = new URL(request.url);
         const range = searchParams.get("range") || "week";
+
+        // Create cache key based on range parameter
+        const cacheKey = `admin:stats:${hashObject({ range })}`;
+        // Try to get from cache first (stats change frequently but not every second)
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Calculate date range based on parameter
         let startDate: Date;
@@ -297,16 +307,14 @@ export async function GET(request: NextRequest) {
             where: {
                 status: "PENDING"
             }
-        });
-
-        // Log the admin dashboard view
+        });        // Log the admin dashboard view
         await logAdminAction(
             "dashboard_view",
             `Admin viewed dashboard with date range: ${range}`,
             session.user.id
         );
 
-        return NextResponse.json({
+        const result = {
             totalSales,
             totalOrders,
             totalProducts,
@@ -322,7 +330,10 @@ export async function GET(request: NextRequest) {
                 products: productsGrowthRate,
                 users: usersGrowthRate
             }
-        });
+        };        // Cache stats for 2 minutes (admin stats change frequently but not constantly)
+        await cache.set(cacheKey, result, 120);
+
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error("Error generating admin dashboard stats:", error);

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cacheInvalidation } from "@/lib/redis";
 
 // Get all categories
 export async function GET(request: NextRequest) {
@@ -107,6 +108,9 @@ export async function POST(request: Request) {
             `Admin created category "${data.name}" (ID: ${category.id})`,
             session.user.id
         );
+
+        // Invalidate cache
+        await cacheInvalidation.onAdminCategoriesChange();
 
         return NextResponse.json(category, { status: 201 });
     } catch (error) {

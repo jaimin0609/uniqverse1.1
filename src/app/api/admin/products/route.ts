@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cache, cacheInvalidation } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // Product validation schema
 const productSchema = z.object({
@@ -37,9 +39,20 @@ export async function GET(request: NextRequest) {
         const category = url.searchParams.get("category") || "";
         const sortBy = url.searchParams.get("sortBy") || "createdAt";
         const sortOrder = url.searchParams.get("sortOrder") || "desc";
-        const showLowStock = url.searchParams.get("lowStock") === "true";
-        const showOutOfStock = url.searchParams.get("outOfStock") === "true";
-        const skipItems = (page - 1) * limit;        // Build filter conditions
+        const showLowStock = url.searchParams.get("lowStock") === "true"; const showOutOfStock = url.searchParams.get("outOfStock") === "true";
+        const skipItems = (page - 1) * limit;
+
+        // Create cache key based on query parameters
+        const queryParams = { page, limit, search, category, sortBy, sortOrder, showLowStock, showOutOfStock };
+        const cacheKey = `admin:products:${hashObject(queryParams)}`;
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
+        // Build filter conditions
         const where: any = {
             // By default, don't show deleted products unless explicitly requested
             isDeleted: false
@@ -109,16 +122,14 @@ export async function GET(request: NextRequest) {
             isFeatured: product.isFeatured,
             hasVariants: product.variants.length > 0,
             numReviews: product._count.reviews
-        }));
-
-        // Log the admin action
+        }));        // Log the admin action
         await logAdminAction(
             "product_list_view",
             `Admin viewed product list with filters: search=${search}, category=${category}, page=${page}`,
             session.user.id
         );
 
-        return NextResponse.json({
+        const response = {
             products: formattedProducts,
             pagination: {
                 page,
@@ -126,7 +137,12 @@ export async function GET(request: NextRequest) {
                 totalItems: totalProducts,
                 totalPages: Math.ceil(totalProducts / limit)
             }
-        });
+        };
+
+        // Cache admin products for 5 minutes (product data changes moderately)
+        await cache.set(cacheKey, response, 300);
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching products:", error);
         return NextResponse.json(
@@ -243,6 +259,9 @@ export async function POST(request: Request) {
             `Admin created new product "${validatedData.data.name}" (ID: ${product.id})`,
             session.user.id
         );
+
+        // Invalidate relevant caches
+        await cacheInvalidation.onProductChange(product.id);
 
         // Return the created product with its images in the right format
         const createdProduct = await db.product.findUnique({

@@ -13,7 +13,9 @@ import {
     Edit,
     Trash2,
     Eye,
-    Package
+    Package,
+    Check,
+    Minus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -54,6 +56,11 @@ export default function AdminProductsPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [error, setError] = useState<string | null>(null);
 
+    // Bulk selection state
+    const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+    const [isSelectAll, setIsSelectAll] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
     const perPage = 10;
 
     // Fetch products when component mounts or filters change
@@ -90,10 +97,12 @@ export default function AdminProductsPage() {
                     throw new Error(`Error fetching products: ${response.statusText}`);
                 }
 
-                const data = await response.json();
-
-                setProducts(data.products);
+                const data = await response.json(); setProducts(data.products);
                 setTotalPages(data.pagination.totalPages);
+
+                // Reset selections when data changes
+                setSelectedProducts(new Set());
+                setIsSelectAll(false);
 
                 // Fetch categories if not already loaded
                 if (categories.length === 0) {
@@ -172,9 +181,7 @@ export default function AdminProductsPage() {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-    };
-
-    const handleDelete = async (productId: string) => {
+    }; const handleDelete = async (productId: string) => {
         if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
             return;
         }
@@ -199,6 +206,83 @@ export default function AdminProductsPage() {
             alert("Failed to delete product. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Bulk selection handlers
+    const handleSelectProduct = (productId: string, checked: boolean) => {
+        const newSelection = new Set(selectedProducts);
+        if (checked) {
+            newSelection.add(productId);
+        } else {
+            newSelection.delete(productId);
+        }
+        setSelectedProducts(newSelection);
+
+        // Update select all state
+        setIsSelectAll(newSelection.size === products.length && products.length > 0);
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const allProductIds = new Set(products.map(p => p.id));
+            setSelectedProducts(allProductIds);
+            setIsSelectAll(true);
+        } else {
+            setSelectedProducts(new Set());
+            setIsSelectAll(false);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedProducts.size === 0) return;
+
+        const confirmMessage = `Are you sure you want to delete ${selectedProducts.size} selected product(s)? This action cannot be undone.`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            setIsBulkDeleting(true);
+            const productIds = Array.from(selectedProducts);
+
+            const response = await fetch('/api/admin/products/bulk-delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productIds }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to delete products');
+            }
+
+            // Remove deleted products from the list
+            const deletedIds = productIds.filter(id => !result.failedDeletes?.includes(id));
+            setProducts(products.filter(p => !deletedIds.includes(p.id)));
+
+            // Clear selection
+            setSelectedProducts(new Set());
+            setIsSelectAll(false);
+
+            // Show success/warning message
+            let message = result.message;
+            if (result.warning) {
+                message += `\n${result.warning}`;
+            }
+            if (result.error) {
+                message += `\nWarning: ${result.error}`;
+            }
+
+            alert(message);
+        } catch (error) {
+            console.error("Error bulk deleting products:", error);
+            alert("Failed to delete products. Please try again.");
+        } finally {
+            setIsBulkDeleting(false);
         }
     };
 
@@ -281,9 +365,42 @@ export default function AdminProductsPage() {
                                 </select>
                             </div>
                         </div>
-                    </div>
-                )}
+                    </div>)}
             </div>
+
+            {/* Bulk Actions */}
+            {selectedProducts.size > 0 && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm font-medium text-blue-900">
+                                {selectedProducts.size} product(s) selected
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setSelectedProducts(new Set());
+                                    setIsSelectAll(false);
+                                }}
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                Clear Selection
+                            </Button>
+                        </div>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleBulkDelete}
+                            disabled={isBulkDeleting}
+                            className="flex items-center"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Products Table */}
             <div className="bg-white shadow-sm rounded-lg overflow-hidden">
@@ -304,6 +421,16 @@ export default function AdminProductsPage() {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelectAll}
+                                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                            </div>
+                                        </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             <button
                                                 onClick={() => handleSort('name')}
@@ -347,6 +474,16 @@ export default function AdminProductsPage() {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {products.map((product) => (
                                         <tr key={product.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap w-12">
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedProducts.has(product.id)}
+                                                        onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                    />
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <div className="h-10 w-10 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">

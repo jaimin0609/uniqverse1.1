@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { cache } from "@/lib/redis";
+
 
 // Schema for user profile updates
 const userProfileSchema = z.object({
@@ -20,6 +22,14 @@ export async function GET(req: Request) {
                 { message: "Unauthorized" },
                 { status: 401 }
             );
+        }
+
+        const cacheKey = `user:profile:${session.user.id}`;
+
+        // Try to get from cache first
+        const cachedProfile = await cache.get(cacheKey);
+        if (cachedProfile) {
+            return NextResponse.json({ user: cachedProfile });
         }
 
         const user = await db.user.findUnique({
@@ -57,14 +67,15 @@ export async function GET(req: Request) {
                 },
                 UserSecuritySettings: true,
             }
-        });
-
-        if (!user) {
+        }); if (!user) {
             return NextResponse.json(
                 { message: "User not found" },
                 { status: 404 }
             );
         }
+
+        // Cache the user profile for 30 minutes
+        await cache.set(cacheKey, user, 1800);
 
         return NextResponse.json({ user });
 
@@ -99,9 +110,7 @@ export async function PATCH(req: Request) {
             );
         }
 
-        const userData = validationResult.data;
-
-        const updatedUser = await db.user.update({
+        const userData = validationResult.data; const updatedUser = await db.user.update({
             where: { id: session.user.id },
             data: {
                 ...userData,
@@ -117,6 +126,10 @@ export async function PATCH(req: Request) {
                 updatedAt: true
             }
         });
+
+        // Invalidate user profile cache
+        const cacheKey = `user:profile:${session.user.id}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({
             message: "Profile updated successfully",

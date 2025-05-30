@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
+import { cache, cacheInvalidation } from "@/lib/redis";
 
 // GET - Retrieve a specific ticket with all replies
 export async function GET(
@@ -118,6 +119,10 @@ export async function PATCH(
             data: updateData
         });
 
+        // Invalidate admin tickets cache and user's tickets cache
+        await cacheInvalidation.onAdminTicketsChange();
+        await cache.del(`support:tickets:user:${existingTicket.userId}`);
+
         return NextResponse.json({
             success: true,
             ticket: updatedTicket
@@ -200,6 +205,10 @@ export async function POST(
                 data: { status: newStatus, updatedAt: new Date() }
             });
         }
+
+        // Invalidate admin tickets cache and user's tickets cache
+        await cacheInvalidation.onAdminTicketsChange();
+        await cache.del(`support:tickets:user:${existingTicket.userId}`);
 
         return NextResponse.json({
             success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash, compare } from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
+import { cache } from "@/lib/redis";
 
 // GET - Fetch current user's account information
 export async function GET() {
@@ -10,6 +11,14 @@ export async function GET() {
 
         if (!session?.user?.email) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const cacheKey = `user:account:${session.user.email}`;
+
+        // Try to get from cache first
+        const cachedAccount = await cache.get(cacheKey);
+        if (cachedAccount) {
+            return NextResponse.json(cachedAccount);
         }
 
         // Get user from database excluding sensitive fields
@@ -25,11 +34,12 @@ export async function GET() {
                 updatedAt: true,
                 // Exclude password and other sensitive fields
             }
-        });
-
-        if (!user) {
+        }); if (!user) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
+
+        // Cache the account info for 30 minutes
+        await cache.set(cacheKey, user, 1800);
 
         return NextResponse.json(user);
     } catch (error) {
@@ -113,9 +123,7 @@ export async function PUT(req: NextRequest) {
                     { status: 400 }
                 );
             }
-        }
-
-        // Update user
+        }        // Update user
         const updatedUser = await db.user.update({
             where: { id: user.id },
             data: updateData,
@@ -130,6 +138,16 @@ export async function PUT(req: NextRequest) {
                 // Exclude password and other sensitive fields
             }
         });
+
+        // Invalidate account cache
+        const cacheKey = `user:account:${session.user.email}`;
+        await cache.del(cacheKey);
+
+        // If email changed, also invalidate the new email cache
+        if (email !== session.user.email) {
+            const newCacheKey = `user:account:${email}`;
+            await cache.del(newCacheKey);
+        }
 
         return NextResponse.json(updatedUser);
     } catch (error) {
@@ -156,13 +174,15 @@ export async function DELETE() {
 
         if (!user) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
-        }
-
-        // Delete user - this will also delete related data due to cascading deletes
+        }        // Delete user - this will also delete related data due to cascading deletes
         // defined in the schema
         await db.user.delete({
             where: { id: user.id }
         });
+
+        // Invalidate account cache
+        const cacheKey = `user:account:${session.user.email}`;
+        await cache.del(cacheKey);
 
         return NextResponse.json({ message: "Account deleted successfully" });
     } catch (error) {

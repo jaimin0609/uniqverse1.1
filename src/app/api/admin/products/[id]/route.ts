@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cacheInvalidation } from "@/lib/redis";
 
 // Product validation schema
 const productUpdateSchema = z.object({
@@ -251,6 +252,9 @@ export async function PUT(
             session.user.id
         );
 
+        // Invalidate relevant caches
+        await cacheInvalidation.onProductChange(productId);
+
         // Return updated product with variants and images in the expected format
         const finalProduct = await db.product.findUnique({
             where: { id: productId },
@@ -388,6 +392,9 @@ export async function DELETE(
                 session.user.id
             );
         }
+
+        // Invalidate relevant caches after deletion
+        await cacheInvalidation.onProductChange(productId);
 
         return NextResponse.json(
             { message: "Product deleted successfully" },

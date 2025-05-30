@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
 import { z } from "zod";
+import { cacheInvalidation } from "@/lib/redis";
 
 // Validation schema for customer updates
 const customerUpdateSchema = z.object({
@@ -160,14 +161,15 @@ export async function PATCH(
                     }
                 }
             }
-        });
-
-        // Log this admin action
+        });        // Log this admin action
         await logAdminAction(
             "customer_update",
             `Admin updated customer ${existingCustomer.name || existingCustomer.email}: ${changeDetails.join(", ")}`,
             session.user.id
         );
+
+        // Invalidate customers cache
+        await cacheInvalidation.onAdminCustomersChange();
 
         return NextResponse.json(updatedCustomer);
     } catch (error) {
@@ -291,14 +293,15 @@ export async function DELETE(
         // 6. Finally delete the user
         await db.user.delete({
             where: { id: customerId }
-        });
-
-        // Log this admin action
+        });        // Log this admin action
         await logAdminAction(
             "customer_delete",
             `Admin deleted customer ${existingCustomer.name || existingCustomer.email} (ID: ${customerId})`,
             session.user.id
         );
+
+        // Invalidate customers cache
+        await cacheInvalidation.onAdminCustomersChange();
 
         return NextResponse.json(
             { message: "Customer deleted successfully" },

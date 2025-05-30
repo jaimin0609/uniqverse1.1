@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { cache, cacheKeys, cacheInvalidation } from "@/lib/redis";
 
 // Schema for cart items
 const cartItemSchema = z.object({
@@ -25,7 +26,14 @@ export async function GET(req: NextRequest) {
         const guestCartId = url.searchParams.get("cartId");
 
         // If user is authenticated, get or create their cart
-        if (session?.user?.id) {
+        if (session?.user?.id) {            // Create cache key for user's cart
+            const cacheKey = cacheKeys.user(`cart:${session.user.id}`);
+
+            // Try to get from cache first
+            const cached = await cache.get(cacheKey);
+            if (cached) {
+                return NextResponse.json(cached);
+            }
             // Get existing cart or create a new one
             let cart = await db.cart.findUnique({
                 where: { userId: session.user.id },
@@ -180,9 +188,7 @@ export async function GET(req: NextRequest) {
                                 }
                             }
                         }
-                    });
-
-                    // Reformat cart items after merge
+                    });                    // Reformat cart items after merge
                     const mergedCartItems = cart!.CartItem.map(item => {
                         return {
                             id: item.id,
@@ -197,18 +203,28 @@ export async function GET(req: NextRequest) {
                         };
                     });
 
-                    return NextResponse.json({
+                    const mergedResponse = {
                         cartId: cart!.id,
                         items: mergedCartItems,
                         message: "Guest cart merged with user cart"
-                    });
+                    };
+
+                    // Cache the merged cart data
+                    await cache.set(cacheKey, mergedResponse, 3600); // Cache for 1 hour
+
+                    return NextResponse.json(mergedResponse);
                 }
             }
 
-            return NextResponse.json({
+            const cartResponse = {
                 cartId: cart.id,
                 items: formattedCartItems
-            });
+            };
+
+            // Cache the cart data for authenticated users
+            await cache.set(cacheKey, cartResponse, 3600); // Cache for 1 hour
+
+            return NextResponse.json(cartResponse);
 
         } else if (guestCartId) {
             // Handle guest cart retrieval
@@ -396,9 +412,7 @@ export async function POST(req: Request) {
                     }
                 }
             }
-        });
-
-        // Format cart items
+        });        // Format cart items
         const formattedCartItems = updatedCartItems.map(item => {
             return {
                 id: item.id,
@@ -412,6 +426,12 @@ export async function POST(req: Request) {
                 variantOptions: item.ProductVariant?.options,
             };
         });
+
+        // Invalidate cache for authenticated users
+        if (session?.user?.id) {
+            const cacheKey = cacheKeys.user(`cart:${session.user.id}`);
+            await cache.del(cacheKey);
+        }
 
         return NextResponse.json({
             message: "Cart updated successfully",
@@ -455,13 +475,17 @@ export async function DELETE(req: NextRequest) {
         } else {
             // For guests, use the provided cart ID
             cartId = providedCartId || undefined;
-        }
-
-        if (cartId) {
+        } if (cartId) {
             // Delete all items in the cart
             await db.cartItem.deleteMany({
                 where: { cartId }
             });
+
+            // Invalidate cache for authenticated users
+            if (session?.user?.id) {
+                const cacheKey = cacheKeys.user(`cart:${session.user.id}`);
+                await cache.del(cacheKey);
+            }
 
             return NextResponse.json({
                 message: "Cart cleared successfully",

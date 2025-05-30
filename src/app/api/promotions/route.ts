@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { PromotionType } from "@/lib/prisma-types";
+import { cache } from "@/lib/redis";
+import { hashObject } from "@/lib/utils";
 
 // GET /api/promotions - Get active promotions
 export async function GET(req: NextRequest) {
@@ -10,6 +12,14 @@ export async function GET(req: NextRequest) {
         const url = new URL(req.url);
         const typeParam = url.searchParams.get("type");
         const active = url.searchParams.get("active") === "true";
+
+        // Create cache key based on query parameters
+        const searchParams = { type: typeParam, active };
+        const cacheKey = `promotions:${hashObject(searchParams)}`;        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         const currentDate = new Date();
 
@@ -28,7 +38,8 @@ export async function GET(req: NextRequest) {
         const promotions = await db.promotion.findMany({
             where,
             orderBy: { position: "asc" },
-        });
+        });        // Cache promotions for 10 minutes (promotional content changes moderately)
+        await cache.set(cacheKey, promotions, 600);
 
         return NextResponse.json(promotions);
     } catch (error) {

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BlogImage } from "@/components/ui/blog-image";
 import { BlogContent } from "@/components/ui/blog-content";
+import { SocialShare } from "@/components/ui/social-share";
 
 interface BlogPost {
     id: string;
@@ -110,21 +111,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } | Pr
         }).format(date);
     };
 
-    const sharePost = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: post?.title || 'Uniqverse Blog Post',
-                text: post?.excerpt || 'Check out this blog post from Uniqverse',
-                url: window.location.href,
-            })
-                .catch((error) => console.log('Error sharing', error));
-        } else {
-            // Fallback for browsers that don't support the Web Share API
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 py-20 flex justify-center items-center">
@@ -201,11 +187,16 @@ export default function BlogPostPage({ params }: { params: { slug: string } | Pr
                             <span className="mx-2">•</span>
                             <User className="h-4 w-4 mr-1" />
                             <span>{post.User.name}</span>
-                        </>
-                    )}                    <Button variant="ghost" size="sm" className="ml-auto" onClick={sharePost}>
-                        <Share2 className="h-4 w-4 mr-1" />
-                        Share
-                    </Button>
+                        </>)}
+
+                    <SocialShare
+                        title={post.title}
+                        description={post.excerpt || undefined}
+                        hashtags={post.tags}
+                        className="ml-auto"
+                        variant="ghost"
+                        size="sm"
+                    />
                 </div>
 
                 {post.coverImage && (

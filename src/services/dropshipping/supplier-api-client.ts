@@ -392,6 +392,7 @@ export interface SupplierOrderData {
     };
     order_id: string;
     customer_order_id: string;
+    notes?: string;
 }
 
 export interface SupplierOrderResponse {
@@ -405,6 +406,7 @@ export interface SupplierOrderResponse {
 }
 
 export interface SupplierOrderStatusResponse {
+    success?: boolean;
     status: string;
     tracking_number: string | null;
     tracking_url: string | null;

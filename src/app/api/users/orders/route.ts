@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { cache, cacheKeys } from "@/lib/redis";
 
 // GET - Get all orders for the current user with pagination
 export async function GET(req: NextRequest) {
@@ -13,9 +14,7 @@ export async function GET(req: NextRequest) {
                 { message: "Unauthorized" },
                 { status: 401 }
             );
-        }
-
-        const url = new URL(req.url);
+        } const url = new URL(req.url);
 
         // Pagination parameters
         const page = parseInt(url.searchParams.get("page") || "1");
@@ -24,6 +23,15 @@ export async function GET(req: NextRequest) {
 
         // Status filter (optional)
         const status = url.searchParams.get("status");
+
+        // Create cache key for user orders
+        const cacheKey = cacheKeys.user(`orders:${session.user.id}:page:${page}:limit:${limit}:status:${status || 'all'}`);
+
+        // Try to get from cache first
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
 
         // Build where conditions
         const where: any = {
@@ -67,9 +75,7 @@ export async function GET(req: NextRequest) {
                 }
             }),
             db.order.count({ where })
-        ]);
-
-        // Process orders to include image URLs directly
+        ]);        // Process orders to include image URLs directly
         const processedOrders = orders.map(order => ({
             ...order,
             items: order.items.map(item => ({
@@ -83,7 +89,7 @@ export async function GET(req: NextRequest) {
             }))
         }));
 
-        return NextResponse.json({
+        const result = {
             orders: processedOrders,
             pagination: {
                 page,
@@ -91,7 +97,12 @@ export async function GET(req: NextRequest) {
                 totalItems: total,
                 totalPages: Math.ceil(total / limit)
             }
-        });
+        };
+
+        // Cache the result for 5 minutes (order data changes frequently but not instantly)
+        await cache.set(cacheKey, result, 300);
+
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error("Error fetching order history:", error);

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
+import { cacheInvalidation } from "@/lib/redis";
 
 // Get a single category by ID
 export async function GET(
@@ -147,6 +148,9 @@ export async function PUT(
             session.user.id
         );
 
+        // Invalidate cache
+        await cacheInvalidation.onAdminCategoriesChange();
+
         return NextResponse.json(updatedCategory);
     } catch (error) {
         console.error("Error updating category:", error);
@@ -222,6 +226,9 @@ export async function DELETE(
             `Admin deleted category "${category.name}" (ID: ${params.id})`,
             session.user.id
         );
+
+        // Invalidate cache
+        await cacheInvalidation.onAdminCategoriesChange();
 
         return NextResponse.json({ success: true });
     } catch (error) {

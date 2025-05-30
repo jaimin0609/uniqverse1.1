@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-utils";
+import { cache } from "@/lib/redis";
 
 // Helper function to get the current session
 async function auth() {
@@ -16,6 +17,13 @@ export async function GET(
         // Await params before accessing
         const { id } = params;
 
+        // Try to get event from cache first
+        const cacheKey = `event:${id}`;
+        const cachedEvent = await cache.get(cacheKey);
+        if (cachedEvent) {
+            return NextResponse.json(cachedEvent);
+        }
+
         const event = await db.event.findUnique({
             where: { id },
         });
@@ -26,6 +34,9 @@ export async function GET(
                 { status: 404 }
             );
         }
+
+        // Cache the event for 30 minutes (1800 seconds)
+        await cache.set(cacheKey, event, 1800);
 
         return NextResponse.json(event);
     } catch (error) {
@@ -65,9 +76,7 @@ export async function PATCH(
         }
 
         // Get request body
-        const body = await request.json();
-
-        // Update event
+        const body = await request.json();        // Update event
         const updatedEvent = await db.event.update({
             where: { id },
             data: {
@@ -91,6 +100,11 @@ export async function PATCH(
                 position: body.position,
             },
         });
+
+        // Invalidate event caches
+        await cache.del(`event:${id}`);
+        await cache.del("events:all");
+        await cache.del("events:active");
 
         return NextResponse.json(updatedEvent);
     } catch (error) {
@@ -129,12 +143,15 @@ export async function DELETE(
                 { error: "Event not found" },
                 { status: 404 }
             );
-        }
-
-        // Delete the event
+        }        // Delete the event
         await db.event.delete({
             where: { id },
         });
+
+        // Invalidate event caches
+        await cache.del(`event:${id}`);
+        await cache.del("events:all");
+        await cache.del("events:active");
 
         return NextResponse.json({ success: true });
     } catch (error) {

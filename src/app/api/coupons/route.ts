@@ -2,16 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
+import { cache, cacheInvalidation } from "@/lib/redis";
 
 // GET /api/coupons - Get all coupons (admin)
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         const url = new URL(req.url);
-        const code = url.searchParams.get("code");
-
-        // If checking by code, no auth required (for validation during checkout)
+        const code = url.searchParams.get("code");        // If checking by code, no auth required (for validation during checkout)
         if (code) {
+            // Check cache first for individual coupon lookups
+            const couponCacheKey = `coupon:code:${code}`;
+            const cachedCoupon = await cache.get(couponCacheKey);
+            if (cachedCoupon) {
+                return NextResponse.json(cachedCoupon);
+            }
+
             const coupon = await db.coupon.findUnique({
                 where: { code },
             });
@@ -23,15 +29,22 @@ export async function GET(req: NextRequest) {
                 );
             }
 
+            // Cache individual coupon for 10 minutes
+            await cache.set(couponCacheKey, coupon, 600);
             return NextResponse.json(coupon);
-        }
-
-        // For listing all coupons, require admin authentication
+        }        // For listing all coupons, require admin authentication
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
             );
+        }
+
+        // Check cache for coupon list
+        const listCacheKey = "coupons:admin:list";
+        const cachedList = await cache.get(listCacheKey);
+        if (cachedList) {
+            return NextResponse.json(cachedList);
         }
 
         const coupons = await db.coupon.findMany({
@@ -43,6 +56,8 @@ export async function GET(req: NextRequest) {
             }
         });
 
+        // Cache coupon list for 5 minutes (admin data changes more frequently)
+        await cache.set(listCacheKey, coupons, 300);
         return NextResponse.json(coupons);
     } catch (error) {
         console.error("Error fetching coupons:", error);
@@ -115,6 +130,10 @@ export async function POST(req: NextRequest) {
                 performedById: session.user.id,
             },
         });
+
+        // Invalidate coupons cache
+        await cache.del("coupons:admin:list");
+        await cache.del(`coupon:code:${coupon.code}`);
 
         return NextResponse.json(coupon, { status: 201 });
     } catch (error) {

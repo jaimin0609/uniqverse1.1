@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/blog-categories/[id] - Get a specific blog category
 export async function GET(
@@ -94,6 +95,9 @@ export async function PUT(
             },
         });
 
+        // Invalidate relevant caches
+        await cacheInvalidation.onCategoryChange(params.id);
+
         return NextResponse.json(updatedCategory);
     } catch (error) {
         console.error("Error updating blog category:", error);
@@ -154,6 +158,9 @@ export async function DELETE(
         await db.blogCategory.delete({
             where: { id: params.id },
         });
+
+        // Invalidate relevant caches
+        await cacheInvalidation.onCategoryChange(params.id);
 
         return NextResponse.json({ success: true });
     } catch (error) {

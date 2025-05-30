@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { cacheInvalidation } from "@/lib/redis";
 
 // Get a specific user
 export async function GET(
@@ -130,9 +131,7 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }
-
-        // Update the user
+        }        // Update the user
         const updatedUser = await db.user.update({
             where: { id: userId },
             data: {
@@ -149,6 +148,9 @@ export async function PUT(
                 image: true,
             },
         });
+
+        // Invalidate admin users cache after updating
+        await cacheInvalidation.onAdminUsersChange();
 
         return NextResponse.json(updatedUser);
     } catch (error) {
@@ -211,12 +213,13 @@ export async function DELETE(
                 },
                 { status: 400 }
             );
-        }
-
-        // Delete the user
+        }        // Delete the user
         await db.user.delete({
             where: { id: userId },
         });
+
+        // Invalidate admin users cache after deletion
+        await cacheInvalidation.onAdminUsersChange();
 
         return NextResponse.json(
             { message: "User deleted successfully" },

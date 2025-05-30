@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { cache, cacheInvalidation } from "@/lib/redis";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
@@ -20,6 +21,11 @@ export async function GET(req: NextRequest) {
                 { error: "Unauthorized" },
                 { status: 401 }
             );
+        }        // Check cache for user tickets
+        const cacheKey = `support:tickets:user:${session.user.id}`;
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
         }
 
         // Fetch user's tickets
@@ -40,7 +46,11 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ tickets });
+        const result = { tickets };
+
+        // Cache user tickets for 2 minutes (support tickets are dynamic)
+        await cache.set(cacheKey, result, 120);
+        return NextResponse.json(result);
     } catch (error) {
         console.error("Error fetching tickets:", error);
         return NextResponse.json(
@@ -84,6 +94,10 @@ export async function POST(req: NextRequest) {
                 userId: session.user.id,
             },
         });
+
+        // Invalidate admin tickets cache and user's tickets cache
+        await cacheInvalidation.onAdminTicketsChange();
+        await cache.del(`support:tickets:user:${session.user.id}`);
 
         return NextResponse.json({
             message: "Ticket created successfully",
