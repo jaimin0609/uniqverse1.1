@@ -694,6 +694,19 @@ exports.Prisma.DropshippingSettingsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.NewsletterSubscriptionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  status: 'status',
+  subscribedAt: 'subscribedAt',
+  unsubscribedAt: 'unsubscribedAt',
+  unsubscribeToken: 'unsubscribeToken',
+  preferences: 'preferences',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -819,6 +832,12 @@ exports.DiscountType = exports.$Enums.DiscountType = {
   FIXED_AMOUNT: 'FIXED_AMOUNT'
 };
 
+exports.NewsletterStatus = exports.$Enums.NewsletterStatus = {
+  ACTIVE: 'ACTIVE',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  BOUNCED: 'BOUNCED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Account: 'Account',
@@ -861,7 +880,8 @@ exports.Prisma.ModelName = {
   Event: 'Event',
   Coupon: 'Coupon',
   CouponUsage: 'CouponUsage',
-  DropshippingSettings: 'DropshippingSettings'
+  DropshippingSettings: 'DropshippingSettings',
+  NewsletterSubscription: 'NewsletterSubscription'
 };
 
 /**

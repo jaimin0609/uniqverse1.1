@@ -16,7 +16,8 @@ import {
     ExternalLink,
     AlertTriangle,
     CheckCircle,
-    ArrowRight
+    ArrowRight,
+    Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -49,6 +50,12 @@ interface DashboardStats {
     totalOrders: number;
     totalProducts: number;
     totalUsers: number;
+    newsletterStats: {
+        totalSubscribers: number;
+        activeSubscribers: number;
+        unsubscribedCount: number;
+        recentSubscriptions: number;
+    };
     recentOrders: {
         id: string;
         total: number;
@@ -71,6 +78,13 @@ interface DashboardStats {
     }[];
     pendingOrderCount: number;
     pendingReviewsCount: number;
+    growthRates?: {
+        sales: number;
+        orders: number;
+        products: number;
+        users: number;
+        newsletter: number;
+    };
 }
 
 export default function AdminDashboardPage() {
@@ -83,7 +97,8 @@ export default function AdminDashboardPage() {
         sales: 0,
         orders: 0,
         users: 0,
-        products: 0
+        products: 0,
+        newsletter: 0
     });
 
     // Function to calculate growth percentages
@@ -95,7 +110,8 @@ export default function AdminDashboardPage() {
             sales: Math.floor(Math.random() * 20) - 5, // -5% to +15%
             orders: Math.floor(Math.random() * 20) - 5,
             users: Math.floor(Math.random() * 20) - 2, // -2% to +18%
-            products: Math.floor(Math.random() * 10) - 2 // -2% to +8%
+            products: Math.floor(Math.random() * 10) - 2, // -2% to +8%
+            newsletter: Math.floor(Math.random() * 30) - 5 // Newsletter can have higher volatility
         };
     };
 
@@ -115,9 +131,13 @@ export default function AdminDashboardPage() {
 
                 setStats(data);
 
-                // Calculate growth rates
-                const newGrowthRates = calculateGrowthRates(data);
-                setGrowthRates(newGrowthRates);
+                // Use growth rates from API if available, otherwise calculate them
+                if (data.growthRates) {
+                    setGrowthRates(data.growthRates);
+                } else {
+                    const newGrowthRates = calculateGrowthRates(data);
+                    setGrowthRates(newGrowthRates);
+                }
             } catch (err) {
                 console.error("Error fetching dashboard stats:", err);
                 setError("Failed to load dashboard data. Please try again later.");
@@ -185,10 +205,11 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm">
                     <div className="flex justify-between items-start">
-                        <div>                            <p className="text-sm font-medium text-gray-500">Total Sales</p>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Sales</p>
                             <h3 className="text-2xl font-bold text-gray-900 mt-1">
                                 <ClientPrice amount={stats.totalSales} />
                             </h3>
@@ -201,12 +222,12 @@ export default function AdminDashboardPage() {
                         {growthRates.sales >= 0 ? (
                             <>
                                 <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                <span className="text-green-500 font-medium">+{growthRates.sales}%</span>
+                                <span className="text-green-500 font-medium">+{growthRates.sales.toFixed(1)}%</span>
                             </>
                         ) : (
                             <>
                                 <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                <span className="text-red-500 font-medium">{growthRates.sales}%</span>
+                                <span className="text-red-500 font-medium">{growthRates.sales.toFixed(1)}%</span>
                             </>
                         )}
                         <span className="text-gray-500 ml-1">vs. previous period</span>
@@ -229,12 +250,12 @@ export default function AdminDashboardPage() {
                         {growthRates.orders >= 0 ? (
                             <>
                                 <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                <span className="text-green-500 font-medium">+{growthRates.orders}%</span>
+                                <span className="text-green-500 font-medium">+{growthRates.orders.toFixed(1)}%</span>
                             </>
                         ) : (
                             <>
                                 <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                <span className="text-red-500 font-medium">{growthRates.orders}%</span>
+                                <span className="text-red-500 font-medium">{growthRates.orders.toFixed(1)}%</span>
                             </>
                         )}
                         <span className="text-gray-500 ml-1">vs. previous period</span>
@@ -257,12 +278,12 @@ export default function AdminDashboardPage() {
                         {growthRates.products >= 0 ? (
                             <>
                                 <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                <span className="text-green-500 font-medium">+{growthRates.products}%</span>
+                                <span className="text-green-500 font-medium">+{growthRates.products.toFixed(1)}%</span>
                             </>
                         ) : (
                             <>
                                 <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                <span className="text-red-500 font-medium">{growthRates.products}%</span>
+                                <span className="text-red-500 font-medium">{growthRates.products.toFixed(1)}%</span>
                             </>
                         )}
                         <span className="text-gray-500 ml-1">vs. previous period</span>
@@ -285,12 +306,40 @@ export default function AdminDashboardPage() {
                         {growthRates.users >= 0 ? (
                             <>
                                 <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                <span className="text-green-500 font-medium">+{growthRates.users}%</span>
+                                <span className="text-green-500 font-medium">+{growthRates.users.toFixed(1)}%</span>
                             </>
                         ) : (
                             <>
                                 <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                <span className="text-red-500 font-medium">{growthRates.users}%</span>
+                                <span className="text-red-500 font-medium">{growthRates.users.toFixed(1)}%</span>
+                            </>
+                        )}
+                        <span className="text-gray-500 ml-1">vs. previous period</span>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Newsletter Subscribers</p>
+                            <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                                {stats.newsletterStats.activeSubscribers}
+                            </h3>
+                        </div>
+                        <div className="p-2 bg-indigo-100 rounded">
+                            <Mail className="h-5 w-5 text-indigo-700" />
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-center text-sm">
+                        {growthRates.newsletter >= 0 ? (
+                            <>
+                                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                <span className="text-green-500 font-medium">+{growthRates.newsletter.toFixed(1)}%</span>
+                            </>
+                        ) : (
+                            <>
+                                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                                <span className="text-red-500 font-medium">{growthRates.newsletter.toFixed(1)}%</span>
                             </>
                         )}
                         <span className="text-gray-500 ml-1">vs. previous period</span>
@@ -318,203 +367,178 @@ export default function AdminDashboardPage() {
                                     labels: stats.salesByDay.map(day => day.date),
                                     datasets: [
                                         {
-                                            label: 'Daily Sales',
+                                            label: 'Sales',
                                             data: stats.salesByDay.map(day => day.sales),
-                                            fill: false,
                                             borderColor: 'rgb(59, 130, 246)',
-                                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                                            tension: 0.1
-                                        }
-                                    ]
+                                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                            tension: 0.4,
+                                        },
+                                    ],
                                 }}
                                 options={{
                                     responsive: true,
                                     maintainAspectRatio: false,
                                     plugins: {
                                         legend: {
-                                            display: true,
-                                            position: 'top',
+                                            display: false,
                                         },
-                                        title: {
-                                            display: true,
-                                            text: `Sales for the Last ${dateRange === 'week' ? '7 Days' : dateRange === 'month' ? '30 Days' : '12 Months'}`
-                                        }
                                     },
                                     scales: {
                                         y: {
                                             beginAtZero: true,
-                                            ticks: {
-                                                callback: function (value) {
-                                                    return '$' + value;
-                                                }
-                                            }
-                                        }
-                                    }
+                                        },
+                                    },
                                 }}
                             />
                         ) : (
-                            <div className="text-center p-4 h-full flex items-center justify-center">
-                                <div>
-                                    <BarChart2 className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                                    <p className="text-gray-500">No sales data available</p>
-                                </div>
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                                <BarChart2 className="h-8 w-8 mr-2" />
+                                <span>No sales data available</span>
                             </div>
                         )}
                     </div>
-
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                        {stats.salesByDay.slice(0, 4).map((day, index) => (<div key={index} className="p-2">
-                            <p className="text-xs text-gray-500">{day.date}</p>
-                            <p className="font-medium"><ClientPrice amount={day.sales} /></p>
-                        </div>
-                        ))}
-                    </div>
                 </div>
 
-                {/* Pending Tasks */}
+                {/* Newsletter Stats */}
                 <div className="bg-white p-6 rounded-lg shadow-sm">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">Action Required</h2>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center p-3 bg-yellow-50 border border-yellow-100 rounded-md">
-                            <div className="p-2 bg-yellow-100 rounded-full mr-3">
-                                <Clock className="h-5 w-5 text-yellow-600" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900">Pending Orders</p>
-                                <p className="text-sm text-gray-500">{stats.pendingOrderCount} orders need processing</p>
-                            </div>
-                            <Button variant="ghost" size="sm" className="ml-auto" asChild>
-                                <Link href="/admin/orders?status=PENDING_PAYMENT">
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center p-3 bg-red-50 border border-red-100 rounded-md">
-                            <div className="p-2 bg-red-100 rounded-full mr-3">
-                                <AlertTriangle className="h-5 w-5 text-red-600" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900">Low Stock</p>
-                                <p className="text-sm text-gray-500">{stats.lowStockProducts.length} products low on inventory</p>
-                            </div>
-                            <Button variant="ghost" size="sm" className="ml-auto" asChild>
-                                <Link href="/admin/products?inventory=low">
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center p-3 bg-blue-50 border border-blue-100 rounded-md">
-                            <div className="p-2 bg-blue-100 rounded-full mr-3">
-                                <CheckCircle className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900">New Reviews</p>
-                                <p className="text-sm text-gray-500">{stats.pendingReviewsCount} reviews need approval</p>
-                            </div>
-                            <Button variant="ghost" size="sm" className="ml-auto" asChild>
-                                <Link href="/admin/reviews?status=pending">
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                        </div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-medium text-gray-900">Newsletter Overview</h2>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href="/admin/newsletter">
+                                Manage
+                                <ExternalLink className="ml-1 h-4 w-4" />
+                            </Link>
+                        </Button>
                     </div>
-
-                    {/* Low Stock Products */}
-                    <div className="mt-6">
-                        <h3 className="text-sm font-medium text-gray-900 mb-2">Low Stock Products</h3>
-                        <div className="space-y-2">
-                            {stats.lowStockProducts.map((product) => (
-                                <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                                    <p className="text-sm truncate max-w-[180px]">{product.name}</p>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.inventory <= (product.lowStockThreshold ? product.lowStockThreshold / 2 : 3)
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                        {product.inventory} left
-                                    </span>
-                                </div>
-                            ))}
+                    
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Total Subscribers</span>
+                            <span className="font-semibold">{stats.newsletterStats.totalSubscribers}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Active</span>
+                            <span className="font-semibold text-green-600">{stats.newsletterStats.activeSubscribers}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Unsubscribed</span>
+                            <span className="font-semibold text-red-600">{stats.newsletterStats.unsubscribedCount}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t">
+                            <span className="text-sm text-gray-600">Recent ({dateRange})</span>
+                            <span className="font-semibold text-blue-600">{stats.newsletterStats.recentSubscriptions}</span>
+                        </div>
+                        
+                        <div className="pt-2">
+                            <Button className="w-full" size="sm" asChild>
+                                <Link href="/admin/newsletter/send-campaign">
+                                    Send Campaign
+                                    <ArrowRight className="ml-1 h-4 w-4" />
+                                </Link>
+                            </Button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Recent Orders */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">Recent Orders</h2>
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href="/admin/orders">
-                            View All
-                            <ArrowRight className="ml-1 h-4 w-4" />
-                        </Link>
-                    </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Orders */}
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-medium text-gray-900">Recent Orders</h2>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href="/admin/orders">
+                                View All Orders
+                                <ExternalLink className="ml-1 h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {stats.recentOrders.length > 0 ? (
+                            stats.recentOrders.slice(0, 5).map((order) => (
+                                <div key={order.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                                    <div>
+                                        <p className="font-medium text-sm">{order.user.name}</p>
+                                        <p className="text-xs text-gray-500">{format(new Date(order.createdAt), "MMM dd, yyyy")}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-medium">
+                                            <ClientPrice amount={order.total} />
+                                        </p>
+                                        <p className={`text-xs px-2 py-1 rounded ${
+                                            order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                            order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                            order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                            'bg-gray-100 text-gray-800'
+                                        }`}>
+                                            {order.status}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 text-center py-4">No recent orders</p>
+                        )}
+                    </div>
+
+                    {/* Action Items */}
+                    <div className="mt-4 pt-4 border-t">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center text-sm">
+                                <Clock className="h-4 w-4 text-orange-500 mr-1" />
+                                <span className="text-gray-600">Pending Orders</span>
+                            </div>
+                            <span className="font-semibold text-orange-600">{stats.pendingOrderCount}</span>
+                        </div>
+                        {stats.pendingReviewsCount > 0 && (
+                            <div className="flex justify-between items-center mt-2">
+                                <div className="flex items-center text-sm">
+                                    <CheckCircle className="h-4 w-4 text-blue-500 mr-1" />
+                                    <span className="text-gray-600">Pending Reviews</span>
+                                </div>
+                                <span className="font-semibold text-blue-600">{stats.pendingReviewsCount}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Order ID
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Customer
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Date
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Amount
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {stats.recentOrders.length > 0 ? (
-                                stats.recentOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                                            <Link href={`/admin/orders/${order.id}`} className="hover:underline">
-                                                #{order.id.substring(0, 8)}
-                                            </Link>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{order.user.name || 'Anonymous'}</div>
-                                            <div className="text-xs text-gray-500">{order.user.email}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {format(new Date(order.createdAt), 'MMM d, yyyy')}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ${order.total.toFixed(2)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                                order.status === 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
-                                                    order.status === 'PENDING' || order.status === 'PENDING_PAYMENT' ? 'bg-yellow-100 text-yellow-800' :
-                                                        order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
-                                                            'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                                        No orders found
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                {/* Low Stock Products */}
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-medium text-gray-900">Low Stock Alert</h2>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href="/admin/products">
+                                Manage Inventory
+                                <ExternalLink className="ml-1 h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {stats.lowStockProducts.length > 0 ? (
+                            stats.lowStockProducts.map((product) => (
+                                <div key={product.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                                    <div>
+                                        <p className="font-medium text-sm">{product.name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            Threshold: {product.lowStockThreshold || 10}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`font-medium text-sm ${
+                                            product.inventory <= 5 ? 'text-red-600' : 
+                                            product.inventory <= 10 ? 'text-orange-600' : 'text-green-600'
+                                        }`}>
+                                            {product.inventory} left
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 text-center py-4">All products have sufficient stock</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

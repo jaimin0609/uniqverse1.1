@@ -220,7 +220,7 @@ model Order {
   paidAt            DateTime?
   cancelledAt       DateTime?
   shippingAddress   Address?          @relation(fields: [shippingAddressId], references: [id])
-  user              User              @relation(fields: [userId], references: [id])
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items             OrderItem[]
   couponUsages      CouponUsage[]
 
@@ -306,9 +306,9 @@ model AdminAuditLog {
   id            String   @id
   action        String
   details       String
-  performedById String
+  performedById String?
   createdAt     DateTime @default(now())
-  User          User     @relation(fields: [performedById], references: [id])
+  User          User?    @relation(fields: [performedById], references: [id], onDelete: SetNull)
 }
 
 model BlogCategory {
@@ -330,7 +330,7 @@ model BlogPost {
   coverImage   String?
   isPublished  Boolean        @default(false)
   publishedAt  DateTime?
-  authorId     String
+  authorId     String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime
   metaTitle    String?
@@ -338,7 +338,7 @@ model BlogPost {
   tags         String?
   isAdEnabled  Boolean        @default(false)
   externalLinks Json?
-  User         User           @relation(fields: [authorId], references: [id])
+  User         User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
   BlogCategory BlogCategory[] @relation("BlogPostToCategory")
 }
 
@@ -388,10 +388,10 @@ model InventoryHistory {
   newValue       Int
   action         String
   notes          String?
-  userId         String
+  userId         String?
   timestamp      DateTime        @default(now())
   Product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  User           User            @relation(fields: [userId], references: [id])
+  User           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   ProductVariant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@index([productId])
@@ -410,7 +410,7 @@ model InventorySettings {
   createdAt                DateTime @default(now())
   updatedAt                DateTime
   updatedBy                String?
-  User                     User?    @relation(fields: [updatedBy], references: [id])
+  User                     User?    @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
 }
 
 model Media {
@@ -424,10 +424,10 @@ model Media {
   height           Int?
   alt              String?
   caption          String?
-  userId           String
+  userId           String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime
-  User             User     @relation(fields: [userId], references: [id])
+  User             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
 }
@@ -446,7 +446,7 @@ model Page {
   authorId    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime
-  User        User?         @relation(fields: [authorId], references: [id])
+  User        User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
   PageSection PageSection[]
 }
 
@@ -595,7 +595,7 @@ model ChatbotPattern {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   createdBy String?
-  author    User?           @relation(fields: [createdBy], references: [id])
+  author    User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   triggers  ChatbotTrigger[]
 
   @@index([priority])
@@ -625,7 +625,7 @@ model SupportTicket {
   status         TicketStatus     @default(OPEN)
   priority       TicketPriority   @default(MEDIUM)
   userId         String
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   replies        TicketReply[]
@@ -643,7 +643,7 @@ model TicketReply {
   ticketId     String
   ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
   
   @@index([ticketId])
@@ -867,4 +867,28 @@ model DropshippingSettings {
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
   supplier                 Supplier? @relation(fields: [defaultSupplier], references: [id])
+}
+
+model NewsletterSubscription {
+  id                String                   @id @default(cuid())
+  email             String                   @unique
+  status            NewsletterStatus         @default(ACTIVE)
+  subscribedAt      DateTime                 @default(now())
+  unsubscribedAt    DateTime?
+  unsubscribeToken  String?                  @unique
+  preferences       String?                  // JSON string for email preferences
+  source            String?                  // Where they subscribed from (homepage, checkout, etc.)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([subscribedAt])
+  @@index([unsubscribeToken])
+}
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
 }

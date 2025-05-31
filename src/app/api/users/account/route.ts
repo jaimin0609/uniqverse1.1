@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hash, compare } from "bcryptjs";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { cache } from "@/lib/redis";
 
 // GET - Fetch current user's account information
 export async function GET() {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
         if (!session?.user?.email) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -54,7 +55,7 @@ export async function GET() {
 // PUT - Update user account information
 export async function PUT(req: NextRequest) {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
         if (!session?.user?.email) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -162,7 +163,7 @@ export async function PUT(req: NextRequest) {
 // DELETE - Delete user account
 export async function DELETE() {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
         if (!session?.user?.email) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

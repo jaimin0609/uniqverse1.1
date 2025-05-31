@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { registerSchema } from "@/lib/validations/auth";
+import { sendWelcomeEmail } from "@/lib/email-utils";
 
 export async function POST(req: Request) {
     try {
@@ -59,15 +60,16 @@ export async function POST(req: Request) {
                 password: hashedPassword,
                 role: "CUSTOMER", // Default role
             },
-        });
-
-        // Create empty cart for the user
+        });        // Create empty cart for the user
         await db.cart.create({
             data: {
                 id: crypto.randomUUID(),
                 userId: user.id,
                 updatedAt: new Date(),
             },
+        });        // Send welcome email (don't await to avoid blocking the response)
+        sendWelcomeEmail(user.email, user.name || 'there').catch(error => {
+            console.error('Failed to send welcome email:', error);
         });
 
         // Return success response (omit password from response)

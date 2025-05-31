@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { InfiniteProducts } from "@/components/product/infinite-products";
 import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
+import NewsletterForm from "@/components/newsletter/NewsletterForm";
 
 // Fetch initial featured products for the homepage
 async function getInitialFeaturedProducts() {
@@ -146,17 +147,7 @@ export default async function Home() {
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Subscribe to our newsletter for exclusive deals, new product announcements, and more.
             </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-grow px-4 py-2 rounded-md border text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-              <Button variant="secondary" type="submit">
-                Subscribe
-              </Button>
-            </form>
+            <NewsletterForm source="homepage" />
           </div>
         </section>
       </main>
@@ -194,21 +185,39 @@ export default async function Home() {
             </div>
 
             <div>
-              <h3 className="text-white text-lg font-bold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="/affiliates" className="hover:text-white transition-colors">Affiliate Program</Link></li>
-              </ul>
+              <h3 className="text-white text-lg font-bold mb-4">Stay Connected</h3>
+              <p className="mb-4">Subscribe to get special offers, free giveaways, and exclusive deals.</p>
+              <NewsletterForm source="footer" />
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p>© {new Date().getFullYear()} UniQVerse. All rights reserved.</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h4 className="text-white text-md font-semibold mb-3">Company</h4>
+                <ul className="grid grid-cols-2 gap-2 text-sm">
+                  <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                  <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                  <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                  <li><Link href="/affiliates" className="hover:text-white transition-colors">Affiliate Program</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white text-md font-semibold mb-3">Legal</h4>
+                <ul className="grid grid-cols-2 gap-2 text-sm">
+                  <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                  <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                  <li><Link href="/returns" className="hover:text-white transition-colors">Return Policy</Link></li>
+                  <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link></li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p>© {new Date().getFullYear()} UniQVerse. All rights reserved.</p>
+              <div className="flex space-x-6 mt-4 md:mt-0">
+                <span className="text-sm">Made with ❤️ for unique individuals</span>
+              </div>
             </div>
           </div>
         </div>

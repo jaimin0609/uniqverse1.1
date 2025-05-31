@@ -223,6 +223,11 @@ export type CouponUsage = $Result.DefaultSelection<Prisma.$CouponUsagePayload>
  * 
  */
 export type DropshippingSettings = $Result.DefaultSelection<Prisma.$DropshippingSettingsPayload>
+/**
+ * Model NewsletterSubscription
+ * 
+ */
+export type NewsletterSubscription = $Result.DefaultSelection<Prisma.$NewsletterSubscriptionPayload>
 
 /**
  * Enums
@@ -369,6 +374,15 @@ export const DiscountType: {
 
 export type DiscountType = (typeof DiscountType)[keyof typeof DiscountType]
 
+
+export const NewsletterStatus: {
+  ACTIVE: 'ACTIVE',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  BOUNCED: 'BOUNCED'
+};
+
+export type NewsletterStatus = (typeof NewsletterStatus)[keyof typeof NewsletterStatus]
+
 }
 
 export type UserRole = $Enums.UserRole
@@ -426,6 +440,10 @@ export const PromotionType: typeof $Enums.PromotionType
 export type DiscountType = $Enums.DiscountType
 
 export const DiscountType: typeof $Enums.DiscountType
+
+export type NewsletterStatus = $Enums.NewsletterStatus
+
+export const NewsletterStatus: typeof $Enums.NewsletterStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -971,6 +989,16 @@ export class PrismaClient<
     * ```
     */
   get dropshippingSettings(): Prisma.DropshippingSettingsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.newsletterSubscription`: Exposes CRUD operations for the **NewsletterSubscription** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more NewsletterSubscriptions
+    * const newsletterSubscriptions = await prisma.newsletterSubscription.findMany()
+    * ```
+    */
+  get newsletterSubscription(): Prisma.NewsletterSubscriptionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1452,7 +1480,8 @@ export namespace Prisma {
     Event: 'Event',
     Coupon: 'Coupon',
     CouponUsage: 'CouponUsage',
-    DropshippingSettings: 'DropshippingSettings'
+    DropshippingSettings: 'DropshippingSettings',
+    NewsletterSubscription: 'NewsletterSubscription'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1471,7 +1500,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "product" | "productImage" | "productVariant" | "category" | "supplier" | "order" | "orderItem" | "address" | "review" | "adminAuditLog" | "blogCategory" | "blogPost" | "cart" | "cartItem" | "homepageSection" | "inventoryHistory" | "inventorySettings" | "media" | "page" | "pageMetric" | "pageSection" | "performanceMetric" | "pricingRule" | "resourceMetric" | "siteSettings" | "supplierOrder" | "userSecuritySettings" | "chatbotPattern" | "chatbotTrigger" | "chatbotFallback" | "supportTicket" | "ticketReply" | "ticketAttachment" | "promotion" | "event" | "coupon" | "couponUsage" | "dropshippingSettings"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "product" | "productImage" | "productVariant" | "category" | "supplier" | "order" | "orderItem" | "address" | "review" | "adminAuditLog" | "blogCategory" | "blogPost" | "cart" | "cartItem" | "homepageSection" | "inventoryHistory" | "inventorySettings" | "media" | "page" | "pageMetric" | "pageSection" | "performanceMetric" | "pricingRule" | "resourceMetric" | "siteSettings" | "supplierOrder" | "userSecuritySettings" | "chatbotPattern" | "chatbotTrigger" | "chatbotFallback" | "supportTicket" | "ticketReply" | "ticketAttachment" | "promotion" | "event" | "coupon" | "couponUsage" | "dropshippingSettings" | "newsletterSubscription"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4583,6 +4612,80 @@ export namespace Prisma {
           }
         }
       }
+      NewsletterSubscription: {
+        payload: Prisma.$NewsletterSubscriptionPayload<ExtArgs>
+        fields: Prisma.NewsletterSubscriptionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NewsletterSubscriptionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NewsletterSubscriptionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          findFirst: {
+            args: Prisma.NewsletterSubscriptionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NewsletterSubscriptionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          findMany: {
+            args: Prisma.NewsletterSubscriptionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>[]
+          }
+          create: {
+            args: Prisma.NewsletterSubscriptionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          createMany: {
+            args: Prisma.NewsletterSubscriptionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NewsletterSubscriptionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>[]
+          }
+          delete: {
+            args: Prisma.NewsletterSubscriptionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          update: {
+            args: Prisma.NewsletterSubscriptionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          deleteMany: {
+            args: Prisma.NewsletterSubscriptionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NewsletterSubscriptionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.NewsletterSubscriptionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>[]
+          }
+          upsert: {
+            args: Prisma.NewsletterSubscriptionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NewsletterSubscriptionPayload>
+          }
+          aggregate: {
+            args: Prisma.NewsletterSubscriptionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNewsletterSubscription>
+          }
+          groupBy: {
+            args: Prisma.NewsletterSubscriptionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NewsletterSubscriptionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NewsletterSubscriptionCountArgs<ExtArgs>
+            result: $Utils.Optional<NewsletterSubscriptionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4709,6 +4812,7 @@ export namespace Prisma {
     coupon?: CouponOmit
     couponUsage?: CouponUsageOmit
     dropshippingSettings?: DropshippingSettingsOmit
+    newsletterSubscription?: NewsletterSubscriptionOmit
   }
 
   /* Types for Logging */
@@ -22395,7 +22499,7 @@ export namespace Prisma {
     id: string
     action: string
     details: string
-    performedById: string
+    performedById: string | null
     createdAt: Date
     _count: AdminAuditLogCountAggregateOutputType | null
     _min: AdminAuditLogMinAggregateOutputType | null
@@ -22422,7 +22526,7 @@ export namespace Prisma {
     details?: boolean
     performedById?: boolean
     createdAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }, ExtArgs["result"]["adminAuditLog"]>
 
   export type AdminAuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -22431,7 +22535,7 @@ export namespace Prisma {
     details?: boolean
     performedById?: boolean
     createdAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }, ExtArgs["result"]["adminAuditLog"]>
 
   export type AdminAuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -22440,7 +22544,7 @@ export namespace Prisma {
     details?: boolean
     performedById?: boolean
     createdAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }, ExtArgs["result"]["adminAuditLog"]>
 
   export type AdminAuditLogSelectScalar = {
@@ -22453,25 +22557,25 @@ export namespace Prisma {
 
   export type AdminAuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "action" | "details" | "performedById" | "createdAt", ExtArgs["result"]["adminAuditLog"]>
   export type AdminAuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }
   export type AdminAuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }
   export type AdminAuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | AdminAuditLog$UserArgs<ExtArgs>
   }
 
   export type $AdminAuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AdminAuditLog"
     objects: {
-      User: Prisma.$UserPayload<ExtArgs>
+      User: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       action: string
       details: string
-      performedById: string
+      performedById: string | null
       createdAt: Date
     }, ExtArgs["result"]["adminAuditLog"]>
     composites: {}
@@ -22867,7 +22971,7 @@ export namespace Prisma {
    */
   export interface Prisma__AdminAuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    User<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    User<T extends AdminAuditLog$UserArgs<ExtArgs> = {}>(args?: Subset<T, AdminAuditLog$UserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -23295,6 +23399,25 @@ export namespace Prisma {
      * Limit how many AdminAuditLogs to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AdminAuditLog.User
+   */
+  export type AdminAuditLog$UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -24603,7 +24726,7 @@ export namespace Prisma {
     coverImage: string | null
     isPublished: boolean
     publishedAt: Date | null
-    authorId: string
+    authorId: string | null
     createdAt: Date
     updatedAt: Date
     metaTitle: string | null
@@ -24647,7 +24770,7 @@ export namespace Prisma {
     tags?: boolean
     isAdEnabled?: boolean
     externalLinks?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
     BlogCategory?: boolean | BlogPost$BlogCategoryArgs<ExtArgs>
     _count?: boolean | BlogPostCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["blogPost"]>
@@ -24669,7 +24792,7 @@ export namespace Prisma {
     tags?: boolean
     isAdEnabled?: boolean
     externalLinks?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
   }, ExtArgs["result"]["blogPost"]>
 
   export type BlogPostSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -24689,7 +24812,7 @@ export namespace Prisma {
     tags?: boolean
     isAdEnabled?: boolean
     externalLinks?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
   }, ExtArgs["result"]["blogPost"]>
 
   export type BlogPostSelectScalar = {
@@ -24713,21 +24836,21 @@ export namespace Prisma {
 
   export type BlogPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "excerpt" | "content" | "coverImage" | "isPublished" | "publishedAt" | "authorId" | "createdAt" | "updatedAt" | "metaTitle" | "metaDesc" | "tags" | "isAdEnabled" | "externalLinks", ExtArgs["result"]["blogPost"]>
   export type BlogPostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
     BlogCategory?: boolean | BlogPost$BlogCategoryArgs<ExtArgs>
     _count?: boolean | BlogPostCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BlogPostIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
   }
   export type BlogPostIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | BlogPost$UserArgs<ExtArgs>
   }
 
   export type $BlogPostPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "BlogPost"
     objects: {
-      User: Prisma.$UserPayload<ExtArgs>
+      User: Prisma.$UserPayload<ExtArgs> | null
       BlogCategory: Prisma.$BlogCategoryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -24739,7 +24862,7 @@ export namespace Prisma {
       coverImage: string | null
       isPublished: boolean
       publishedAt: Date | null
-      authorId: string
+      authorId: string | null
       createdAt: Date
       updatedAt: Date
       metaTitle: string | null
@@ -25141,7 +25264,7 @@ export namespace Prisma {
    */
   export interface Prisma__BlogPostClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    User<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    User<T extends BlogPost$UserArgs<ExtArgs> = {}>(args?: Subset<T, BlogPost$UserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     BlogCategory<T extends BlogPost$BlogCategoryArgs<ExtArgs> = {}>(args?: Subset<T, BlogPost$BlogCategoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlogCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -25581,6 +25704,25 @@ export namespace Prisma {
      * Limit how many BlogPosts to delete.
      */
     limit?: number
+  }
+
+  /**
+   * BlogPost.User
+   */
+  export type BlogPost$UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -29136,7 +29278,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes: string | null
-    userId: string
+    userId: string | null
     timestamp: Date
     _count: InventoryHistoryCountAggregateOutputType | null
     _avg: InventoryHistoryAvgAggregateOutputType | null
@@ -29170,7 +29312,7 @@ export namespace Prisma {
     userId?: boolean
     timestamp?: boolean
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }, ExtArgs["result"]["inventoryHistory"]>
 
@@ -29185,7 +29327,7 @@ export namespace Prisma {
     userId?: boolean
     timestamp?: boolean
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }, ExtArgs["result"]["inventoryHistory"]>
 
@@ -29200,7 +29342,7 @@ export namespace Prisma {
     userId?: boolean
     timestamp?: boolean
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }, ExtArgs["result"]["inventoryHistory"]>
 
@@ -29219,17 +29361,17 @@ export namespace Prisma {
   export type InventoryHistoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "productId" | "variantId" | "previousValue" | "newValue" | "action" | "notes" | "userId" | "timestamp", ExtArgs["result"]["inventoryHistory"]>
   export type InventoryHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }
   export type InventoryHistoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }
   export type InventoryHistoryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Product?: boolean | ProductDefaultArgs<ExtArgs>
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | InventoryHistory$UserArgs<ExtArgs>
     ProductVariant?: boolean | InventoryHistory$ProductVariantArgs<ExtArgs>
   }
 
@@ -29237,7 +29379,7 @@ export namespace Prisma {
     name: "InventoryHistory"
     objects: {
       Product: Prisma.$ProductPayload<ExtArgs>
-      User: Prisma.$UserPayload<ExtArgs>
+      User: Prisma.$UserPayload<ExtArgs> | null
       ProductVariant: Prisma.$ProductVariantPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -29248,7 +29390,7 @@ export namespace Prisma {
       newValue: number
       action: string
       notes: string | null
-      userId: string
+      userId: string | null
       timestamp: Date
     }, ExtArgs["result"]["inventoryHistory"]>
     composites: {}
@@ -29645,7 +29787,7 @@ export namespace Prisma {
   export interface Prisma__InventoryHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     Product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    User<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    User<T extends InventoryHistory$UserArgs<ExtArgs> = {}>(args?: Subset<T, InventoryHistory$UserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     ProductVariant<T extends InventoryHistory$ProductVariantArgs<ExtArgs> = {}>(args?: Subset<T, InventoryHistory$ProductVariantArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -30078,6 +30220,25 @@ export namespace Prisma {
      * Limit how many InventoryHistories to delete.
      */
     limit?: number
+  }
+
+  /**
+   * InventoryHistory.User
+   */
+  export type InventoryHistory$UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -31513,7 +31674,7 @@ export namespace Prisma {
     height: number | null
     alt: string | null
     caption: string | null
-    userId: string
+    userId: string | null
     createdAt: Date
     updatedAt: Date
     _count: MediaCountAggregateOutputType | null
@@ -31551,7 +31712,7 @@ export namespace Prisma {
     userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }, ExtArgs["result"]["media"]>
 
   export type MediaSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -31568,7 +31729,7 @@ export namespace Prisma {
     userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }, ExtArgs["result"]["media"]>
 
   export type MediaSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -31585,7 +31746,7 @@ export namespace Prisma {
     userId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }, ExtArgs["result"]["media"]>
 
   export type MediaSelectScalar = {
@@ -31606,19 +31767,19 @@ export namespace Prisma {
 
   export type MediaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "filename" | "originalFilename" | "url" | "filesize" | "mimetype" | "width" | "height" | "alt" | "caption" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["media"]>
   export type MediaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }
   export type MediaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }
   export type MediaIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    User?: boolean | UserDefaultArgs<ExtArgs>
+    User?: boolean | Media$UserArgs<ExtArgs>
   }
 
   export type $MediaPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Media"
     objects: {
-      User: Prisma.$UserPayload<ExtArgs>
+      User: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -31631,7 +31792,7 @@ export namespace Prisma {
       height: number | null
       alt: string | null
       caption: string | null
-      userId: string
+      userId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["media"]>
@@ -32028,7 +32189,7 @@ export namespace Prisma {
    */
   export interface Prisma__MediaClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    User<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    User<T extends Media$UserArgs<ExtArgs> = {}>(args?: Subset<T, Media$UserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -32464,6 +32625,25 @@ export namespace Prisma {
      * Limit how many Media to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Media.User
+   */
+  export type Media$UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -55468,6 +55648,1066 @@ export namespace Prisma {
 
 
   /**
+   * Model NewsletterSubscription
+   */
+
+  export type AggregateNewsletterSubscription = {
+    _count: NewsletterSubscriptionCountAggregateOutputType | null
+    _min: NewsletterSubscriptionMinAggregateOutputType | null
+    _max: NewsletterSubscriptionMaxAggregateOutputType | null
+  }
+
+  export type NewsletterSubscriptionMinAggregateOutputType = {
+    id: string | null
+    email: string | null
+    status: $Enums.NewsletterStatus | null
+    subscribedAt: Date | null
+    unsubscribedAt: Date | null
+    unsubscribeToken: string | null
+    preferences: string | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type NewsletterSubscriptionMaxAggregateOutputType = {
+    id: string | null
+    email: string | null
+    status: $Enums.NewsletterStatus | null
+    subscribedAt: Date | null
+    unsubscribedAt: Date | null
+    unsubscribeToken: string | null
+    preferences: string | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type NewsletterSubscriptionCountAggregateOutputType = {
+    id: number
+    email: number
+    status: number
+    subscribedAt: number
+    unsubscribedAt: number
+    unsubscribeToken: number
+    preferences: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type NewsletterSubscriptionMinAggregateInputType = {
+    id?: true
+    email?: true
+    status?: true
+    subscribedAt?: true
+    unsubscribedAt?: true
+    unsubscribeToken?: true
+    preferences?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type NewsletterSubscriptionMaxAggregateInputType = {
+    id?: true
+    email?: true
+    status?: true
+    subscribedAt?: true
+    unsubscribedAt?: true
+    unsubscribeToken?: true
+    preferences?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type NewsletterSubscriptionCountAggregateInputType = {
+    id?: true
+    email?: true
+    status?: true
+    subscribedAt?: true
+    unsubscribedAt?: true
+    unsubscribeToken?: true
+    preferences?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type NewsletterSubscriptionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NewsletterSubscription to aggregate.
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NewsletterSubscriptions to fetch.
+     */
+    orderBy?: NewsletterSubscriptionOrderByWithRelationInput | NewsletterSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NewsletterSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NewsletterSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NewsletterSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NewsletterSubscriptions
+    **/
+    _count?: true | NewsletterSubscriptionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NewsletterSubscriptionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NewsletterSubscriptionMaxAggregateInputType
+  }
+
+  export type GetNewsletterSubscriptionAggregateType<T extends NewsletterSubscriptionAggregateArgs> = {
+        [P in keyof T & keyof AggregateNewsletterSubscription]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNewsletterSubscription[P]>
+      : GetScalarType<T[P], AggregateNewsletterSubscription[P]>
+  }
+
+
+
+
+  export type NewsletterSubscriptionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NewsletterSubscriptionWhereInput
+    orderBy?: NewsletterSubscriptionOrderByWithAggregationInput | NewsletterSubscriptionOrderByWithAggregationInput[]
+    by: NewsletterSubscriptionScalarFieldEnum[] | NewsletterSubscriptionScalarFieldEnum
+    having?: NewsletterSubscriptionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NewsletterSubscriptionCountAggregateInputType | true
+    _min?: NewsletterSubscriptionMinAggregateInputType
+    _max?: NewsletterSubscriptionMaxAggregateInputType
+  }
+
+  export type NewsletterSubscriptionGroupByOutputType = {
+    id: string
+    email: string
+    status: $Enums.NewsletterStatus
+    subscribedAt: Date
+    unsubscribedAt: Date | null
+    unsubscribeToken: string | null
+    preferences: string | null
+    source: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: NewsletterSubscriptionCountAggregateOutputType | null
+    _min: NewsletterSubscriptionMinAggregateOutputType | null
+    _max: NewsletterSubscriptionMaxAggregateOutputType | null
+  }
+
+  type GetNewsletterSubscriptionGroupByPayload<T extends NewsletterSubscriptionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NewsletterSubscriptionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NewsletterSubscriptionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NewsletterSubscriptionGroupByOutputType[P]>
+            : GetScalarType<T[P], NewsletterSubscriptionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NewsletterSubscriptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    status?: boolean
+    subscribedAt?: boolean
+    unsubscribedAt?: boolean
+    unsubscribeToken?: boolean
+    preferences?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["newsletterSubscription"]>
+
+  export type NewsletterSubscriptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    status?: boolean
+    subscribedAt?: boolean
+    unsubscribedAt?: boolean
+    unsubscribeToken?: boolean
+    preferences?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["newsletterSubscription"]>
+
+  export type NewsletterSubscriptionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    status?: boolean
+    subscribedAt?: boolean
+    unsubscribedAt?: boolean
+    unsubscribeToken?: boolean
+    preferences?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["newsletterSubscription"]>
+
+  export type NewsletterSubscriptionSelectScalar = {
+    id?: boolean
+    email?: boolean
+    status?: boolean
+    subscribedAt?: boolean
+    unsubscribedAt?: boolean
+    unsubscribeToken?: boolean
+    preferences?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type NewsletterSubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "status" | "subscribedAt" | "unsubscribedAt" | "unsubscribeToken" | "preferences" | "source" | "createdAt" | "updatedAt", ExtArgs["result"]["newsletterSubscription"]>
+
+  export type $NewsletterSubscriptionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "NewsletterSubscription"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      email: string
+      status: $Enums.NewsletterStatus
+      subscribedAt: Date
+      unsubscribedAt: Date | null
+      unsubscribeToken: string | null
+      preferences: string | null
+      source: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["newsletterSubscription"]>
+    composites: {}
+  }
+
+  type NewsletterSubscriptionGetPayload<S extends boolean | null | undefined | NewsletterSubscriptionDefaultArgs> = $Result.GetResult<Prisma.$NewsletterSubscriptionPayload, S>
+
+  type NewsletterSubscriptionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<NewsletterSubscriptionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: NewsletterSubscriptionCountAggregateInputType | true
+    }
+
+  export interface NewsletterSubscriptionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['NewsletterSubscription'], meta: { name: 'NewsletterSubscription' } }
+    /**
+     * Find zero or one NewsletterSubscription that matches the filter.
+     * @param {NewsletterSubscriptionFindUniqueArgs} args - Arguments to find a NewsletterSubscription
+     * @example
+     * // Get one NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NewsletterSubscriptionFindUniqueArgs>(args: SelectSubset<T, NewsletterSubscriptionFindUniqueArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one NewsletterSubscription that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {NewsletterSubscriptionFindUniqueOrThrowArgs} args - Arguments to find a NewsletterSubscription
+     * @example
+     * // Get one NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NewsletterSubscriptionFindUniqueOrThrowArgs>(args: SelectSubset<T, NewsletterSubscriptionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NewsletterSubscription that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionFindFirstArgs} args - Arguments to find a NewsletterSubscription
+     * @example
+     * // Get one NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NewsletterSubscriptionFindFirstArgs>(args?: SelectSubset<T, NewsletterSubscriptionFindFirstArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NewsletterSubscription that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionFindFirstOrThrowArgs} args - Arguments to find a NewsletterSubscription
+     * @example
+     * // Get one NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NewsletterSubscriptionFindFirstOrThrowArgs>(args?: SelectSubset<T, NewsletterSubscriptionFindFirstOrThrowArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more NewsletterSubscriptions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all NewsletterSubscriptions
+     * const newsletterSubscriptions = await prisma.newsletterSubscription.findMany()
+     * 
+     * // Get first 10 NewsletterSubscriptions
+     * const newsletterSubscriptions = await prisma.newsletterSubscription.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const newsletterSubscriptionWithIdOnly = await prisma.newsletterSubscription.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NewsletterSubscriptionFindManyArgs>(args?: SelectSubset<T, NewsletterSubscriptionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a NewsletterSubscription.
+     * @param {NewsletterSubscriptionCreateArgs} args - Arguments to create a NewsletterSubscription.
+     * @example
+     * // Create one NewsletterSubscription
+     * const NewsletterSubscription = await prisma.newsletterSubscription.create({
+     *   data: {
+     *     // ... data to create a NewsletterSubscription
+     *   }
+     * })
+     * 
+     */
+    create<T extends NewsletterSubscriptionCreateArgs>(args: SelectSubset<T, NewsletterSubscriptionCreateArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many NewsletterSubscriptions.
+     * @param {NewsletterSubscriptionCreateManyArgs} args - Arguments to create many NewsletterSubscriptions.
+     * @example
+     * // Create many NewsletterSubscriptions
+     * const newsletterSubscription = await prisma.newsletterSubscription.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NewsletterSubscriptionCreateManyArgs>(args?: SelectSubset<T, NewsletterSubscriptionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many NewsletterSubscriptions and returns the data saved in the database.
+     * @param {NewsletterSubscriptionCreateManyAndReturnArgs} args - Arguments to create many NewsletterSubscriptions.
+     * @example
+     * // Create many NewsletterSubscriptions
+     * const newsletterSubscription = await prisma.newsletterSubscription.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many NewsletterSubscriptions and only return the `id`
+     * const newsletterSubscriptionWithIdOnly = await prisma.newsletterSubscription.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NewsletterSubscriptionCreateManyAndReturnArgs>(args?: SelectSubset<T, NewsletterSubscriptionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a NewsletterSubscription.
+     * @param {NewsletterSubscriptionDeleteArgs} args - Arguments to delete one NewsletterSubscription.
+     * @example
+     * // Delete one NewsletterSubscription
+     * const NewsletterSubscription = await prisma.newsletterSubscription.delete({
+     *   where: {
+     *     // ... filter to delete one NewsletterSubscription
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NewsletterSubscriptionDeleteArgs>(args: SelectSubset<T, NewsletterSubscriptionDeleteArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one NewsletterSubscription.
+     * @param {NewsletterSubscriptionUpdateArgs} args - Arguments to update one NewsletterSubscription.
+     * @example
+     * // Update one NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NewsletterSubscriptionUpdateArgs>(args: SelectSubset<T, NewsletterSubscriptionUpdateArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more NewsletterSubscriptions.
+     * @param {NewsletterSubscriptionDeleteManyArgs} args - Arguments to filter NewsletterSubscriptions to delete.
+     * @example
+     * // Delete a few NewsletterSubscriptions
+     * const { count } = await prisma.newsletterSubscription.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NewsletterSubscriptionDeleteManyArgs>(args?: SelectSubset<T, NewsletterSubscriptionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NewsletterSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many NewsletterSubscriptions
+     * const newsletterSubscription = await prisma.newsletterSubscription.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NewsletterSubscriptionUpdateManyArgs>(args: SelectSubset<T, NewsletterSubscriptionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NewsletterSubscriptions and returns the data updated in the database.
+     * @param {NewsletterSubscriptionUpdateManyAndReturnArgs} args - Arguments to update many NewsletterSubscriptions.
+     * @example
+     * // Update many NewsletterSubscriptions
+     * const newsletterSubscription = await prisma.newsletterSubscription.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more NewsletterSubscriptions and only return the `id`
+     * const newsletterSubscriptionWithIdOnly = await prisma.newsletterSubscription.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends NewsletterSubscriptionUpdateManyAndReturnArgs>(args: SelectSubset<T, NewsletterSubscriptionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one NewsletterSubscription.
+     * @param {NewsletterSubscriptionUpsertArgs} args - Arguments to update or create a NewsletterSubscription.
+     * @example
+     * // Update or create a NewsletterSubscription
+     * const newsletterSubscription = await prisma.newsletterSubscription.upsert({
+     *   create: {
+     *     // ... data to create a NewsletterSubscription
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the NewsletterSubscription we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NewsletterSubscriptionUpsertArgs>(args: SelectSubset<T, NewsletterSubscriptionUpsertArgs<ExtArgs>>): Prisma__NewsletterSubscriptionClient<$Result.GetResult<Prisma.$NewsletterSubscriptionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of NewsletterSubscriptions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionCountArgs} args - Arguments to filter NewsletterSubscriptions to count.
+     * @example
+     * // Count the number of NewsletterSubscriptions
+     * const count = await prisma.newsletterSubscription.count({
+     *   where: {
+     *     // ... the filter for the NewsletterSubscriptions we want to count
+     *   }
+     * })
+    **/
+    count<T extends NewsletterSubscriptionCountArgs>(
+      args?: Subset<T, NewsletterSubscriptionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NewsletterSubscriptionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a NewsletterSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NewsletterSubscriptionAggregateArgs>(args: Subset<T, NewsletterSubscriptionAggregateArgs>): Prisma.PrismaPromise<GetNewsletterSubscriptionAggregateType<T>>
+
+    /**
+     * Group by NewsletterSubscription.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NewsletterSubscriptionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NewsletterSubscriptionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NewsletterSubscriptionGroupByArgs['orderBy'] }
+        : { orderBy?: NewsletterSubscriptionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NewsletterSubscriptionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNewsletterSubscriptionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the NewsletterSubscription model
+   */
+  readonly fields: NewsletterSubscriptionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for NewsletterSubscription.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NewsletterSubscriptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the NewsletterSubscription model
+   */
+  interface NewsletterSubscriptionFieldRefs {
+    readonly id: FieldRef<"NewsletterSubscription", 'String'>
+    readonly email: FieldRef<"NewsletterSubscription", 'String'>
+    readonly status: FieldRef<"NewsletterSubscription", 'NewsletterStatus'>
+    readonly subscribedAt: FieldRef<"NewsletterSubscription", 'DateTime'>
+    readonly unsubscribedAt: FieldRef<"NewsletterSubscription", 'DateTime'>
+    readonly unsubscribeToken: FieldRef<"NewsletterSubscription", 'String'>
+    readonly preferences: FieldRef<"NewsletterSubscription", 'String'>
+    readonly source: FieldRef<"NewsletterSubscription", 'String'>
+    readonly createdAt: FieldRef<"NewsletterSubscription", 'DateTime'>
+    readonly updatedAt: FieldRef<"NewsletterSubscription", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * NewsletterSubscription findUnique
+   */
+  export type NewsletterSubscriptionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter, which NewsletterSubscription to fetch.
+     */
+    where: NewsletterSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * NewsletterSubscription findUniqueOrThrow
+   */
+  export type NewsletterSubscriptionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter, which NewsletterSubscription to fetch.
+     */
+    where: NewsletterSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * NewsletterSubscription findFirst
+   */
+  export type NewsletterSubscriptionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter, which NewsletterSubscription to fetch.
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NewsletterSubscriptions to fetch.
+     */
+    orderBy?: NewsletterSubscriptionOrderByWithRelationInput | NewsletterSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NewsletterSubscriptions.
+     */
+    cursor?: NewsletterSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NewsletterSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NewsletterSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NewsletterSubscriptions.
+     */
+    distinct?: NewsletterSubscriptionScalarFieldEnum | NewsletterSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * NewsletterSubscription findFirstOrThrow
+   */
+  export type NewsletterSubscriptionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter, which NewsletterSubscription to fetch.
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NewsletterSubscriptions to fetch.
+     */
+    orderBy?: NewsletterSubscriptionOrderByWithRelationInput | NewsletterSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NewsletterSubscriptions.
+     */
+    cursor?: NewsletterSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NewsletterSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NewsletterSubscriptions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NewsletterSubscriptions.
+     */
+    distinct?: NewsletterSubscriptionScalarFieldEnum | NewsletterSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * NewsletterSubscription findMany
+   */
+  export type NewsletterSubscriptionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter, which NewsletterSubscriptions to fetch.
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NewsletterSubscriptions to fetch.
+     */
+    orderBy?: NewsletterSubscriptionOrderByWithRelationInput | NewsletterSubscriptionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NewsletterSubscriptions.
+     */
+    cursor?: NewsletterSubscriptionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NewsletterSubscriptions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NewsletterSubscriptions.
+     */
+    skip?: number
+    distinct?: NewsletterSubscriptionScalarFieldEnum | NewsletterSubscriptionScalarFieldEnum[]
+  }
+
+  /**
+   * NewsletterSubscription create
+   */
+  export type NewsletterSubscriptionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * The data needed to create a NewsletterSubscription.
+     */
+    data: XOR<NewsletterSubscriptionCreateInput, NewsletterSubscriptionUncheckedCreateInput>
+  }
+
+  /**
+   * NewsletterSubscription createMany
+   */
+  export type NewsletterSubscriptionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NewsletterSubscriptions.
+     */
+    data: NewsletterSubscriptionCreateManyInput | NewsletterSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NewsletterSubscription createManyAndReturn
+   */
+  export type NewsletterSubscriptionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * The data used to create many NewsletterSubscriptions.
+     */
+    data: NewsletterSubscriptionCreateManyInput | NewsletterSubscriptionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NewsletterSubscription update
+   */
+  export type NewsletterSubscriptionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * The data needed to update a NewsletterSubscription.
+     */
+    data: XOR<NewsletterSubscriptionUpdateInput, NewsletterSubscriptionUncheckedUpdateInput>
+    /**
+     * Choose, which NewsletterSubscription to update.
+     */
+    where: NewsletterSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * NewsletterSubscription updateMany
+   */
+  export type NewsletterSubscriptionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update NewsletterSubscriptions.
+     */
+    data: XOR<NewsletterSubscriptionUpdateManyMutationInput, NewsletterSubscriptionUncheckedUpdateManyInput>
+    /**
+     * Filter which NewsletterSubscriptions to update
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * Limit how many NewsletterSubscriptions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * NewsletterSubscription updateManyAndReturn
+   */
+  export type NewsletterSubscriptionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * The data used to update NewsletterSubscriptions.
+     */
+    data: XOR<NewsletterSubscriptionUpdateManyMutationInput, NewsletterSubscriptionUncheckedUpdateManyInput>
+    /**
+     * Filter which NewsletterSubscriptions to update
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * Limit how many NewsletterSubscriptions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * NewsletterSubscription upsert
+   */
+  export type NewsletterSubscriptionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * The filter to search for the NewsletterSubscription to update in case it exists.
+     */
+    where: NewsletterSubscriptionWhereUniqueInput
+    /**
+     * In case the NewsletterSubscription found by the `where` argument doesn't exist, create a new NewsletterSubscription with this data.
+     */
+    create: XOR<NewsletterSubscriptionCreateInput, NewsletterSubscriptionUncheckedCreateInput>
+    /**
+     * In case the NewsletterSubscription was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NewsletterSubscriptionUpdateInput, NewsletterSubscriptionUncheckedUpdateInput>
+  }
+
+  /**
+   * NewsletterSubscription delete
+   */
+  export type NewsletterSubscriptionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+    /**
+     * Filter which NewsletterSubscription to delete.
+     */
+    where: NewsletterSubscriptionWhereUniqueInput
+  }
+
+  /**
+   * NewsletterSubscription deleteMany
+   */
+  export type NewsletterSubscriptionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NewsletterSubscriptions to delete
+     */
+    where?: NewsletterSubscriptionWhereInput
+    /**
+     * Limit how many NewsletterSubscriptions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * NewsletterSubscription without action
+   */
+  export type NewsletterSubscriptionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NewsletterSubscription
+     */
+    select?: NewsletterSubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NewsletterSubscription
+     */
+    omit?: NewsletterSubscriptionOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -56184,6 +57424,22 @@ export namespace Prisma {
   export type DropshippingSettingsScalarFieldEnum = (typeof DropshippingSettingsScalarFieldEnum)[keyof typeof DropshippingSettingsScalarFieldEnum]
 
 
+  export const NewsletterSubscriptionScalarFieldEnum: {
+    id: 'id',
+    email: 'email',
+    status: 'status',
+    subscribedAt: 'subscribedAt',
+    unsubscribedAt: 'unsubscribedAt',
+    unsubscribeToken: 'unsubscribeToken',
+    preferences: 'preferences',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type NewsletterSubscriptionScalarFieldEnum = (typeof NewsletterSubscriptionScalarFieldEnum)[keyof typeof NewsletterSubscriptionScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -56500,6 +57756,20 @@ export namespace Prisma {
    * Reference to a field of type 'DiscountType[]'
    */
   export type ListEnumDiscountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'NewsletterStatus'
+   */
+  export type EnumNewsletterStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NewsletterStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'NewsletterStatus[]'
+   */
+  export type ListEnumNewsletterStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NewsletterStatus[]'>
     
   /**
    * Deep Input Types
@@ -57881,16 +59151,16 @@ export namespace Prisma {
     id?: StringFilter<"AdminAuditLog"> | string
     action?: StringFilter<"AdminAuditLog"> | string
     details?: StringFilter<"AdminAuditLog"> | string
-    performedById?: StringFilter<"AdminAuditLog"> | string
+    performedById?: StringNullableFilter<"AdminAuditLog"> | string | null
     createdAt?: DateTimeFilter<"AdminAuditLog"> | Date | string
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type AdminAuditLogOrderByWithRelationInput = {
     id?: SortOrder
     action?: SortOrder
     details?: SortOrder
-    performedById?: SortOrder
+    performedById?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     User?: UserOrderByWithRelationInput
   }
@@ -57902,16 +59172,16 @@ export namespace Prisma {
     NOT?: AdminAuditLogWhereInput | AdminAuditLogWhereInput[]
     action?: StringFilter<"AdminAuditLog"> | string
     details?: StringFilter<"AdminAuditLog"> | string
-    performedById?: StringFilter<"AdminAuditLog"> | string
+    performedById?: StringNullableFilter<"AdminAuditLog"> | string | null
     createdAt?: DateTimeFilter<"AdminAuditLog"> | Date | string
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type AdminAuditLogOrderByWithAggregationInput = {
     id?: SortOrder
     action?: SortOrder
     details?: SortOrder
-    performedById?: SortOrder
+    performedById?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: AdminAuditLogCountOrderByAggregateInput
     _max?: AdminAuditLogMaxOrderByAggregateInput
@@ -57925,7 +59195,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"AdminAuditLog"> | string
     action?: StringWithAggregatesFilter<"AdminAuditLog"> | string
     details?: StringWithAggregatesFilter<"AdminAuditLog"> | string
-    performedById?: StringWithAggregatesFilter<"AdminAuditLog"> | string
+    performedById?: StringNullableWithAggregatesFilter<"AdminAuditLog"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AdminAuditLog"> | Date | string
   }
 
@@ -58001,7 +59271,7 @@ export namespace Prisma {
     coverImage?: StringNullableFilter<"BlogPost"> | string | null
     isPublished?: BoolFilter<"BlogPost"> | boolean
     publishedAt?: DateTimeNullableFilter<"BlogPost"> | Date | string | null
-    authorId?: StringFilter<"BlogPost"> | string
+    authorId?: StringNullableFilter<"BlogPost"> | string | null
     createdAt?: DateTimeFilter<"BlogPost"> | Date | string
     updatedAt?: DateTimeFilter<"BlogPost"> | Date | string
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
@@ -58009,7 +59279,7 @@ export namespace Prisma {
     tags?: StringNullableFilter<"BlogPost"> | string | null
     isAdEnabled?: BoolFilter<"BlogPost"> | boolean
     externalLinks?: JsonNullableFilter<"BlogPost">
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     BlogCategory?: BlogCategoryListRelationFilter
   }
 
@@ -58022,7 +59292,7 @@ export namespace Prisma {
     coverImage?: SortOrderInput | SortOrder
     isPublished?: SortOrder
     publishedAt?: SortOrderInput | SortOrder
-    authorId?: SortOrder
+    authorId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     metaTitle?: SortOrderInput | SortOrder
@@ -58046,7 +59316,7 @@ export namespace Prisma {
     coverImage?: StringNullableFilter<"BlogPost"> | string | null
     isPublished?: BoolFilter<"BlogPost"> | boolean
     publishedAt?: DateTimeNullableFilter<"BlogPost"> | Date | string | null
-    authorId?: StringFilter<"BlogPost"> | string
+    authorId?: StringNullableFilter<"BlogPost"> | string | null
     createdAt?: DateTimeFilter<"BlogPost"> | Date | string
     updatedAt?: DateTimeFilter<"BlogPost"> | Date | string
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
@@ -58054,7 +59324,7 @@ export namespace Prisma {
     tags?: StringNullableFilter<"BlogPost"> | string | null
     isAdEnabled?: BoolFilter<"BlogPost"> | boolean
     externalLinks?: JsonNullableFilter<"BlogPost">
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     BlogCategory?: BlogCategoryListRelationFilter
   }, "id" | "slug">
 
@@ -58067,7 +59337,7 @@ export namespace Prisma {
     coverImage?: SortOrderInput | SortOrder
     isPublished?: SortOrder
     publishedAt?: SortOrderInput | SortOrder
-    authorId?: SortOrder
+    authorId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     metaTitle?: SortOrderInput | SortOrder
@@ -58092,7 +59362,7 @@ export namespace Prisma {
     coverImage?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
     isPublished?: BoolWithAggregatesFilter<"BlogPost"> | boolean
     publishedAt?: DateTimeNullableWithAggregatesFilter<"BlogPost"> | Date | string | null
-    authorId?: StringWithAggregatesFilter<"BlogPost"> | string
+    authorId?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"BlogPost"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BlogPost"> | Date | string
     metaTitle?: StringNullableWithAggregatesFilter<"BlogPost"> | string | null
@@ -58313,10 +59583,10 @@ export namespace Prisma {
     newValue?: IntFilter<"InventoryHistory"> | number
     action?: StringFilter<"InventoryHistory"> | string
     notes?: StringNullableFilter<"InventoryHistory"> | string | null
-    userId?: StringFilter<"InventoryHistory"> | string
+    userId?: StringNullableFilter<"InventoryHistory"> | string | null
     timestamp?: DateTimeFilter<"InventoryHistory"> | Date | string
     Product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     ProductVariant?: XOR<ProductVariantNullableScalarRelationFilter, ProductVariantWhereInput> | null
   }
 
@@ -58328,7 +59598,7 @@ export namespace Prisma {
     newValue?: SortOrder
     action?: SortOrder
     notes?: SortOrderInput | SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     timestamp?: SortOrder
     Product?: ProductOrderByWithRelationInput
     User?: UserOrderByWithRelationInput
@@ -58346,10 +59616,10 @@ export namespace Prisma {
     newValue?: IntFilter<"InventoryHistory"> | number
     action?: StringFilter<"InventoryHistory"> | string
     notes?: StringNullableFilter<"InventoryHistory"> | string | null
-    userId?: StringFilter<"InventoryHistory"> | string
+    userId?: StringNullableFilter<"InventoryHistory"> | string | null
     timestamp?: DateTimeFilter<"InventoryHistory"> | Date | string
     Product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     ProductVariant?: XOR<ProductVariantNullableScalarRelationFilter, ProductVariantWhereInput> | null
   }, "id">
 
@@ -58361,7 +59631,7 @@ export namespace Prisma {
     newValue?: SortOrder
     action?: SortOrder
     notes?: SortOrderInput | SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     timestamp?: SortOrder
     _count?: InventoryHistoryCountOrderByAggregateInput
     _avg?: InventoryHistoryAvgOrderByAggregateInput
@@ -58381,7 +59651,7 @@ export namespace Prisma {
     newValue?: IntWithAggregatesFilter<"InventoryHistory"> | number
     action?: StringWithAggregatesFilter<"InventoryHistory"> | string
     notes?: StringNullableWithAggregatesFilter<"InventoryHistory"> | string | null
-    userId?: StringWithAggregatesFilter<"InventoryHistory"> | string
+    userId?: StringNullableWithAggregatesFilter<"InventoryHistory"> | string | null
     timestamp?: DateTimeWithAggregatesFilter<"InventoryHistory"> | Date | string
   }
 
@@ -58476,10 +59746,10 @@ export namespace Prisma {
     height?: IntNullableFilter<"Media"> | number | null
     alt?: StringNullableFilter<"Media"> | string | null
     caption?: StringNullableFilter<"Media"> | string | null
-    userId?: StringFilter<"Media"> | string
+    userId?: StringNullableFilter<"Media"> | string | null
     createdAt?: DateTimeFilter<"Media"> | Date | string
     updatedAt?: DateTimeFilter<"Media"> | Date | string
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type MediaOrderByWithRelationInput = {
@@ -58493,7 +59763,7 @@ export namespace Prisma {
     height?: SortOrderInput | SortOrder
     alt?: SortOrderInput | SortOrder
     caption?: SortOrderInput | SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     User?: UserOrderByWithRelationInput
@@ -58513,10 +59783,10 @@ export namespace Prisma {
     height?: IntNullableFilter<"Media"> | number | null
     alt?: StringNullableFilter<"Media"> | string | null
     caption?: StringNullableFilter<"Media"> | string | null
-    userId?: StringFilter<"Media"> | string
+    userId?: StringNullableFilter<"Media"> | string | null
     createdAt?: DateTimeFilter<"Media"> | Date | string
     updatedAt?: DateTimeFilter<"Media"> | Date | string
-    User?: XOR<UserScalarRelationFilter, UserWhereInput>
+    User?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type MediaOrderByWithAggregationInput = {
@@ -58530,7 +59800,7 @@ export namespace Prisma {
     height?: SortOrderInput | SortOrder
     alt?: SortOrderInput | SortOrder
     caption?: SortOrderInput | SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MediaCountOrderByAggregateInput
@@ -58554,7 +59824,7 @@ export namespace Prisma {
     height?: IntNullableWithAggregatesFilter<"Media"> | number | null
     alt?: StringNullableWithAggregatesFilter<"Media"> | string | null
     caption?: StringNullableWithAggregatesFilter<"Media"> | string | null
-    userId?: StringWithAggregatesFilter<"Media"> | string
+    userId?: StringNullableWithAggregatesFilter<"Media"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Media"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Media"> | Date | string
   }
@@ -60235,6 +61505,83 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"DropshippingSettings"> | Date | string
   }
 
+  export type NewsletterSubscriptionWhereInput = {
+    AND?: NewsletterSubscriptionWhereInput | NewsletterSubscriptionWhereInput[]
+    OR?: NewsletterSubscriptionWhereInput[]
+    NOT?: NewsletterSubscriptionWhereInput | NewsletterSubscriptionWhereInput[]
+    id?: StringFilter<"NewsletterSubscription"> | string
+    email?: StringFilter<"NewsletterSubscription"> | string
+    status?: EnumNewsletterStatusFilter<"NewsletterSubscription"> | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+    unsubscribedAt?: DateTimeNullableFilter<"NewsletterSubscription"> | Date | string | null
+    unsubscribeToken?: StringNullableFilter<"NewsletterSubscription"> | string | null
+    preferences?: StringNullableFilter<"NewsletterSubscription"> | string | null
+    source?: StringNullableFilter<"NewsletterSubscription"> | string | null
+    createdAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+  }
+
+  export type NewsletterSubscriptionOrderByWithRelationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    subscribedAt?: SortOrder
+    unsubscribedAt?: SortOrderInput | SortOrder
+    unsubscribeToken?: SortOrderInput | SortOrder
+    preferences?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type NewsletterSubscriptionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    email?: string
+    unsubscribeToken?: string
+    AND?: NewsletterSubscriptionWhereInput | NewsletterSubscriptionWhereInput[]
+    OR?: NewsletterSubscriptionWhereInput[]
+    NOT?: NewsletterSubscriptionWhereInput | NewsletterSubscriptionWhereInput[]
+    status?: EnumNewsletterStatusFilter<"NewsletterSubscription"> | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+    unsubscribedAt?: DateTimeNullableFilter<"NewsletterSubscription"> | Date | string | null
+    preferences?: StringNullableFilter<"NewsletterSubscription"> | string | null
+    source?: StringNullableFilter<"NewsletterSubscription"> | string | null
+    createdAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+    updatedAt?: DateTimeFilter<"NewsletterSubscription"> | Date | string
+  }, "id" | "email" | "unsubscribeToken">
+
+  export type NewsletterSubscriptionOrderByWithAggregationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    subscribedAt?: SortOrder
+    unsubscribedAt?: SortOrderInput | SortOrder
+    unsubscribeToken?: SortOrderInput | SortOrder
+    preferences?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: NewsletterSubscriptionCountOrderByAggregateInput
+    _max?: NewsletterSubscriptionMaxOrderByAggregateInput
+    _min?: NewsletterSubscriptionMinOrderByAggregateInput
+  }
+
+  export type NewsletterSubscriptionScalarWhereWithAggregatesInput = {
+    AND?: NewsletterSubscriptionScalarWhereWithAggregatesInput | NewsletterSubscriptionScalarWhereWithAggregatesInput[]
+    OR?: NewsletterSubscriptionScalarWhereWithAggregatesInput[]
+    NOT?: NewsletterSubscriptionScalarWhereWithAggregatesInput | NewsletterSubscriptionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"NewsletterSubscription"> | string
+    email?: StringWithAggregatesFilter<"NewsletterSubscription"> | string
+    status?: EnumNewsletterStatusWithAggregatesFilter<"NewsletterSubscription"> | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeWithAggregatesFilter<"NewsletterSubscription"> | Date | string
+    unsubscribedAt?: DateTimeNullableWithAggregatesFilter<"NewsletterSubscription"> | Date | string | null
+    unsubscribeToken?: StringNullableWithAggregatesFilter<"NewsletterSubscription"> | string | null
+    preferences?: StringNullableWithAggregatesFilter<"NewsletterSubscription"> | string | null
+    source?: StringNullableWithAggregatesFilter<"NewsletterSubscription"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"NewsletterSubscription"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"NewsletterSubscription"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -61815,14 +63162,14 @@ export namespace Prisma {
     action: string
     details: string
     createdAt?: Date | string
-    User: UserCreateNestedOneWithoutAdminAuditLogInput
+    User?: UserCreateNestedOneWithoutAdminAuditLogInput
   }
 
   export type AdminAuditLogUncheckedCreateInput = {
     id: string
     action: string
     details: string
-    performedById: string
+    performedById?: string | null
     createdAt?: Date | string
   }
 
@@ -61831,14 +63178,14 @@ export namespace Prisma {
     action?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    User?: UserUpdateOneRequiredWithoutAdminAuditLogNestedInput
+    User?: UserUpdateOneWithoutAdminAuditLogNestedInput
   }
 
   export type AdminAuditLogUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
-    performedById?: StringFieldUpdateOperationsInput | string
+    performedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -61846,7 +63193,7 @@ export namespace Prisma {
     id: string
     action: string
     details: string
-    performedById: string
+    performedById?: string | null
     createdAt?: Date | string
   }
 
@@ -61861,7 +63208,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
-    performedById?: StringFieldUpdateOperationsInput | string
+    performedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -61948,7 +63295,7 @@ export namespace Prisma {
     tags?: string | null
     isAdEnabled?: boolean
     externalLinks?: NullableJsonNullValueInput | InputJsonValue
-    User: UserCreateNestedOneWithoutBlogPostInput
+    User?: UserCreateNestedOneWithoutBlogPostInput
     BlogCategory?: BlogCategoryCreateNestedManyWithoutBlogPostInput
   }
 
@@ -61961,7 +63308,7 @@ export namespace Prisma {
     coverImage?: string | null
     isPublished?: boolean
     publishedAt?: Date | string | null
-    authorId: string
+    authorId?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     metaTitle?: string | null
@@ -61988,7 +63335,7 @@ export namespace Prisma {
     tags?: NullableStringFieldUpdateOperationsInput | string | null
     isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
     externalLinks?: NullableJsonNullValueInput | InputJsonValue
-    User?: UserUpdateOneRequiredWithoutBlogPostNestedInput
+    User?: UserUpdateOneWithoutBlogPostNestedInput
     BlogCategory?: BlogCategoryUpdateManyWithoutBlogPostNestedInput
   }
 
@@ -62001,7 +63348,7 @@ export namespace Prisma {
     coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    authorId?: StringFieldUpdateOperationsInput | string
+    authorId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62021,7 +63368,7 @@ export namespace Prisma {
     coverImage?: string | null
     isPublished?: boolean
     publishedAt?: Date | string | null
-    authorId: string
+    authorId?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     metaTitle?: string | null
@@ -62058,7 +63405,7 @@ export namespace Prisma {
     coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    authorId?: StringFieldUpdateOperationsInput | string
+    authorId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62279,7 +63626,7 @@ export namespace Prisma {
     notes?: string | null
     timestamp?: Date | string
     Product: ProductCreateNestedOneWithoutInventoryHistoryInput
-    User: UserCreateNestedOneWithoutInventoryHistoryInput
+    User?: UserCreateNestedOneWithoutInventoryHistoryInput
     ProductVariant?: ProductVariantCreateNestedOneWithoutInventoryHistoryInput
   }
 
@@ -62291,7 +63638,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -62303,7 +63650,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
     Product?: ProductUpdateOneRequiredWithoutInventoryHistoryNestedInput
-    User?: UserUpdateOneRequiredWithoutInventoryHistoryNestedInput
+    User?: UserUpdateOneWithoutInventoryHistoryNestedInput
     ProductVariant?: ProductVariantUpdateOneWithoutInventoryHistoryNestedInput
   }
 
@@ -62315,7 +63662,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -62327,7 +63674,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -62348,7 +63695,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -62448,7 +63795,7 @@ export namespace Prisma {
     caption?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
-    User: UserCreateNestedOneWithoutMediaInput
+    User?: UserCreateNestedOneWithoutMediaInput
   }
 
   export type MediaUncheckedCreateInput = {
@@ -62462,7 +63809,7 @@ export namespace Prisma {
     height?: number | null
     alt?: string | null
     caption?: string | null
-    userId: string
+    userId?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
   }
@@ -62480,7 +63827,7 @@ export namespace Prisma {
     caption?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    User?: UserUpdateOneRequiredWithoutMediaNestedInput
+    User?: UserUpdateOneWithoutMediaNestedInput
   }
 
   export type MediaUncheckedUpdateInput = {
@@ -62494,7 +63841,7 @@ export namespace Prisma {
     height?: NullableIntFieldUpdateOperationsInput | number | null
     alt?: NullableStringFieldUpdateOperationsInput | string | null
     caption?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -62510,7 +63857,7 @@ export namespace Prisma {
     height?: number | null
     alt?: string | null
     caption?: string | null
-    userId: string
+    userId?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
   }
@@ -62541,7 +63888,7 @@ export namespace Prisma {
     height?: NullableIntFieldUpdateOperationsInput | number | null
     alt?: NullableStringFieldUpdateOperationsInput | string | null
     caption?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -64434,6 +65781,97 @@ export namespace Prisma {
     notifyCustomerOnShipment?: BoolFieldUpdateOperationsInput | boolean
     defaultSupplier?: NullableStringFieldUpdateOperationsInput | string | null
     supplierNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NewsletterSubscriptionCreateInput = {
+    id?: string
+    email: string
+    status?: $Enums.NewsletterStatus
+    subscribedAt?: Date | string
+    unsubscribedAt?: Date | string | null
+    unsubscribeToken?: string | null
+    preferences?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NewsletterSubscriptionUncheckedCreateInput = {
+    id?: string
+    email: string
+    status?: $Enums.NewsletterStatus
+    subscribedAt?: Date | string
+    unsubscribedAt?: Date | string | null
+    unsubscribeToken?: string | null
+    preferences?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NewsletterSubscriptionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumNewsletterStatusFieldUpdateOperationsInput | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribeToken?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NewsletterSubscriptionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumNewsletterStatusFieldUpdateOperationsInput | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribeToken?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NewsletterSubscriptionCreateManyInput = {
+    id?: string
+    email: string
+    status?: $Enums.NewsletterStatus
+    subscribedAt?: Date | string
+    unsubscribedAt?: Date | string | null
+    unsubscribeToken?: string | null
+    preferences?: string | null
+    source?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NewsletterSubscriptionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumNewsletterStatusFieldUpdateOperationsInput | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribeToken?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NewsletterSubscriptionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    status?: EnumNewsletterStatusFieldUpdateOperationsInput | $Enums.NewsletterStatus
+    subscribedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unsubscribedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    unsubscribeToken?: NullableStringFieldUpdateOperationsInput | string | null
+    preferences?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -67402,6 +68840,62 @@ export namespace Prisma {
     profitMargin?: SortOrder
   }
 
+  export type EnumNewsletterStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.NewsletterStatus | EnumNewsletterStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumNewsletterStatusFilter<$PrismaModel> | $Enums.NewsletterStatus
+  }
+
+  export type NewsletterSubscriptionCountOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    subscribedAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    unsubscribeToken?: SortOrder
+    preferences?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type NewsletterSubscriptionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    subscribedAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    unsubscribeToken?: SortOrder
+    preferences?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type NewsletterSubscriptionMinOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    status?: SortOrder
+    subscribedAt?: SortOrder
+    unsubscribedAt?: SortOrder
+    unsubscribeToken?: SortOrder
+    preferences?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumNewsletterStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.NewsletterStatus | EnumNewsletterStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumNewsletterStatusWithAggregatesFilter<$PrismaModel> | $Enums.NewsletterStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumNewsletterStatusFilter<$PrismaModel>
+    _max?: NestedEnumNewsletterStatusFilter<$PrismaModel>
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -69424,10 +70918,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type UserUpdateOneRequiredWithoutAdminAuditLogNestedInput = {
+  export type UserUpdateOneWithoutAdminAuditLogNestedInput = {
     create?: XOR<UserCreateWithoutAdminAuditLogInput, UserUncheckedCreateWithoutAdminAuditLogInput>
     connectOrCreate?: UserCreateOrConnectWithoutAdminAuditLogInput
     upsert?: UserUpsertWithoutAdminAuditLogInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAdminAuditLogInput, UserUpdateWithoutAdminAuditLogInput>, UserUncheckedUpdateWithoutAdminAuditLogInput>
   }
@@ -69488,10 +70984,12 @@ export namespace Prisma {
     connect?: BlogCategoryWhereUniqueInput | BlogCategoryWhereUniqueInput[]
   }
 
-  export type UserUpdateOneRequiredWithoutBlogPostNestedInput = {
+  export type UserUpdateOneWithoutBlogPostNestedInput = {
     create?: XOR<UserCreateWithoutBlogPostInput, UserUncheckedCreateWithoutBlogPostInput>
     connectOrCreate?: UserCreateOrConnectWithoutBlogPostInput
     upsert?: UserUpsertWithoutBlogPostInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBlogPostInput, UserUpdateWithoutBlogPostInput>, UserUncheckedUpdateWithoutBlogPostInput>
   }
@@ -69648,10 +71146,12 @@ export namespace Prisma {
     update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutInventoryHistoryInput, ProductUpdateWithoutInventoryHistoryInput>, ProductUncheckedUpdateWithoutInventoryHistoryInput>
   }
 
-  export type UserUpdateOneRequiredWithoutInventoryHistoryNestedInput = {
+  export type UserUpdateOneWithoutInventoryHistoryNestedInput = {
     create?: XOR<UserCreateWithoutInventoryHistoryInput, UserUncheckedCreateWithoutInventoryHistoryInput>
     connectOrCreate?: UserCreateOrConnectWithoutInventoryHistoryInput
     upsert?: UserUpsertWithoutInventoryHistoryInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutInventoryHistoryInput, UserUpdateWithoutInventoryHistoryInput>, UserUncheckedUpdateWithoutInventoryHistoryInput>
   }
@@ -69688,10 +71188,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type UserUpdateOneRequiredWithoutMediaNestedInput = {
+  export type UserUpdateOneWithoutMediaNestedInput = {
     create?: XOR<UserCreateWithoutMediaInput, UserUncheckedCreateWithoutMediaInput>
     connectOrCreate?: UserCreateOrConnectWithoutMediaInput
     upsert?: UserUpsertWithoutMediaInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutMediaInput, UserUpdateWithoutMediaInput>, UserUncheckedUpdateWithoutMediaInput>
   }
@@ -70286,6 +71788,10 @@ export namespace Prisma {
     update?: XOR<XOR<SupplierUpdateToOneWithWhereWithoutDropshippingSettingsInput, SupplierUpdateWithoutDropshippingSettingsInput>, SupplierUncheckedUpdateWithoutDropshippingSettingsInput>
   }
 
+  export type EnumNewsletterStatusFieldUpdateOperationsInput = {
+    set?: $Enums.NewsletterStatus
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -70778,6 +72284,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDiscountTypeFilter<$PrismaModel>
     _max?: NestedEnumDiscountTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumNewsletterStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.NewsletterStatus | EnumNewsletterStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumNewsletterStatusFilter<$PrismaModel> | $Enums.NewsletterStatus
+  }
+
+  export type NestedEnumNewsletterStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.NewsletterStatus | EnumNewsletterStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NewsletterStatus[] | ListEnumNewsletterStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumNewsletterStatusWithAggregatesFilter<$PrismaModel> | $Enums.NewsletterStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumNewsletterStatusFilter<$PrismaModel>
+    _max?: NestedEnumNewsletterStatusFilter<$PrismaModel>
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -71566,7 +73089,7 @@ export namespace Prisma {
     id?: StringFilter<"AdminAuditLog"> | string
     action?: StringFilter<"AdminAuditLog"> | string
     details?: StringFilter<"AdminAuditLog"> | string
-    performedById?: StringFilter<"AdminAuditLog"> | string
+    performedById?: StringNullableFilter<"AdminAuditLog"> | string | null
     createdAt?: DateTimeFilter<"AdminAuditLog"> | Date | string
   }
 
@@ -71598,7 +73121,7 @@ export namespace Prisma {
     coverImage?: StringNullableFilter<"BlogPost"> | string | null
     isPublished?: BoolFilter<"BlogPost"> | boolean
     publishedAt?: DateTimeNullableFilter<"BlogPost"> | Date | string | null
-    authorId?: StringFilter<"BlogPost"> | string
+    authorId?: StringNullableFilter<"BlogPost"> | string | null
     createdAt?: DateTimeFilter<"BlogPost"> | Date | string
     updatedAt?: DateTimeFilter<"BlogPost"> | Date | string
     metaTitle?: StringNullableFilter<"BlogPost"> | string | null
@@ -71660,7 +73183,7 @@ export namespace Prisma {
     newValue?: IntFilter<"InventoryHistory"> | number
     action?: StringFilter<"InventoryHistory"> | string
     notes?: StringNullableFilter<"InventoryHistory"> | string | null
-    userId?: StringFilter<"InventoryHistory"> | string
+    userId?: StringNullableFilter<"InventoryHistory"> | string | null
     timestamp?: DateTimeFilter<"InventoryHistory"> | Date | string
   }
 
@@ -71725,7 +73248,7 @@ export namespace Prisma {
     height?: IntNullableFilter<"Media"> | number | null
     alt?: StringNullableFilter<"Media"> | string | null
     caption?: StringNullableFilter<"Media"> | string | null
-    userId?: StringFilter<"Media"> | string
+    userId?: StringNullableFilter<"Media"> | string | null
     createdAt?: DateTimeFilter<"Media"> | Date | string
     updatedAt?: DateTimeFilter<"Media"> | Date | string
   }
@@ -72532,7 +74055,7 @@ export namespace Prisma {
     action: string
     notes?: string | null
     timestamp?: Date | string
-    User: UserCreateNestedOneWithoutInventoryHistoryInput
+    User?: UserCreateNestedOneWithoutInventoryHistoryInput
     ProductVariant?: ProductVariantCreateNestedOneWithoutInventoryHistoryInput
   }
 
@@ -72543,7 +74066,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -73419,7 +74942,7 @@ export namespace Prisma {
     notes?: string | null
     timestamp?: Date | string
     Product: ProductCreateNestedOneWithoutInventoryHistoryInput
-    User: UserCreateNestedOneWithoutInventoryHistoryInput
+    User?: UserCreateNestedOneWithoutInventoryHistoryInput
   }
 
   export type InventoryHistoryUncheckedCreateWithoutProductVariantInput = {
@@ -73429,7 +74952,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -75893,7 +77416,7 @@ export namespace Prisma {
     tags?: string | null
     isAdEnabled?: boolean
     externalLinks?: NullableJsonNullValueInput | InputJsonValue
-    User: UserCreateNestedOneWithoutBlogPostInput
+    User?: UserCreateNestedOneWithoutBlogPostInput
   }
 
   export type BlogPostUncheckedCreateWithoutBlogCategoryInput = {
@@ -75905,7 +77428,7 @@ export namespace Prisma {
     coverImage?: string | null
     isPublished?: boolean
     publishedAt?: Date | string | null
-    authorId: string
+    authorId?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     metaTitle?: string | null
@@ -80285,7 +81808,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -80379,7 +81902,7 @@ export namespace Prisma {
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
-    User?: UserUpdateOneRequiredWithoutInventoryHistoryNestedInput
+    User?: UserUpdateOneWithoutInventoryHistoryNestedInput
     ProductVariant?: ProductVariantUpdateOneWithoutInventoryHistoryNestedInput
   }
 
@@ -80390,7 +81913,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -80401,7 +81924,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -80722,7 +82245,7 @@ export namespace Prisma {
     newValue: number
     action: string
     notes?: string | null
-    userId: string
+    userId?: string | null
     timestamp?: Date | string
   }
 
@@ -80777,7 +82300,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
     Product?: ProductUpdateOneRequiredWithoutInventoryHistoryNestedInput
-    User?: UserUpdateOneRequiredWithoutInventoryHistoryNestedInput
+    User?: UserUpdateOneWithoutInventoryHistoryNestedInput
   }
 
   export type InventoryHistoryUncheckedUpdateWithoutProductVariantInput = {
@@ -80787,7 +82310,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -80798,7 +82321,7 @@ export namespace Prisma {
     newValue?: IntFieldUpdateOperationsInput | number
     action?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -81723,7 +83246,7 @@ export namespace Prisma {
     tags?: NullableStringFieldUpdateOperationsInput | string | null
     isAdEnabled?: BoolFieldUpdateOperationsInput | boolean
     externalLinks?: NullableJsonNullValueInput | InputJsonValue
-    User?: UserUpdateOneRequiredWithoutBlogPostNestedInput
+    User?: UserUpdateOneWithoutBlogPostNestedInput
   }
 
   export type BlogPostUncheckedUpdateWithoutBlogCategoryInput = {
@@ -81735,7 +83258,7 @@ export namespace Prisma {
     coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    authorId?: StringFieldUpdateOperationsInput | string
+    authorId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -81754,7 +83277,7 @@ export namespace Prisma {
     coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    authorId?: StringFieldUpdateOperationsInput | string
+    authorId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     metaTitle?: NullableStringFieldUpdateOperationsInput | string | null

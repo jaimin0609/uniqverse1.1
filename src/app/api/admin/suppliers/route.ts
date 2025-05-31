@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Create cache key for suppliers list
-        const cacheKey = `admin:suppliers:${hashObject({})}`;
-
-        // Try to get from cache first
+        const cacheKey = `admin:suppliers:${hashObject({})}`;        // Try to get from cache first
         const cached = await cache.get(cacheKey);
         if (cached) {
             return NextResponse.json(cached);
@@ -60,12 +58,11 @@ export async function GET(request: NextRequest) {
             "suppliers_view",
             `Admin viewed suppliers list with ${suppliers.length} suppliers`,
             session.user.id
-        );
+        );        // Cache suppliers for 15 minutes (suppliers data doesn't change frequently)
+        const response = { suppliers: formattedSuppliers };
+        await cache.set(cacheKey, response, 900);
 
-        // Cache suppliers for 15 minutes (suppliers data doesn't change frequently)
-        await cache.set(cacheKey, formattedSuppliers, 900);
-
-        return NextResponse.json(formattedSuppliers);
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching suppliers:", error);
         return NextResponse.json(

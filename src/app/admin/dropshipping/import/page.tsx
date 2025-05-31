@@ -117,9 +117,11 @@ export default function ImportCJProductsPage() {
     const fetchSuppliers = async () => {
         try {
             const response = await fetch('/api/admin/suppliers');
-            const data = await response.json(); if (data && Array.isArray(data)) {
+            const data = await response.json();
+
+            if (data && data.suppliers && Array.isArray(data.suppliers)) {
                 // Filter for CJ Dropshipping suppliers only
-                const cjSuppliers = data.filter(
+                const cjSuppliers = data.suppliers.filter(
                     (s: any) => s.apiEndpoint && s.apiEndpoint.includes('cjdropshipping')
                 );
                 setSuppliers(cjSuppliers);

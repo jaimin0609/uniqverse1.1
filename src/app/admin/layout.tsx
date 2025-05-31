@@ -19,6 +19,7 @@ import {
     MessageSquare, Truck, // Add Truck icon for dropshipping
     Tag,
     HomeIcon, // Add Tag icon for promotions
+    Mail, // Add Mail icon for newsletter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -76,11 +77,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 { title: "Suppliers", href: "/admin/suppliers" },
                 { title: "Settings", href: "/admin/dropshipping/settings" }
             ]
-        },
-        {
+        }, {
             title: "Customers",
             href: "/admin/customers",
             icon: <Users className="h-5 w-5" />
+        },
+        {
+            title: "Newsletter",
+            href: "/admin/newsletter",
+            icon: <Mail className="h-5 w-5" />
         },
         {
             title: "Support",

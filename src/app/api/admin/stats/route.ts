@@ -301,24 +301,63 @@ export async function GET(request: NextRequest) {
             where: {
                 status: "PENDING"
             }
-        });
-
-        const pendingReviewsCount = await db.review.count({
+        }); const pendingReviewsCount = await db.review.count({
             where: {
                 status: "PENDING"
             }
-        });        // Log the admin dashboard view
+        });
+
+        // Get newsletter statistics
+        const totalSubscribers = await db.newsletterSubscription.count();
+        const activeSubscribers = await db.newsletterSubscription.count({
+            where: {
+                status: "ACTIVE"
+            }
+        });
+        const unsubscribedCount = await db.newsletterSubscription.count({
+            where: {
+                status: "UNSUBSCRIBED"
+            }
+        });
+        const recentSubscriptions = await db.newsletterSubscription.count({
+            where: {
+                subscribedAt: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            }
+        });
+
+        // Get previous period newsletter stats for growth calculation
+        const previousSubscriptions = await db.newsletterSubscription.count({
+            where: {
+                subscribedAt: {
+                    gte: previousPeriodStartDate,
+                    lt: startDate
+                }
+            }
+        });
+
+        const newsletterGrowthRate = previousSubscriptions === 0
+            ? (recentSubscriptions > 0 ? 100 : 0)
+            : ((recentSubscriptions - previousSubscriptions) / previousSubscriptions) * 100;
+
+        // Log the admin dashboard view
         await logAdminAction(
             "dashboard_view",
             `Admin viewed dashboard with date range: ${range}`,
             session.user.id
-        );
-
-        const result = {
+        ); const result = {
             totalSales,
             totalOrders,
             totalProducts,
             totalUsers,
+            newsletterStats: {
+                totalSubscribers,
+                activeSubscribers,
+                unsubscribedCount,
+                recentSubscriptions
+            },
             recentOrders,
             lowStockProducts,
             salesByDay,
@@ -328,9 +367,10 @@ export async function GET(request: NextRequest) {
                 sales: salesGrowthRate,
                 orders: ordersGrowthRate,
                 products: productsGrowthRate,
-                users: usersGrowthRate
+                users: usersGrowthRate,
+                newsletter: newsletterGrowthRate
             }
-        };        // Cache stats for 2 minutes (admin stats change frequently but not constantly)
+        };// Cache stats for 2 minutes (admin stats change frequently but not constantly)
         await cache.set(cacheKey, result, 120);
 
         return NextResponse.json(result);

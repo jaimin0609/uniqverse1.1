@@ -11,6 +11,7 @@
     "db:seed": "ts-node --compiler-options=\"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed.ts",
     "test:cj-import": "ts-node src/test-cj-import.ts",
     "test:cj-order": "ts-node src/test-cj-order-system.ts",
+    "test:email": "node test-email-config.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },
