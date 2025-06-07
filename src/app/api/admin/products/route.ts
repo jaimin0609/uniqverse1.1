@@ -18,6 +18,41 @@ const productSchema = z.object({
     categoryId: z.string().min(1, "Category is required"),
     isPublished: z.boolean().default(true),
     isFeatured: z.boolean().default(false),
+    isCustomizable: z.boolean().default(false),
+    customizationTemplate: z
+        .string()
+        .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Customization template must be valid JSON",
+            }
+        ),
+    printArea: z
+        .string()
+        .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Print area must be valid JSON",
+            }
+        ),
     variants: z.record(z.array(z.string())).optional(),
 });
 
@@ -189,9 +224,7 @@ export async function POST(request: Request) {
         // If slug already exists, make it unique
         const finalSlug = slugExists
             ? `${slug}-${Date.now().toString().slice(-6)}`
-            : slug;
-
-        // Create the product
+            : slug;        // Create the product
         const product = await db.product.create({
             data: {
                 name: validatedData.data.name,
@@ -202,6 +235,9 @@ export async function POST(request: Request) {
                 inventory: validatedData.data.inventory,
                 isPublished: validatedData.data.isPublished,
                 isFeatured: validatedData.data.isFeatured,
+                isCustomizable: validatedData.data.isCustomizable,
+                customizationTemplate: validatedData.data.customizationTemplate || null,
+                printArea: validatedData.data.printArea || null,
                 categoryId: validatedData.data.categoryId,
             },
         });

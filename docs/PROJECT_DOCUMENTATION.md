@@ -6,7 +6,7 @@ Uniqverse is a modern, full-featured e-commerce platform built with Next.js and 
 
 The platform is built as a Progressive Web App (PWA), ensuring it works seamlessly across all devices and can be installed as a native app on mobile devices (iOS and Android) while maintaining optimal performance on mobile browsers.
 
-**Last Updated**: May 27, 2025
+**Last Updated**: May 31, 2025
 
 ## Technology Stack
 
@@ -95,7 +95,18 @@ src/
 - **Product Details**: Rich product information with images
 - **Product Variants**: Support for different product options (size, color, etc.)
 - **Featured Products**: Highlighted products on homepage
-- **Product Customization**: Option for personalized products
+- **Product Customization**: Interactive canvas-based product personalization with text, images, and shapes
+
+### Product Customization System
+- **Interactive Canvas**: Real-time visual customization interface using HTML5 Canvas
+- **Text Customization**: Add custom text with font, size, and color options
+- **Image Upload**: Upload and position custom images on products
+- **Shape Tools**: Add rectangles and circles with customizable colors
+- **Element Manipulation**: Move, resize, rotate, and layer design elements
+- **Design Save/Load**: Save designs for later editing and reuse across sessions
+- **Real-time Pricing**: Dynamic price calculation based on design complexity
+- **Admin Management**: Template creation, design viewing, and system configuration
+- **Print Area Configuration**: Define customizable areas on products
 
 ### Shopping Experience
 - **Shopping Cart**: Add products, manage quantities, persist between sessions
@@ -110,6 +121,7 @@ src/
 - **User Management**: Manage customer accounts
 - **Content Management**: Update site content
 - **Inventory Management**: Track stock levels with alerts
+- **Customization Management**: Template creation, design viewing, and system configuration for product customization
 
 ### Supplier & Inventory Management
 - **Supplier Integration**: Connect with product suppliers
@@ -139,6 +151,8 @@ The database schema is managed through Prisma and includes the following main mo
 - **Blog & Page**: Content management
 - **ChatbotPattern, ChatbotTrigger, ChatbotFallback**: For AI chatbot functionality
 - **SupportTicket, TicketReply, TicketAttachment**: For customer support ticketing system
+- **CustomDesign**: Product customization designs with user relations and order integration
+- **Promotion, Event**: Marketing campaigns and promotional content management
 
 For the complete schema, refer to the `prisma/schema.prisma` file.
 

@@ -107,16 +107,14 @@ export default function RegisterPage() {
                 email: formData.email,
                 password: formData.password,
                 redirect: false,
-            });
-
-            if (result?.error) {
+            }); if (result?.error) {
                 toast.error("Failed to sign in after registration. Please try logging in.");
-                router.push("/auth/login");
+                window.location.href = "/auth/login";
                 return;
             }
 
-            router.push("/");
-            router.refresh();
+            // Use window.location.href for more reliable navigation in tests
+            window.location.href = "/";
         } catch (error) {
             toast.error("Failed to create account. Please try again.");
             setIsLoading(false);
@@ -252,14 +250,14 @@ export default function RegisterPage() {
                                         )}
                                     </div>
 
-                                    <div>
-                                        <Button
-                                            type="submit"
-                                            className="w-full"
-                                            disabled={isLoading}
-                                        >
-                                            {isLoading ? "Creating account..." : "Create account"}
-                                        </Button>
+                                    <div>                                        <Button
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={isLoading}
+                                        data-testid="register-submit-button"
+                                    >
+                                        {isLoading ? "Creating account..." : "Create account"}
+                                    </Button>
                                     </div>
                                 </form>
 

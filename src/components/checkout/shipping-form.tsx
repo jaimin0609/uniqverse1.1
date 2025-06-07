@@ -6,6 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useCurrency } from "@/contexts/currency-provider";
+import { useCartStore } from "@/store/cart";
+import { convertShippingCostToCurrency, SHIPPING_COSTS, qualifiesForFreeShipping } from "@/utils/shipping";
+import { ClientPrice } from "@/components/ui/client-price";
 
 // Define the shipping form schema
 const shippingFormSchema = z.object({
@@ -33,7 +37,51 @@ interface ShippingFormProps {
 
 export default function ShippingForm({ onSubmit }: ShippingFormProps) {
     const router = useRouter();
+    const { currency, exchangeRates, convertPrice } = useCurrency();
+    const { items } = useCartStore();
     const [isBillingSame, setIsBillingSame] = useState(true);
+
+    // Calculate subtotal for free shipping threshold
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotalInCurrentCurrency = convertPrice(subtotal);    // Get shipping costs in current currency
+    const standardShippingCost = convertShippingCostToCurrency(
+        SHIPPING_COSTS.domestic.standard,
+        currency,
+        exchangeRates
+    );
+    const expressShippingCost = convertShippingCostToCurrency(
+        SHIPPING_COSTS.domestic.express,
+        currency,
+        exchangeRates
+    );
+    const overnightShippingCost = convertShippingCostToCurrency(
+        SHIPPING_COSTS.domestic.overnight,
+        currency,
+        exchangeRates
+    );
+
+    // Check if each shipping method qualifies for free shipping
+    const standardFreeShipping = qualifiesForFreeShipping(
+        subtotalInCurrentCurrency,
+        'standard',
+        currency,
+        exchangeRates,
+        'domestic'
+    );
+    const expressFreeShipping = qualifiesForFreeShipping(
+        subtotalInCurrentCurrency,
+        'express',
+        currency,
+        exchangeRates,
+        'domestic'
+    );
+    const overnightFreeShipping = qualifiesForFreeShipping(
+        subtotalInCurrentCurrency,
+        'overnight',
+        currency,
+        exchangeRates,
+        'domestic'
+    );
 
     const {
         register,
@@ -262,22 +310,26 @@ export default function ShippingForm({ onSubmit }: ShippingFormProps) {
                     {/* Shipping Method */}
                     <div>
                         <h3 className="text-lg font-medium mb-4">Shipping Method</h3>
-                        <div className="space-y-3">
-                            <label className="flex items-center p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                                <input
-                                    type="radio"
-                                    value="standard"
-                                    {...register("shippingMethod")}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div className="ml-3 flex flex-1 justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-900">Standard Shipping</p>
-                                        <p className="text-sm text-gray-500">Delivery in 3-5 business days</p>
-                                    </div>
-                                    <p className="font-medium">$5.00</p>
+                        <div className="space-y-3">                            <label className="flex items-center p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                            <input
+                                type="radio"
+                                value="standard"
+                                {...register("shippingMethod")}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            />                                <div className="ml-3 flex flex-1 justify-between">
+                                <div>
+                                    <p className="font-medium text-gray-900">Standard Shipping</p>
+                                    <p className="text-sm text-gray-500">Delivery in 3-5 business days</p>
                                 </div>
-                            </label>
+                                <span className="font-medium">
+                                    {standardFreeShipping ? (
+                                        <span className="text-green-600 font-semibold">FREE</span>
+                                    ) : (
+                                        <ClientPrice amount={standardShippingCost} />
+                                    )}
+                                </span>
+                            </div>
+                        </label>
 
                             <label className="flex items-center p-4 border rounded-md cursor-pointer hover:bg-gray-50">
                                 <input
@@ -285,13 +337,18 @@ export default function ShippingForm({ onSubmit }: ShippingFormProps) {
                                     value="express"
                                     {...register("shippingMethod")}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div className="ml-3 flex flex-1 justify-between">
+                                />                                <div className="ml-3 flex flex-1 justify-between">
                                     <div>
                                         <p className="font-medium text-gray-900">Express Shipping</p>
                                         <p className="text-sm text-gray-500">Delivery in 2-3 business days</p>
                                     </div>
-                                    <p className="font-medium">$12.00</p>
+                                    <span className="font-medium">
+                                        {expressFreeShipping ? (
+                                            <span className="text-green-600 font-semibold">FREE</span>
+                                        ) : (
+                                            <ClientPrice amount={expressShippingCost} />
+                                        )}
+                                    </span>
                                 </div>
                             </label>
 
@@ -301,13 +358,18 @@ export default function ShippingForm({ onSubmit }: ShippingFormProps) {
                                     value="overnight"
                                     {...register("shippingMethod")}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div className="ml-3 flex flex-1 justify-between">
+                                />                                <div className="ml-3 flex flex-1 justify-between">
                                     <div>
                                         <p className="font-medium text-gray-900">Overnight Shipping</p>
                                         <p className="text-sm text-gray-500">Delivery next business day</p>
                                     </div>
-                                    <p className="font-medium">$25.00</p>
+                                    <span className="font-medium">
+                                        {overnightFreeShipping ? (
+                                            <span className="text-green-600 font-semibold">FREE</span>
+                                        ) : (
+                                            <ClientPrice amount={overnightShippingCost} />
+                                        )}
+                                    </span>
                                 </div>
                             </label>
                         </div>

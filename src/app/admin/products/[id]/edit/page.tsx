@@ -123,9 +123,7 @@ export default function EditProductPage() {
                 }// Debug the description data
                 console.log('Product description in edit page:', productData.description ? productData.description.substring(0, 50) + '...' : 'No description');
                 console.log('Description type:', typeof productData.description);
-                console.log('Description length:', productData.description?.length || 0);
-
-                // Pre-populate form with product data
+                console.log('Description length:', productData.description?.length || 0);                // Pre-populate form with product data
                 reset({
                     name: productData.name,
                     slug: productData.slug,
@@ -137,6 +135,9 @@ export default function EditProductPage() {
                     categoryId: productData.categoryId,
                     isPublished: productData.isPublished,
                     isFeatured: productData.isFeatured,
+                    isCustomizable: productData.isCustomizable || false,
+                    customizationTemplate: productData.customizationTemplate || "",
+                    printArea: productData.printArea || "",
                     variants: variantOptions // Add variants to form data
                 });
 
@@ -520,9 +521,7 @@ export default function EditProductPage() {
                                     <label htmlFor="isPublished" className="ml-2 text-sm text-gray-700">
                                         Published
                                     </label>
-                                </div>
-
-                                <div className="flex items-center">
+                                </div>                                <div className="flex items-center">
                                     <input
                                         type="checkbox"
                                         id="isFeatured"
@@ -533,6 +532,21 @@ export default function EditProductPage() {
                                         Featured
                                     </label>
                                 </div>
+
+                                <div className="flex items-center mt-4">
+                                    <input
+                                        type="checkbox"
+                                        id="isCustomizable"
+                                        {...register("isCustomizable")}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="isCustomizable" className="ml-2 text-sm text-gray-700">
+                                        Customizable Product
+                                    </label>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Allow customers to personalize this product
+                                </p>
                             </div>
 
                             <div className="border border-gray-200 rounded-md p-4">
@@ -605,10 +619,55 @@ export default function EditProductPage() {
                                                 {category.name}
                                             </option>
                                         ))}
-                                    </select>
-                                    {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId.message}</p>}
+                                    </select>                                    {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId.message}</p>}
                                 </div>
                             </div>
+
+                            {/* Customization Configuration */}
+                            {watch("isCustomizable") && (
+                                <div className="border border-gray-200 rounded-md p-4">
+                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Customization Configuration</h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Configure the customization settings for this product.
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="customizationTemplate" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Customization Template
+                                            </label>
+                                            <textarea
+                                                id="customizationTemplate"
+                                                {...register("customizationTemplate")}
+                                                rows={4}
+                                                className={`w-full p-2 border rounded-md ${errors.customizationTemplate ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder='{"textAreas": [{"id": "text1", "x": 100, "y": 100, "width": 200, "height": 50}]}'
+                                            />
+                                            {errors.customizationTemplate && <p className="mt-1 text-sm text-red-500">{errors.customizationTemplate.message}</p>}
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                JSON configuration for customizable elements and their properties
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="printArea" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Print Area Configuration
+                                            </label>
+                                            <textarea
+                                                id="printArea"
+                                                {...register("printArea")}
+                                                rows={3}
+                                                className={`w-full p-2 border rounded-md ${errors.printArea ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder='{"x": 50, "y": 50, "width": 300, "height": 200}'
+                                            />
+                                            {errors.printArea && <p className="mt-1 text-sm text-red-500">{errors.printArea.message}</p>}
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                JSON coordinates defining where customizations can be placed
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

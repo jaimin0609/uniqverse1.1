@@ -90,16 +90,30 @@ export const authOptions: NextAuthOptions = {
             }
             return token;
         },
-    },
-    pages: {
+    }, pages: {
         signIn: "/auth/login",
-        signOut: "/auth/logout",
         error: "/auth/error",
         verifyRequest: "/auth/verify",
         newUser: "/auth/register",
+        // Remove signOut to prevent redirect loops
     },
     session: {
         strategy: "jwt",
+        // Increase maxAge for better mobile compatibility
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
+    // Add useSecureCookies and cookie settings for better mobile support
+    useSecureCookies: process.env.NODE_ENV === "production",
+    cookies: {
+        sessionToken: {
+            name: `${process.env.NODE_ENV === "production" ? "__Secure-" : ""}next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                secure: process.env.NODE_ENV === "production",
+            },
+        },
     },
     secret: process.env.NEXTAUTH_SECRET,
 };

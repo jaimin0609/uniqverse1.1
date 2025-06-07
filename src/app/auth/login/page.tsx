@@ -33,9 +33,7 @@ export default function LoginPage() {
             email: "",
             password: "",
         },
-    });
-
-    async function onSubmit(data: LoginFormValues) {
+    }); async function onSubmit(data: LoginFormValues) {
         setIsLoading(true);
 
         try {
@@ -52,8 +50,9 @@ export default function LoginPage() {
             }
 
             toast.success("Login successful!");
-            router.push("/");
-            router.refresh();
+
+            // Use window.location.href for more reliable navigation in tests
+            window.location.href = "/";
         } catch (error) {
             toast.error("Something went wrong. Please try again.");
             setIsLoading(false);
@@ -186,14 +185,14 @@ export default function LoginPage() {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <Button
-                                            type="submit"
-                                            className="w-full"
-                                            disabled={isLoading}
-                                        >
-                                            {isLoading ? "Signing in..." : "Sign in"}
-                                        </Button>
+                                    <div>                                        <Button
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={isLoading}
+                                        data-testid="login-submit-button"
+                                    >
+                                        {isLoading ? "Signing in..." : "Sign in"}
+                                    </Button>
                                     </div>
                                 </form>
 

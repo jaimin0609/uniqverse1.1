@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { User, Package, MapPin, Heart, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { handleLogout } from '@/utils/logout-utils';
 
 interface NavItem {
     title: string;
@@ -109,19 +110,20 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                                             </Link>
                                         );
                                     })}
-                                </nav>
-
-                                <div className="mt-6 pt-6 border-t border-gray-100">
-                                    <Link href="/auth/logout">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full justify-start"
-                                        >
-                                            <LogOut className="h-4 w-4 mr-2" />
-                                            Sign Out
-                                        </Button>
-                                    </Link>
+                                </nav>                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full justify-start"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleLogout();
+                                        }}
+                                        data-testid="account-logout-link"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-2" />
+                                        Sign Out
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -176,16 +178,18 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                                                 <span className="ml-3">{item.title}</span>
                                             </Link>
                                         );
-                                    })}
-
-                                    <Link
-                                        href="/auth/logout"
+                                    })}                                    <button
                                         className="flex items-center px-3 py-2 mt-2 rounded-md text-sm text-red-600 hover:bg-red-50"
-                                        onClick={() => setIsMobileNavOpen(false)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setIsMobileNavOpen(false);
+                                            handleLogout();
+                                        }}
+                                        data-testid="mobile-account-logout-link"
                                     >
                                         <LogOut className="h-4 w-4" />
                                         <span className="ml-3">Sign Out</span>
-                                    </Link>
+                                    </button>
                                 </nav>
                             )}
                         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCartStore } from '@/store/cart';
+import type { CartItem } from '@/store/cart';
 
 /**
  * This hook provides enhanced cart functions that sync with the server
@@ -110,7 +111,7 @@ export function useServerSyncedCart() {
     /**
      * Add an item to the cart and sync with server
      */
-    const addItemAndSync = async (item: any) => {
+    const addItemAndSync = async (item: CartItem) => {
         // First add to local cart for immediate UI update
         addItem(item);
 

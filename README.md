@@ -13,6 +13,11 @@ A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, 
 - 📱 Progressive Web App (PWA) capabilities
 - 🤖 AI Chatbot for customer support
 - 🎫 Support Ticket System
+- 🎨 **Product Customization System** - Interactive canvas-based product personalization
+- 🖼️ Real-time design preview with text, images, and shapes
+- 💰 Dynamic pricing based on customization complexity
+- 📁 Design save/load functionality for customers
+- ⚙️ Admin template and design management
 
 ## Getting Started
 
@@ -47,6 +52,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 For more detailed documentation, see:
 - [Project Documentation](./docs/PROJECT_DOCUMENTATION.md)
 - [Project Progress](./docs/PROJECT_PROGRESS.md)
+- [Product Customization System](./docs/PRODUCT_CUSTOMIZATION_SYSTEM.md)
+- [Customization Setup Guide](./docs/CUSTOMIZATION_SETUP_GUIDE.md)
+- [Customization User Guide](./docs/CUSTOMIZATION_USER_GUIDE.md)
+- [Customization Testing Guide](./docs/CUSTOMIZATION_TESTING_GUIDE.md)
+- [Password Reset System](./docs/PASSWORD_RESET_SYSTEM.md)
+- [Blog System Review](./docs/BLOG_SYSTEM_REVIEW.md)
 
 ## Tech Stack
 

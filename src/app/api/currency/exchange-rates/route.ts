@@ -9,11 +9,9 @@ const SUPPORTED_CURRENCIES = ["USD", "EUR", "GBP", "AUD", "CAD", "JPY"];
 export async function GET(req: NextRequest) {
     try {
         // Get API key from environment variables
-        const API_KEY = process.env.EXCHANGE_RATE_API_KEY || process.env.EXCHANGE_RATE_API_KEY;
-
-        if (!API_KEY) {
+        const API_KEY = process.env.EXCHANGE_RATE_API_KEY || process.env.EXCHANGE_RATE_API_KEY; if (!API_KEY) {
             console.warn("No exchange rate API key found in environment variables");
-            return useFallbackRates("API key not configured");
+            return getFallbackRates("API key not configured");
         }
 
         // We'll try multiple free API providers in case one fails
@@ -85,13 +83,11 @@ export async function GET(req: NextRequest) {
                 console.error(`Error with ${provider.name}:`, error);
                 // Continue to next provider
             }
-        }
-
-        // If all providers fail, use fallback rates
-        return useFallbackRates("All API providers failed");
+        }        // If all providers fail, use fallback rates
+        return getFallbackRates("All API providers failed");
     } catch (error) {
         console.error("Unexpected error fetching exchange rates:", error);
-        return useFallbackRates("Unexpected error");
+        return getFallbackRates("Unexpected error");
     }
 }
 
@@ -113,7 +109,7 @@ function filterRates(rates: Record<string, number>): Record<string, number> {
 }
 
 // Helper function to return fallback rates
-function useFallbackRates(errorMessage: string) {
+function getFallbackRates(errorMessage: string) {
     console.warn(`Using fallback exchange rates: ${errorMessage}`);
 
     // Fallback rates - only used if all API calls fail

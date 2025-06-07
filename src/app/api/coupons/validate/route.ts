@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         // Check if user is authenticated
         if (!session) {
             return NextResponse.json(
-                { error: "Unauthorized" },
+                { error: "Please log in to use Coupons" },
                 { status: 401 }
             );
         } const { code, cartItems, currency = "USD", originalSubtotal } = await req.json();

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Loader2, AlertTriangle, CheckCircle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { handleLogout } from '@/utils/logout-utils';
 
 export default function AccountSettingsPage() {
     const router = useRouter();
@@ -139,10 +140,8 @@ export default function AccountSettingsPage() {
 
             if (!response.ok) {
                 throw new Error("Failed to delete account");
-            }
-
-            // Sign out and redirect to home page
-            router.push("/api/auth/signout?callbackUrl=/");
+            }            // Sign out and redirect to home page
+            handleLogout();
         } catch (error) {
             setMessage({
                 text: error instanceof Error ? error.message : "Failed to delete account",

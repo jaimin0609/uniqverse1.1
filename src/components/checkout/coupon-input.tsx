@@ -70,9 +70,10 @@ export function CouponInput({ onApplyCoupon, onRemoveCoupon, subtotal }: CouponI
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            }); const data: CouponValidationResponse = await response.json();
+                }, body: JSON.stringify(payload),
+            });
+
+            const data: CouponValidationResponse = await response.json();
 
             // Log the response for debugging
             console.log("Coupon validation response:", data);
@@ -103,13 +104,13 @@ export function CouponInput({ onApplyCoupon, onRemoveCoupon, subtotal }: CouponI
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const removeCoupon = () => {
+    }; const removeCoupon = () => {
         setAppliedCoupon(null);
         setSavedAmount(0);
         onRemoveCoupon();
-    };    // Format the saved amount using the currency formatter
+    };
+
+    // Format the saved amount using the currency formatter
     const formattedSavedAmount = formatPrice(savedAmount);
 
     return (

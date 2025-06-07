@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
+import { handleLogout } from '@/utils/logout-utils';
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Menu, X, User, Search, ChevronDown, Heart, Settings, ShoppingCart, Loader2 } from "lucide-react";
@@ -187,13 +188,12 @@ export function Header() {
     // Define navigation links
     const navLinks = [
         { name: "Home", href: "/" },
-        { name: "Shop", href: "/shop" },
-        {
+        { name: "Shop", href: "/shop" }, {
             name: "Categories",
             href: "#",
             children: [
                 { name: "All Categories", href: "/categories" },
-                { name: "Featured", href: "/shop/featured" },
+                { name: "Shop Featured", href: "/shop/featured" },
                 { name: "New Arrivals", href: "/shop/new" },
             ]
         },
@@ -213,10 +213,8 @@ export function Header() {
                                 UniQVerse
                             </span>
                         </Link>
-                    </div>
-
-                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex space-x-6">
+                    </div>                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex space-x-6" role="navigation">
                         {navLinks.map((link) => (
                             link.children ? (
                                 <div key={link.name} className="relative group">
@@ -328,12 +326,16 @@ export function Header() {
                                         <Link href="/admin" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
                                             Admin Dashboard
                                         </Link>
-                                    )}
-
-                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-                                    <Link href="/api/auth/signout" className="block px-4 py-2 text-sm text-destructive hover:bg-slate-100 dark:hover:bg-slate-800">
+                                    )}                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleLogout();
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-sm text-destructive hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        data-testid="logout-link"
+                                    >
                                         Sign out
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -360,12 +362,10 @@ export function Header() {
                             </button>
                         </div>
                     </div>
-                </div>
-
-                {/* Mobile menu - improved organization */}
+                </div>                {/* Mobile menu - improved organization */}
                 {
                     isMenuOpen && (
-                        <div className="md:hidden">
+                        <div className="md:hidden" role="navigation">
                             <div className="px-2 pt-2 pb-3 border-t border-slate-200 dark:border-slate-700">
                                 <div className="py-2">
                                     <div className="font-medium px-3 py-2 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
@@ -447,17 +447,17 @@ export function Header() {
                                             <User className="h-5 w-5 mr-2" />
                                             Admin Dashboard
                                         </Link>
-                                    )}
-
-                                    {session ? (
-                                        <Link
-                                            href="/api/auth/signout"
-                                            onClick={closeMenu}
-                                            className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-destructive hover:bg-slate-100 dark:hover:bg-slate-800"
-                                        >
-                                            <X className="h-5 w-5 mr-2" />
-                                            Sign out
-                                        </Link>
+                                    )}                                    {session ? (<button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleLogout();
+                                        }}
+                                        className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-destructive hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        data-testid="mobile-logout-link"
+                                    >
+                                        <X className="h-5 w-5 mr-2" />
+                                        Sign out
+                                    </button>
                                     ) : (
                                         <div className="space-y-1">
                                             <Link

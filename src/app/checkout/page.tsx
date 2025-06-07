@@ -12,6 +12,8 @@ import OrderComplete from "@/components/checkout/order-complete";
 import { CouponInput } from "@/components/checkout/coupon-input";
 import { CheckCircle, ShoppingBag, Truck, CreditCard } from "lucide-react";
 import { ClientPrice } from "@/components/ui/client-price";
+import { useCurrency } from "@/contexts/currency-provider";
+import { calculateShippingCost } from "@/utils/shipping";
 
 // Define checkout steps
 type CheckoutStep = "cart" | "shipping" | "payment" | "complete";
@@ -19,6 +21,7 @@ type CheckoutStep = "cart" | "shipping" | "payment" | "complete";
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, totalItems, clearCart } = useCartStore();
+    const { currency, exchangeRates, convertPrice } = useCurrency();
     const [currentStep, setCurrentStep] = useState<CheckoutStep>("cart");
     const [shippingData, setShippingData] = useState<any>({});
     const [orderData, setOrderData] = useState<any>(null);
@@ -40,29 +43,32 @@ export default function CheckoutPage() {
         }, 1000); // Longer delay to ensure hydration completes
 
         return () => clearTimeout(timer);
-    }, [items, currentStep, router]);
-
-    // Calculate subtotal, shipping, tax and total
+    }, [items, currentStep, router]);    // Calculate subtotal, shipping, tax and total
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotalInCurrentCurrency = convertPrice(subtotal);
 
     const getShippingCost = () => {
         if (!shippingData?.shippingMethod) return 0;
-        switch (shippingData.shippingMethod) {
-            case "express": return 12;
-            case "overnight": return 25;
-            default: return 5; // standard shipping
-        }
+
+        // Use the new shipping utility with currency conversion
+        return calculateShippingCost(
+            subtotalInCurrentCurrency,
+            shippingData.shippingMethod,
+            currency,
+            exchangeRates,
+            'domestic' // For now, assuming domestic shipping. This could be enhanced later.
+        );
     };
 
     const handleApplyCoupon = (amount: number, code: string) => {
         setDiscountAmount(amount);
         setCouponCode(code);
-    };
-
-    const handleRemoveCoupon = () => {
+    }; const handleRemoveCoupon = () => {
         setDiscountAmount(0);
         setCouponCode(null);
-    }; const shippingCost = getShippingCost();
+    };
+
+    const shippingCost = getShippingCost();
     const taxRate = 0.08;
     const taxAmount = subtotal * taxRate;
     const total = subtotal + shippingCost + taxAmount - discountAmount;
@@ -130,16 +136,16 @@ export default function CheckoutPage() {
         switch (currentStep) {
             case "cart":
                 return (
-                    <div className="space-y-6">
-                        <CartSummary items={items} />
+                    <div className="space-y-6">                        <CartSummary items={items} />
 
                         <div className="mt-6 bg-gray-50 p-6 rounded-lg">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
 
-                            <div className="space-y-2">                                <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Subtotal</span>
-                                <span className="font-medium"><ClientPrice amount={subtotal} /></span>
-                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Subtotal</span>
+                                    <span className="font-medium"><ClientPrice amount={subtotal} /></span>
+                                </div>
 
                                 {discountAmount > 0 && (
                                     <div className="flex justify-between text-sm text-green-600">
@@ -290,10 +296,11 @@ export default function CheckoutPage() {
                             <div className="bg-white p-6 rounded-lg border">
                                 <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
                                 <div className="space-y-3 mb-4">
-                                    {/* Order Items Summary */}
-                                    <p className="text-gray-600">
+                                    {/* Order Items Summary */}                                    <p className="text-gray-600">
                                         {items.reduce((acc, item) => acc + item.quantity, 0)} {items.reduce((acc, item) => acc + item.quantity, 0) === 1 ? "item" : "items"} in cart
-                                    </p>                                    <div className="border-t pt-3">
+                                    </p>
+
+                                    <div className="border-t pt-3">
                                         <div className="flex justify-between mb-2">
                                             <span>Subtotal</span>
                                             <span><ClientPrice amount={subtotal} /></span>

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { User, Package, MapPin, Heart, ShoppingBag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ClientPrice } from '@/components/ui/client-price';
+import { handleLogout } from '@/utils/logout-utils';
 
 interface Order {
     id: string;
@@ -159,14 +160,17 @@ export default function AccountPage() {
                                 <User className="h-5 w-5" />
                                 <span>Settings</span>
                             </Link>
-                        </nav>
-
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                            <Link href="/api/auth/signout">
-                                <Button variant="outline" className="w-full">
-                                    Log Out
-                                </Button>
-                            </Link>
+                        </nav>                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleLogout();
+                                }}
+                            >
+                                Log Out
+                            </Button>
                         </div>
                     </div>
                 </div>

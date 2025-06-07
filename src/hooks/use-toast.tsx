@@ -21,6 +21,8 @@ const actionTypes = {
     REMOVE_TOAST: "REMOVE_TOAST",
 } as const
 
+type ActionType = typeof actionTypes[keyof typeof actionTypes];
+
 let count = 0
 
 function genId() {
@@ -28,23 +30,21 @@ function genId() {
     return count.toString()
 }
 
-type ActionType = typeof actionTypes
-
 type Action =
     | {
-        type: ActionType["ADD_TOAST"]
+        type: "ADD_TOAST"
         toast: ToasterToast
     }
     | {
-        type: ActionType["UPDATE_TOAST"]
+        type: "UPDATE_TOAST"
         toast: Partial<ToasterToast>
     }
     | {
-        type: ActionType["DISMISS_TOAST"]
+        type: "DISMISS_TOAST"
         toastId?: ToasterToast["id"]
     }
     | {
-        type: ActionType["REMOVE_TOAST"]
+        type: "REMOVE_TOAST"
         toastId?: ToasterToast["id"]
     }
 
@@ -94,8 +94,7 @@ const reducer = (state: State, action: Action): State => {
                         : t
                 ),
             }
-        }
-        case "REMOVE_TOAST":
+        } case "REMOVE_TOAST":
             if (action.toastId === undefined) {
                 return {
                     ...state,
@@ -106,6 +105,8 @@ const reducer = (state: State, action: Action): State => {
                 ...state,
                 toasts: state.toasts.filter((t) => t.id !== action.toastId),
             }
+        default:
+            return state
     }
 }
 

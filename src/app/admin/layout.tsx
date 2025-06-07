@@ -16,12 +16,15 @@ import {
     Menu,
     X,
     LogOut,
-    MessageSquare, Truck, // Add Truck icon for dropshipping
+    MessageSquare,
+    Truck, // Add Truck icon for dropshipping
     Tag,
     HomeIcon, // Add Tag icon for promotions
     Mail, // Add Mail icon for newsletter
+    Palette, // Add Palette icon for customization
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { handleLogout } from '@/utils/logout-utils';
 
 interface NavItem {
     title: string;
@@ -50,8 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Dashboard",
             href: "/admin",
             icon: <LayoutDashboard className="h-5 w-5" />
-        },
-        {
+        }, {
             title: "Products",
             href: "/admin/products",
             icon: <Package className="h-5 w-5" />,
@@ -59,6 +61,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 { title: "All Products", href: "/admin/products" },
                 { title: "Add New", href: "/admin/products/create" },
                 { title: "Categories", href: "/admin/categories" }
+            ]
+        },
+        {
+            title: "Customization",
+            href: "/admin/customization",
+            icon: <Palette className="h-5 w-5" />,
+            subItems: [
+                { title: "Templates", href: "/admin/customization/templates" },
+                { title: "Custom Designs", href: "/admin/customization/designs" },
+                { title: "Settings", href: "/admin/customization/settings" }
             ]
         },
         {
@@ -252,18 +264,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <p className="text-sm font-medium text-gray-900">{session?.user?.name}</p>
                             <p className="text-xs text-gray-500">{session?.user?.email}</p>
                         </div>
-                    </div>
-                    <div className="mt-3">
-                        <Link href="/auth/logout">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full justify-start text-red-600 hover:text-red-700 hover:border-red-700"
-                            >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Sign Out
-                            </Button>
-                        </Link>
+                    </div>                    <div className="mt-3">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-red-600 hover:text-red-700 hover:border-red-700"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleLogout();
+                            }}
+                            data-testid="admin-logout-button"
+                        >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Sign Out
+                        </Button>
                     </div>
                 </div>
             </aside>

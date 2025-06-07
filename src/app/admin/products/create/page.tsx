@@ -21,8 +21,7 @@ export default function CreateProductPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
-    const [variants, setVariants] = useState<{ [key: string]: string[] }>({});
-    const [formData, setFormData] = useState({
+    const [variants, setVariants] = useState<{ [key: string]: string[] }>({}); const [formData, setFormData] = useState({
         name: "",
         slug: "",
         description: "",
@@ -32,6 +31,9 @@ export default function CreateProductPage() {
         inventory: "0",
         isPublished: true,
         isFeatured: false,
+        isCustomizable: false,
+        customizationTemplate: "",
+        printArea: "",
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [showVariantOptions, setShowVariantOptions] = useState(false);
@@ -201,9 +203,7 @@ export default function CreateProductPage() {
 
             if (!uploadedImageUrls.length && selectedImages.length > 0) {
                 throw new Error("Failed to upload images");
-            }
-
-            // Format data for API submission with proper type conversion
+            }            // Format data for API submission with proper type conversion
             const productData = {
                 name: formData.name.trim(),
                 slug: formData.slug.trim(),
@@ -214,6 +214,9 @@ export default function CreateProductPage() {
                 categoryId: formData.categoryId,
                 isPublished: formData.isPublished, // Already a boolean from the checkbox
                 isFeatured: formData.isFeatured, // Already a boolean from the checkbox
+                isCustomizable: formData.isCustomizable,
+                customizationTemplate: formData.customizationTemplate.trim() || null,
+                printArea: formData.printArea.trim() || null,
                 variants: Object.keys(variants).length > 0 ? variants : undefined,
                 images: uploadedImageUrls,
             };
@@ -545,38 +548,54 @@ export default function CreateProductPage() {
                         </div>
 
                         {/* Right Column - Pricing, Inventory, Status */}
-                        <div className="space-y-6">
-                            <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Product Status</h3>
+                        <div className="space-y-6">                            <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+                            <h3 className="text-sm font-medium text-gray-700 mb-3">Product Status</h3>
 
-                                <div className="flex items-center mb-4">
-                                    <input
-                                        type="checkbox"
-                                        id="isPublished"
-                                        name="isPublished"
-                                        checked={formData.isPublished}
-                                        onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="isPublished" className="ml-2 text-sm text-gray-700">
-                                        Published
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        id="isFeatured"
-                                        name="isFeatured"
-                                        checked={formData.isFeatured}
-                                        onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="isFeatured" className="ml-2 text-sm text-gray-700">
-                                        Featured Product
-                                    </label>
-                                </div>
+                            <div className="flex items-center mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="isPublished"
+                                    name="isPublished"
+                                    checked={formData.isPublished}
+                                    onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="isPublished" className="ml-2 text-sm text-gray-700">
+                                    Published
+                                </label>
                             </div>
+
+                            <div className="flex items-center mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="isFeatured"
+                                    name="isFeatured"
+                                    checked={formData.isFeatured}
+                                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="isFeatured" className="ml-2 text-sm text-gray-700">
+                                    Featured Product
+                                </label>
+                            </div>
+
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="isCustomizable"
+                                    name="isCustomizable"
+                                    checked={formData.isCustomizable}
+                                    onChange={(e) => setFormData({ ...formData, isCustomizable: e.target.checked })}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="isCustomizable" className="ml-2 text-sm text-gray-700">
+                                    Customizable Product
+                                </label>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Allow customers to personalize this product
+                            </p>
+                        </div>
 
                             <div className="border border-gray-200 rounded-md p-4">
                                 <h3 className="text-sm font-medium text-gray-700 mb-3">Pricing</h3>
@@ -635,9 +654,7 @@ export default function CreateProductPage() {
                                     />
                                     {errors.inventory && <p className="mt-1 text-sm text-red-500">{errors.inventory}</p>}
                                 </div>
-                            </div>
-
-                            <div className="border border-gray-200 rounded-md p-4">
+                            </div>                            <div className="border border-gray-200 rounded-md p-4">
                                 <h3 className="text-sm font-medium text-gray-700 mb-3">Organization</h3>
 
                                 <div>
@@ -661,6 +678,49 @@ export default function CreateProductPage() {
                                     {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>}
                                 </div>
                             </div>
+
+                            {/* Customization Configuration */}
+                            {formData.isCustomizable && (
+                                <div className="border border-gray-200 rounded-md p-4">
+                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Customization Configuration</h3>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="customizationTemplate" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Customization Template (JSON)
+                                        </label>
+                                        <textarea
+                                            id="customizationTemplate"
+                                            name="customizationTemplate"
+                                            value={formData.customizationTemplate}
+                                            onChange={handleInputChange}
+                                            rows={4}
+                                            placeholder='{"allowText": true, "allowImages": true, "maxTextLength": 50}'
+                                            className="w-full p-2 border border-gray-300 rounded-md text-sm font-mono"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            JSON configuration defining what customization options are available
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="printArea" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Print Area (JSON)
+                                        </label>
+                                        <textarea
+                                            id="printArea"
+                                            name="printArea"
+                                            value={formData.printArea}
+                                            onChange={handleInputChange}
+                                            rows={3}
+                                            placeholder='{"x": 50, "y": 50, "width": 200, "height": 100}'
+                                            className="w-full p-2 border border-gray-300 rounded-md text-sm font-mono"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            JSON coordinates defining where customizations can be placed
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

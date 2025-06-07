@@ -77,7 +77,11 @@ export default async function RootLayout({
                   {children}
                 </main>
                 <FooterWithConditional />
-                <Toaster position="top-center" closeButton richColors />
+                <Toaster position="top-center" closeButton richColors toastOptions={{
+                  style: {
+                    zIndex: 9999
+                  }
+                }} />
                 {/* AI Chatbot component */}
                 <ChatBotWrapper />
                 {/* Toast notification listener */}

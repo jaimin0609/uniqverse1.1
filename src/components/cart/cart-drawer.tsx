@@ -107,14 +107,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     };
 
     // If drawer is not open, don't render anything
-    if (!isOpen) return null;
-
-    return (
+    if (!isOpen) return null; return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
             {/* Drawer container */}
-            <div className="fixed inset-y-0 right-0 flex flex-col w-full sm:w-96 max-w-full bg-white shadow-xl animate-slide-in-right">            {/* Drawer header */}
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h2 className="text-lg font-semibold flex items-center">
+            <div
+                className="fixed inset-y-0 right-0 flex flex-col w-full sm:w-96 max-w-full bg-white shadow-xl animate-slide-in-right cart-drawer"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cart-drawer-title"
+                data-testid="cart-drawer"
+            >{/* Drawer header */}                <div className="flex items-center justify-between p-4 border-b">
+                    <h2 id="cart-drawer-title" className="text-lg font-semibold flex items-center">
                         <ShoppingCart className="mr-2 h-5 w-5" />
                         Your Cart ({items.length > 0 ? itemCount : 0})
                         {isLoading && (
@@ -166,10 +169,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                             <p className="ml-4">
                                                 <ClientPrice amount={item.price * item.quantity} />
                                             </p>
-                                        </div>
-
-                                        {item.variantName && (
+                                        </div>                                        {item.variantName && (
                                             <p className="mt-1 text-sm text-gray-500">{item.variantName}</p>
+                                        )}                                        {/* Customization info */}
+                                        {item.customizations && (
+                                            <div className="mt-1 text-sm text-blue-600">
+                                                <span className="inline-flex items-center">
+                                                    ✨ Customized
+                                                    {item.customizations.additionalPrice && item.customizations.additionalPrice > 0 && (
+                                                        <span className="ml-1">
+                                                            (+<ClientPrice amount={item.customizations.additionalPrice} />)
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
                                         )}
 
                                         {/* Quantity controls and remove button */}

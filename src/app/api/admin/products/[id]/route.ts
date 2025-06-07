@@ -18,6 +18,41 @@ const productUpdateSchema = z.object({
     categoryId: z.string().min(1, "Category is required"),
     isPublished: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
+    isCustomizable: z.boolean().optional(),
+    customizationTemplate: z
+        .string()
+        .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Customization template must be valid JSON",
+            }
+        ),
+    printArea: z
+        .string()
+        .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Print area must be valid JSON",
+            }
+        ),
     variants: z.record(z.array(z.string())).optional(),
 });
 
@@ -153,9 +188,7 @@ export async function PUT(
                 const randomString = Math.random().toString(36).substring(2, 8);
                 validatedData.data.slug = `${validatedData.data.slug}-${randomString}`;
             }
-        }
-
-        // Update product basic info
+        }        // Update product basic info
         const updatedProduct = await db.product.update({
             where: { id: productId },
             data: {
@@ -167,6 +200,9 @@ export async function PUT(
                 inventory: validatedData.data.inventory,
                 isPublished: validatedData.data.isPublished,
                 isFeatured: validatedData.data.isFeatured,
+                isCustomizable: validatedData.data.isCustomizable,
+                customizationTemplate: validatedData.data.customizationTemplate || null,
+                printArea: validatedData.data.printArea || null,
                 category: {
                     connect: { id: validatedData.data.categoryId },
                 },

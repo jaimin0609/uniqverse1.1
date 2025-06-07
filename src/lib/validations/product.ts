@@ -107,7 +107,44 @@ export const productFormSchema = z.object({
         .default(false),
     variants: z
         .record(z.array(z.string()))
+        .optional(),
+    isCustomizable: z
+        .boolean()
+        .default(false),
+    customizationTemplate: z
+        .string()
         .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Customization template must be valid JSON",
+            }
+        ),
+    printArea: z
+        .string()
+        .optional()
+        .refine(
+            (value) => {
+                if (!value) return true;
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Print area must be valid JSON",
+            }
+        )
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -4,18 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/utils/format";
 import { Trash2 } from "lucide-react";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, CartItem } from "@/store/cart";
 import { ClientPrice } from "@/components/ui/client-price";
-
-interface CartItem {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    image: string;
-    variantId?: string;
-    variantName?: string;
-}
 
 interface CartSummaryProps {
     items: CartItem[];
@@ -74,12 +64,20 @@ export default function CartSummary({ items }: CartSummaryProps) {
                                                 className="object-cover rounded"
                                                 sizes="64px"
                                             />
-                                        </div>
-                                        <div className="ml-4">
+                                        </div>                                        <div className="ml-4">
                                             <div className="text-sm font-medium text-gray-900">{item.name}</div>
                                             {item.variantName && (
                                                 <div className="text-sm text-gray-500">
                                                     Variant: {item.variantName}
+                                                </div>
+                                            )}                                            {item.customizations && (
+                                                <div className="text-sm text-blue-600">
+                                                    ✨ Customized Product
+                                                    {item.customizations.additionalPrice && item.customizations.additionalPrice > 0 && (
+                                                        <span className="ml-1">
+                                                            (+<ClientPrice amount={item.customizations.additionalPrice} />)
+                                                        </span>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

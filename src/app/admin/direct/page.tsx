@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { handleLogout } from '@/utils/logout-utils';
 
 export default function DirectAdminAccess() {
     const { data: session, status } = useSession();
@@ -67,16 +68,17 @@ export default function DirectAdminAccess() {
                 </pre>
             </div>
 
-            <div className="flex flex-col gap-4 mt-8">
-                <Link href="/admin" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Try Regular Admin Dashboard
-                </Link>
+            <div className="flex flex-col gap-4 mt-8">                <Link href="/admin" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Try Regular Admin Dashboard
+            </Link>
                 <Link href="/" className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
                     Return to Homepage
-                </Link>
-                <Link href="/auth/logout" className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                </Link>                <button
+                    onClick={() => handleLogout()}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                >
                     Log Out
-                </Link>
+                </button>
             </div>
         </div>
     );

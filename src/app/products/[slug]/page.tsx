@@ -209,6 +209,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 averageRating={averageRating}
                 reviewCount={product.reviews.length}
                 description={product.description}
+                isCustomizable={product.isCustomizable}
+                customizationTemplate={product.customizationTemplate}
+                printArea={product.printArea}
             />
 
             {/* Product Reviews */}

@@ -17,6 +17,8 @@ import { formatCurrency } from "@/utils/format";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
 import { ClientPrice } from "@/components/ui/client-price";
+import { useCurrency } from "@/contexts/currency-provider";
+import { calculateShippingCost } from "@/utils/shipping";
 
 // Load Stripe outside of component render to avoid recreating on every render
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
@@ -86,8 +88,7 @@ function PaymentFormContent({ onSubmit, isProcessing, shippingData }: PaymentFor
     const [processing, setProcessing] = useState(false);
     const [paymentAttempts, setPaymentAttempts] = useState(0);
     const { items, clearCart } = useCartStore();
-
-    const {
+    const { currency, exchangeRates, convertPrice } = useCurrency(); const {
         register,
         handleSubmit,
         formState: { errors },
@@ -100,17 +101,23 @@ function PaymentFormContent({ onSubmit, isProcessing, shippingData }: PaymentFor
         },
     });
 
-    // Calculate shipping cost based on method
-    const getShippingCost = () => {
-        switch (shippingData?.shippingMethod) {
-            case "express": return 12;
-            case "overnight": return 25;
-            default: return 5; // standard shipping
-        }
-    };
-
     // Calculate subtotal from cart items
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotalInCurrentCurrency = convertPrice(subtotal);
+
+    // Calculate shipping cost using the new utility with currency conversion
+    const getShippingCost = () => {
+        if (!shippingData?.shippingMethod) return 0;
+
+        return calculateShippingCost(
+            subtotalInCurrentCurrency,
+            shippingData.shippingMethod,
+            currency,
+            exchangeRates,
+            'domestic' // For now, assuming domestic shipping. This could be enhanced later.
+        );
+    };
+
     const shippingCost = getShippingCost();
     const taxRate = 0.08;
     const taxAmount = subtotal * taxRate;

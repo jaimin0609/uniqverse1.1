@@ -144,14 +144,12 @@ export default function CouponForm({ params }: CouponProps) {
                         name: p.name,
                     }))
                 );
-            }
-
-            // Fetch categories
+            }            // Fetch categories
             const categoriesResponse = await fetch("/api/categories");
             if (categoriesResponse.ok) {
                 const categoriesData = await categoriesResponse.json();
                 setCategories(
-                    categoriesData.map((c: any) => ({
+                    (categoriesData.categories || []).map((c: any) => ({
                         id: c.id,
                         name: c.name,
                     }))

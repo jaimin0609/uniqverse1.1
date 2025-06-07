@@ -4,9 +4,13 @@ import { useState, useCallback } from 'react';
 import { ProductImageGallery } from '@/components/product/product-image-gallery';
 import { AddToCart } from '@/components/product/add-to-cart';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { ProductCustomizer } from '@/components/product/product-customizer';
 import { SocialShareButtons } from '@/components/ui/social-share';
-import { Star, Check, Info, Truck, ArrowLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Star, Check, Info, Truck, ArrowLeft, Palette } from 'lucide-react';
 import { ClientPrice } from '@/components/ui/client-price';
+import { useCurrency } from '@/contexts/currency-provider';
+import { getFreeShippingThresholdMessage } from '@/utils/shipping';
 
 interface ProductImage {
     id: string;
@@ -35,6 +39,9 @@ interface ProductDetailClientProps {
     averageRating: number;
     reviewCount: number;
     description?: string | null;
+    isCustomizable?: boolean;
+    customizationTemplate?: string | null;
+    printArea?: string | null;
 }
 
 export function ProductDetailClient({
@@ -48,14 +55,24 @@ export function ProductDetailClient({
     variants,
     averageRating,
     reviewCount,
-    description
+    description,
+    isCustomizable = false,
+    customizationTemplate,
+    printArea
 }: ProductDetailClientProps) {
+    const { currency, exchangeRates } = useCurrency();
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
         variants.length > 0 ? variants[0].id : null
     );
     const [currentProductImage, setCurrentProductImage] = useState<string>(
         images[0]?.url || '/placeholder-product.jpg'
-    );    // Handler for variant changes from AddToCart component
+    );
+
+    // Customization state
+    const [customDesignData, setCustomDesignData] = useState<string | null>(null);
+    const [customPreviewUrl, setCustomPreviewUrl] = useState<string | null>(null);
+    const [additionalPrice, setAdditionalPrice] = useState<number>(0);
+    const [showCustomizer, setShowCustomizer] = useState<boolean>(false);// Handler for variant changes from AddToCart component
     const handleVariantChange = useCallback((variantId: string) => {
         if (!variantId) {
             console.warn("Invalid variant ID received in ProductDetailClient");
@@ -86,33 +103,83 @@ export function ProductDetailClient({
             // If no matching variant (shouldn't happen), fallback to default image
             setCurrentProductImage(images[0]?.url || '/placeholder-product.jpg');
         }
-    }, [variants, images]);
-
-    // Handler for image changes from gallery
+    }, [variants, images]);    // Handler for image changes from gallery
     const handleImageChange = useCallback((imageUrl: string) => {
         setCurrentProductImage(imageUrl);
     }, []);
 
-    return (
+    // Handler for customization changes
+    const handleDesignChange = useCallback((designData: string, previewUrl?: string) => {
+        setCustomDesignData(designData);
+        if (previewUrl) {
+            setCustomPreviewUrl(previewUrl);
+        }
+    }, []);
+
+    const handlePriceChange = useCallback((additionalAmount: number) => {
+        setAdditionalPrice(additionalAmount);
+    }, []);
+
+    // Calculate final price including customization
+    const finalPrice = productPrice + additionalPrice; return (
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             {/* Left side - Scrollable Images and Description */}
             <div className="flex-1 lg:max-w-2xl">
-                {/* Product Images */}
-                <div className="mb-8">
-                    <ProductImageGallery
-                        images={images}
-                        productName={productName} variants={variants.map(variant => ({
-                            id: variant.id,
-                            name: variant.name,
-                            image: variant.image || null
-                        }))}
-                        selectedVariantId={selectedVariantId || undefined}
-                        onVariantImageChange={handleImageChange}
-                    />
-                </div>
+                {/* Product Images or Customizer */}
+                {isCustomizable ? (
+                    <Tabs defaultValue="gallery" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="gallery">Product Gallery</TabsTrigger>
+                            <TabsTrigger value="customize" className="flex items-center gap-2">
+                                <Palette className="h-4 w-4" />
+                                Customize
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="gallery" className="mt-6">
+                            <ProductImageGallery
+                                images={images}
+                                productName={productName}
+                                variants={variants.map(variant => ({
+                                    id: variant.id,
+                                    name: variant.name,
+                                    image: variant.image || null
+                                }))}
+                                selectedVariantId={selectedVariantId || undefined}
+                                onVariantImageChange={handleImageChange}
+                            />
+                        </TabsContent>
+
+                        <TabsContent value="customize" className="mt-6">
+                            <ProductCustomizer
+                                productId={productId}
+                                productName={productName}
+                                baseImageUrl={customPreviewUrl || currentProductImage}
+                                customizationTemplate={customizationTemplate}
+                                printArea={printArea}
+                                onDesignChange={handleDesignChange}
+                                onPriceChange={handlePriceChange}
+                            />
+                        </TabsContent>
+                    </Tabs>
+                ) : (
+                    <div className="mb-8">
+                        <ProductImageGallery
+                            images={images}
+                            productName={productName}
+                            variants={variants.map(variant => ({
+                                id: variant.id,
+                                name: variant.name,
+                                image: variant.image || null
+                            }))}
+                            selectedVariantId={selectedVariantId || undefined}
+                            onVariantImageChange={handleImageChange}
+                        />
+                    </div>
+                )}
 
                 {/* Product Description */}
-                <div className="prose max-w-none">
+                <div className="prose max-w-none mt-8">
                     <h2 className="text-xl font-semibold mb-4">Product Description</h2>
                     {typeof description === 'string' ? (
                         <div className="text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: description }} />
@@ -157,28 +224,36 @@ export function ProductDetailClient({
                                 </span>
                             )}
                         </div>
-                    </div>
-
-                    {/* Price */}
+                    </div>                    {/* Price */}
                     <div className="border-t pt-4">
                         <div className="flex items-center">
                             {productCompareAtPrice && (
                                 <span className="text-lg text-gray-500 line-through mr-3">
-                                    <ClientPrice amount={Number(productCompareAtPrice)} />
+                                    <ClientPrice amount={Number(productCompareAtPrice) + additionalPrice} />
                                 </span>
                             )}
                             <span className="text-2xl lg:text-3xl font-bold text-gray-900">
-                                <ClientPrice amount={Number(productPrice)} />
+                                <ClientPrice amount={finalPrice} />
                             </span>
                             {productCompareAtPrice && (
                                 <span className="ml-3 inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md">
-                                    {Math.round((1 - Number(productPrice) / Number(productCompareAtPrice)) * 100)}% OFF
+                                    {Math.round((1 - finalPrice / (Number(productCompareAtPrice) + additionalPrice)) * 100)}% OFF
                                 </span>
                             )}
                         </div>
-                    </div>
-
-                    {/* Add to Cart Component */}                    <div className="border-t pt-4">                        <AddToCart
+                        {additionalPrice > 0 && (
+                            <div className="mt-2 text-sm text-gray-600">
+                                Base price: <ClientPrice amount={productPrice} /> +
+                                Customization: <ClientPrice amount={additionalPrice} />
+                            </div>
+                        )}
+                        {isCustomizable && (
+                            <div className="mt-2 text-sm text-blue-600">
+                                <Palette className="h-4 w-4 inline mr-1" />
+                                This product can be customized
+                            </div>
+                        )}
+                    </div>                    {/* Add to Cart Component */}                    <div className="border-t pt-4">                        <AddToCart
                         productId={productId}
                         productSlug={productSlug} // Added slug for cart URLs
                         productName={productName}
@@ -193,6 +268,9 @@ export function ProductDetailClient({
                             type: variant.type
                         }))}
                         onVariantChange={handleVariantChange}
+                        customDesignData={customDesignData}
+                        customPreviewUrl={customPreviewUrl}
+                        finalPrice={finalPrice}
                     />
                     </div>
 
@@ -203,15 +281,13 @@ export function ProductDetailClient({
                             productName={productName}
                         />
                         <span className="ml-2 text-sm text-gray-600">Add to wishlist</span>
-                    </div>
-
-                    {/* Shipping & Returns */}
+                    </div>                    {/* Shipping & Returns */}
                     <div className="border-t pt-4 text-sm text-gray-600 space-y-3">
                         <div className="flex space-x-3">
                             <Truck className="flex-shrink-0 h-5 w-5 text-blue-600" />
                             <div>
                                 <p className="font-medium text-gray-900">Free Shipping</p>
-                                <p>On orders over $50.00</p>
+                                <p>{getFreeShippingThresholdMessage(currency, exchangeRates)}</p>
                             </div>
                         </div>
                         <div className="flex space-x-3">

@@ -295,7 +295,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
-        const body = await req.json();
+
+        let body;
+        try {
+            body = await req.json();
+        } catch (error) {
+            return NextResponse.json(
+                { message: "Invalid JSON in request body" },
+                { status: 400 }
+            );
+        }
 
         // Validate input
         const validationResult = cartSchema.safeParse(body);
@@ -332,9 +341,33 @@ export async function POST(req: Request) {
         } else if (providedCartId) {
             // For guests, use the provided cart ID
             cartId = providedCartId;
+
+            // Ensure the cart exists in the database
+            let guestCart = await db.cart.findUnique({
+                where: { id: cartId }
+            });
+
+            if (!guestCart) {
+                guestCart = await db.cart.create({
+                    data: {
+                        id: cartId,
+                        userId: null,
+                        updatedAt: new Date()
+                    }
+                });
+            }
         } else {
             // If no cart ID was provided for a guest, create a new one
             cartId = uuidv4();
+
+            // Create the cart record for guests
+            await db.cart.create({
+                data: {
+                    id: cartId,
+                    userId: null,
+                    updatedAt: new Date()
+                }
+            });
         }
 
         // Delete existing cart items

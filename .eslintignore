@@ -1,0 +1,17 @@
+# Generated files
+src/generated/
+prisma/migrations/
+.next/
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Environment files
+.env*
+
+# Cache directories
+.cache/
+.temp/
