@@ -3,99 +3,48 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Clock, Award, Users, Heart } from "lucide-react";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
     title: "Careers | Uniqverse",
     description: "Join our team at Uniqverse and help bring unique products to customers worldwide. Explore current job openings and opportunities.",
 };
 
-// Current job openings data
-const jobOpenings = [
-    {
-        id: "prod-manager-2025",
-        title: "Product Manager",
-        department: "Product",
-        location: "New York, NY",
-        type: "Full-time",
-        description: "Lead product development initiatives for our e-commerce platform, working closely with design and engineering teams to deliver exceptional user experiences.",
-        requirements: [
-            "5+ years of product management experience",
-            "Experience with e-commerce platforms",
-            "Strong analytical and communication skills",
-            "Bachelor's degree in related field"
-        ]
-    },
-    {
-        id: "sr-frontend-2025",
-        title: "Senior Frontend Developer",
-        department: "Engineering",
-        location: "Remote (US)",
-        type: "Full-time",
-        description: "Build and maintain the user interfaces of our website and mobile applications using modern frontend technologies like React, Next.js, and TypeScript.",
-        requirements: [
-            "4+ years of frontend development experience",
-            "Proficiency in React, Next.js, and TypeScript",
-            "Experience with responsive design and accessibility",
-            "Knowledge of state management solutions"
-        ]
-    },
-    {
-        id: "ux-designer-2025",
-        title: "UX/UI Designer",
-        department: "Design",
-        location: "New York, NY",
-        type: "Full-time",
-        description: "Create intuitive and visually appealing user experiences for our digital platforms. Collaborate with product and engineering teams to implement designs.",
-        requirements: [
-            "3+ years of UX/UI design experience",
-            "Proficiency in design tools (Figma, Adobe XD)",
-            "Portfolio demonstrating e-commerce design",
-            "Understanding of user research and testing"
-        ]
-    },
-    {
-        id: "marketing-specialist-2025",
-        title: "Digital Marketing Specialist",
-        department: "Marketing",
-        location: "New York, NY",
-        type: "Full-time",
-        description: "Plan and execute digital marketing campaigns across various channels to drive user acquisition, engagement, and sales.",
-        requirements: [
-            "3+ years of digital marketing experience",
-            "Experience with SEO, SEM, email marketing, and social media",
-            "Data-driven approach with analytics experience",
-            "E-commerce marketing background preferred"
-        ]
-    },
-    {
-        id: "customer-support-2025",
-        title: "Customer Support Specialist",
-        department: "Customer Experience",
-        location: "Remote (US)",
-        type: "Full-time",
-        description: "Provide exceptional customer service through email, chat, and phone. Resolve customer inquiries and issues while maintaining our high standards of service.",
-        requirements: [
-            "2+ years of customer service experience",
-            "Excellent written and verbal communication skills",
-            "Problem-solving abilities",
-            "Experience with CRM systems"
-        ]
-    },
-    {
-        id: "operations-intern-2025",
-        title: "Operations Intern",
-        department: "Operations",
-        location: "New York, NY",
-        type: "Internship (Summer 2025)",
-        description: "Support our operations team with inventory management, order fulfillment, and logistics coordination. Learn about e-commerce operations in a fast-paced environment.",
-        requirements: [
-            "Currently enrolled in a Bachelor's program",
-            "Interest in e-commerce and operations",
-            "Strong organizational skills",
-            "Available for summer 2025 (May-August)"
-        ]
+// Get job openings from database
+async function getJobOpenings() {
+    try {
+        const jobs = await db.jobPosition.findMany({
+            where: {
+                isPublished: true,
+                OR: [
+                    { closingDate: null },
+                    { closingDate: { gte: new Date() } }
+                ]
+            },
+            select: {
+                id: true,
+                title: true,
+                department: true,
+                location: true,
+                type: true,
+                description: true,
+                requirements: true,
+                createdAt: true,
+                closingDate: true,
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        return jobs;
+    } catch (error) {
+        console.error("Error fetching job openings:", error);
+        return [];
     }
-];
+}
+
+// Helper function to format job type
+function formatJobType(type: string) {
+    return type.replace('_', ' ');
+}
 
 // Benefits data
 const benefits = [
@@ -121,7 +70,9 @@ const benefits = [
     }
 ];
 
-export default function CareersPage() {
+export default async function CareersPage() {
+    const jobOpenings = await getJobOpenings();
+
     return (
         <div className="flex flex-col min-h-screen">
             <main className="flex-grow">
@@ -235,41 +186,56 @@ export default function CareersPage() {
                             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
                                 Browse our current openings and find your next career opportunity with Uniqverse.
                             </p>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {jobOpenings.map((job) => (
-                                <div key={job.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                                    <h3 className="text-xl font-semibold text-blue-700">{job.title}</h3>
-                                    <div className="flex flex-wrap gap-3 my-3">
-                                        <span className="inline-flex items-center bg-blue-100 px-2.5 py-0.5 rounded-full text-sm font-medium text-blue-800">
-                                            {job.department}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1 text-sm text-gray-600">
-                                            <MapPin className="h-4 w-4" />
-                                            {job.location}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1 text-sm text-gray-600">
-                                            <Clock className="h-4 w-4" />
-                                            {job.type}
-                                        </span>
+                        </div>                        <div className="grid md:grid-cols-2 gap-6">
+                            {jobOpenings.length > 0 ? (
+                                jobOpenings.map((job) => (
+                                    <div key={job.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                                        <h3 className="text-xl font-semibold text-blue-700">{job.title}</h3>
+                                        <div className="flex flex-wrap gap-3 my-3">
+                                            <span className="inline-flex items-center bg-blue-100 px-2.5 py-0.5 rounded-full text-sm font-medium text-blue-800">
+                                                {job.department}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+                                                <MapPin className="h-4 w-4" />
+                                                {job.location}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+                                                <Clock className="h-4 w-4" />
+                                                {formatJobType(job.type)}
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-600 mb-4">{job.description}</p>
+                                        {job.requirements && job.requirements.length > 0 && (
+                                            <div className="mb-4">
+                                                <h4 className="font-medium text-gray-800 mb-2">Requirements:</h4>
+                                                <ul className="list-disc pl-5 text-gray-600 space-y-1">
+                                                    {job.requirements.map((req, index) => (
+                                                        <li key={index}>{req}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                        <div className="mt-auto">
+                                            <Button className="w-full" asChild>
+                                                <Link href={`/careers/${job.id}`}>Apply Now</Link>
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <p className="text-gray-600 mb-4">{job.description}</p>
-                                    <div className="mb-4">
-                                        <h4 className="font-medium text-gray-800 mb-2">Requirements:</h4>
-                                        <ul className="list-disc pl-5 text-gray-600 space-y-1">
-                                            {job.requirements.map((req, index) => (
-                                                <li key={index}>{req}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <div className="mt-auto">
-                                        <Button className="w-full" asChild>
-                                            <Link href={`/careers/${job.id}`}>Apply Now</Link>
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12">
+                                    <div className="bg-gray-100 rounded-lg p-8">
+                                        <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                        <h3 className="text-xl font-semibold text-gray-600 mb-2">No Open Positions</h3>
+                                        <p className="text-gray-500 mb-4">
+                                            We don't have any open positions at the moment, but we're always looking for talented individuals to join our team.
+                                        </p>
+                                        <Button variant="outline" asChild>
+                                            <Link href="/contact">Get Notified of Future Openings</Link>
                                         </Button>
                                     </div>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </section>

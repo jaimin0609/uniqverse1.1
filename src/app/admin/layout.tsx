@@ -82,11 +82,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Customers",
             href: "/admin/customers",
             icon: <Users className="h-5 w-5" />
-        },
-        {
+        }, {
             title: "Vendor Applications",
             href: "/admin/vendor-applications",
             icon: <Users className="h-5 w-5" />
+        },
+        {
+            title: "Jobs",
+            href: "/admin/jobs",
+            icon: <Users className="h-5 w-5" />,
+            subItems: [
+                { title: "Job Positions", href: "/admin/jobs" },
+                { title: "Applications", href: "/admin/jobs/applications" }
+            ]
         },
         {
             title: "Newsletter",

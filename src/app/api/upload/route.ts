@@ -22,30 +22,56 @@ export async function POST(request: NextRequest) {
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        }        // Validate file type based on folder
+        let validTypes: string[];
+        let errorMessage: string;
+
+        if (folder === "resumes") {
+            validTypes = [
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            ];
+            errorMessage = "File type not supported. Only PDF, DOC, and DOCX are allowed for resumes.";
+        } else {
+            validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+            errorMessage = "File type not supported. Only JPEG, PNG, WEBP, and GIF are allowed.";
         }
 
-        // Validate file type
-        const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
         if (!validTypes.includes(file.type)) {
             return NextResponse.json(
-                { error: "File type not supported. Only JPEG, PNG, WEBP, and GIF are allowed." },
+                { error: errorMessage },
                 { status: 400 }
             );
+        }        // Validate file size based on folder
+        let maxSize: number;
+        let sizeErrorMessage: string;
+
+        if (folder === "resumes") {
+            maxSize = 10 * 1024 * 1024; // 10MB for resumes
+            sizeErrorMessage = "File size exceeds 10MB limit";
+        } else {
+            maxSize = 5 * 1024 * 1024; // 5MB for images
+            sizeErrorMessage = "File size exceeds 5MB limit";
         }
 
-        // Validate file size (5MB max)
-        const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
             return NextResponse.json(
-                { error: "File size exceeds 5MB limit" },
+                { error: sizeErrorMessage },
                 { status: 400 }
             );
-        }
-
-        // Generate a unique filename
+        }        // Generate a unique filename
         const fileExtension = file.name.split(".").pop()?.toLowerCase();
         const uniqueId = uuidv4();
-        const fileName = `${uniqueId}.${fileExtension}`;
+
+        // For resumes, preserve a more descriptive filename structure
+        let fileName: string;
+        if (folder === "resumes") {
+            const timestamp = Date.now();
+            fileName = `resume_${timestamp}_${uniqueId}.${fileExtension}`;
+        } else {
+            fileName = `${uniqueId}.${fileExtension}`;
+        }
 
         // Define the folder structure in iDrive e2 based on user role and folder
         const userRole = session.user.role?.toLowerCase() || "user";

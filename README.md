@@ -9,6 +9,7 @@ A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, 
 - 💻 Responsive design with mobile-first approach
 - 🖥️ Admin dashboard for product and order management
 - 🏪 **Multi-Vendor Marketplace** - Complete vendor management system with application workflow
+- 💼 **Job Management System** - Dynamic job posting and application management
 - 🔍 Advanced search and filtering
 - 💳 Stripe payment integration
 - 📱 Progressive Web App (PWA) capabilities

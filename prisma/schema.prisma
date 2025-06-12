@@ -40,6 +40,8 @@ model User {
   Product                Product[]             @relation("UserWishlist")
   VendorProducts         Product[]             @relation("VendorProducts")
   vendorApplication      VendorApplication?
+  jobApplications        JobApplication[]
+  reviewedJobApplications JobApplication[]     @relation("JobApplicationReviewer")
 }
 
 model Account {
@@ -1031,4 +1033,77 @@ enum VendorApplicationStatus {
   APPROVED
   REJECTED
   UNDER_REVIEW
+}
+
+model JobPosition {
+  id           String              @id @default(cuid())
+  title        String
+  department   String
+  location     String
+  type         JobType
+  description  String
+  requirements String[]
+  benefits     String[]
+  salaryMin    Float?
+  salaryMax    Float?
+  isPublished  Boolean             @default(false)
+  closingDate  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  applications JobApplication[]
+
+  @@index([isPublished])
+  @@index([department])
+  @@index([type])
+  @@index([closingDate])
+}
+
+model JobApplication {
+  id             String                @id @default(cuid())
+  jobPositionId  String
+  userId         String
+  firstName      String
+  lastName       String
+  email          String
+  phone          String
+  resumeUrl      String?
+  coverLetter    String?
+  experience     String?
+  education      String?
+  availability   String?
+  expectedSalary String?
+  status         JobApplicationStatus  @default(PENDING)
+  submittedAt    DateTime              @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  notes          String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  jobPosition    JobPosition           @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer       User?                 @relation("JobApplicationReviewer", fields: [reviewedBy], references: [id])
+
+  @@unique([jobPositionId, userId])
+  @@index([userId])
+  @@index([jobPositionId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+}
+
+enum JobApplicationStatus {
+  PENDING
+  REVIEWING
+  INTERVIEWED
+  OFFERED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
 }

@@ -24,6 +24,9 @@ A comprehensive index of all documentation files in the Uniqverse e-commerce pla
 ### Multi-Vendor Marketplace
 - **[VENDOR_MANAGEMENT_SYSTEM.md](./VENDOR_MANAGEMENT_SYSTEM.md)** - Complete vendor management system documentation with application workflow, admin oversight, and vendor dashboard features
 
+### Human Resources Management
+- **[JOB_MANAGEMENT_SYSTEM.md](./JOB_MANAGEMENT_SYSTEM.md)** - Complete job management system with dynamic job posting, application management, and admin oversight
+
 ### Dropshipping Integration
 - **[COMPREHENSIVE_CJ_DROPSHIPPING_OVERVIEW.md](./COMPREHENSIVE_CJ_DROPSHIPPING_OVERVIEW.md)** - Complete CJ Dropshipping integration with V2 API, bulk operations, and order management
 
