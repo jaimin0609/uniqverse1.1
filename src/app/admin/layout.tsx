@@ -18,10 +18,9 @@ import {
     LogOut,
     MessageSquare,
     Truck, // Add Truck icon for dropshipping
-    Tag,
-    HomeIcon, // Add Tag icon for promotions
+    Tag, // Add Tag icon for promotions
+    HomeIcon, // Add Home icon
     Mail, // Add Mail icon for newsletter
-    Palette, // Add Palette icon for customization
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { handleLogout } from '@/utils/logout-utils';
@@ -64,16 +63,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ]
         },
         {
-            title: "Customization",
-            href: "/admin/customization",
-            icon: <Palette className="h-5 w-5" />,
-            subItems: [
-                { title: "Templates", href: "/admin/customization/templates" },
-                { title: "Custom Designs", href: "/admin/customization/designs" },
-                { title: "Settings", href: "/admin/customization/settings" }
-            ]
-        },
-        {
             title: "Orders",
             href: "/admin/orders",
             icon: <ShoppingCart className="h-5 w-5" />
@@ -92,6 +81,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }, {
             title: "Customers",
             href: "/admin/customers",
+            icon: <Users className="h-5 w-5" />
+        },
+        {
+            title: "Vendor Applications",
+            href: "/admin/vendor-applications",
             icon: <Users className="h-5 w-5" />
         },
         {

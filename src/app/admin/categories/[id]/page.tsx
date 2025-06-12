@@ -12,6 +12,8 @@ interface Category {
     slug: string;
     description?: string;
     parentId?: string;
+    displayName?: string;
+    level?: number;
 }
 
 export default function EditCategoryPage({ params }: { params: { id: string } }) {
@@ -48,11 +50,10 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
                 const categoriesResponse = await fetch('/api/admin/categories');
                 if (!categoriesResponse.ok) {
                     throw new Error('Failed to fetch categories');
-                }
-
-                const categoriesData = await categoriesResponse.json();
+                } const categoriesData = await categoriesResponse.json();
                 // Filter out the current category and its children from potential parents
-                const filteredCategories = categoriesData.categories.filter(
+                const allCategories = categoriesData.hierarchicalCategories || categoriesData.categories;
+                const filteredCategories = allCategories.filter(
                     (category: Category) => category.id !== params.id
                 );
                 setParentCategories(filteredCategories || []);
@@ -264,10 +265,9 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
                                 onChange={handleInputChange}
                                 className="w-full p-2 border border-gray-300 rounded-md"
                             >
-                                <option value="">None (Top Level Category)</option>
-                                {parentCategories.map((category) => (
+                                <option value="">None (Top Level Category)</option>                                {parentCategories.map((category) => (
                                     <option key={category.id} value={category.id}>
-                                        {category.name}
+                                        {category.displayName || category.name}
                                     </option>
                                 ))}
                             </select>

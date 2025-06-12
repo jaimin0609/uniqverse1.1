@@ -1,5 +1,5 @@
 // This script adds a sample promotion to the database
-import { PrismaClient } from '../src/generated/prisma/index.js';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

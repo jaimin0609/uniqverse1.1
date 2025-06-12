@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, Save, X, Upload, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { z } from "zod";
 import { extractVariantStructure, parseVariantOptions } from "@/lib/variant-utils";
 import DescriptionDisplay from "@/components/admin/DescriptionDisplay";
 import VariantDebugger from "@/components/admin/VariantDebugger";
+import { useCurrency } from "@/contexts/currency-provider";
+import { FormattedPrice } from "@/components/ui/formatted-price";
 
 // Define ProductFormValues type based on the schema
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -21,6 +23,8 @@ interface Category {
     id: string;
     name: string;
     slug: string;
+    displayName?: string;
+    level?: number;
 }
 
 export default function EditProductPage() {
@@ -35,6 +39,9 @@ export default function EditProductPage() {
     const [newVariantOption, setNewVariantOption] = useState("");
     const [selectedVariantType, setSelectedVariantType] = useState<string | null>(null);
     const [productData, setProductData] = useState<any>(null);
+
+    // Get currency context for price display
+    const { currency, formatPrice } = useCurrency();
 
     const {
         register,
@@ -58,9 +65,9 @@ export default function EditProductPage() {
             isFeatured: false,
             variants: {}
         }
-    });
+    }); const watchImages = watch("images");
 
-    const watchImages = watch("images");    // Fetch product data and categories
+    // Fetch product data and categories
     useEffect(() => {
         async function fetchProductAndCategories() {
             try {
@@ -131,13 +138,9 @@ export default function EditProductPage() {
                     price: productData.price,
                     compareAtPrice: productData.compareAtPrice,
                     inventory: productData.inventory,
-                    images: productData.images,
-                    categoryId: productData.categoryId,
+                    images: productData.images, categoryId: productData.categoryId,
                     isPublished: productData.isPublished,
                     isFeatured: productData.isFeatured,
-                    isCustomizable: productData.isCustomizable || false,
-                    customizationTemplate: productData.customizationTemplate || "",
-                    printArea: productData.printArea || "",
                     variants: variantOptions // Add variants to form data
                 });
 
@@ -146,10 +149,8 @@ export default function EditProductPage() {
 
                 if (!categoriesResponse.ok) {
                     throw new Error(`Failed to fetch categories: ${categoriesResponse.statusText}`);
-                }
-
-                const categoriesData = await categoriesResponse.json();
-                setCategories(categoriesData.categories);
+                } const categoriesData = await categoriesResponse.json();
+                setCategories(categoriesData.hierarchicalCategories || categoriesData.categories);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -532,29 +533,12 @@ export default function EditProductPage() {
                                         Featured
                                     </label>
                                 </div>
-
-                                <div className="flex items-center mt-4">
-                                    <input
-                                        type="checkbox"
-                                        id="isCustomizable"
-                                        {...register("isCustomizable")}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="isCustomizable" className="ml-2 text-sm text-gray-700">
-                                        Customizable Product
-                                    </label>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Allow customers to personalize this product
-                                </p>
                             </div>
 
                             <div className="border border-gray-200 rounded-md p-4">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Pricing</h3>
-
-                                <div className="mb-4">
+                                <h3 className="text-sm font-medium text-gray-700 mb-3">Pricing</h3>                                <div className="mb-4">
                                     <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price ($)
+                                        Price ({currency})
                                     </label>
                                     <input
                                         type="number"
@@ -564,11 +548,16 @@ export default function EditProductPage() {
                                         className={`w-full p-2 border rounded-md ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
                                     />
                                     {errors.price && <p className="mt-1 text-sm text-red-500">{errors.price.message}</p>}
+                                    {watch("price") && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Display price: <FormattedPrice amount={Number(watch("price")) || 0} />
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
                                     <label htmlFor="compareAtPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Compare at Price ($)
+                                        Compare at Price ({currency})
                                     </label>
                                     <input
                                         type="number"
@@ -578,6 +567,11 @@ export default function EditProductPage() {
                                         className={`w-full p-2 border rounded-md ${errors.compareAtPrice ? 'border-red-500' : 'border-gray-300'}`}
                                     />
                                     {errors.compareAtPrice && <p className="mt-1 text-sm text-red-500">{errors.compareAtPrice.message}</p>}
+                                    {watch("compareAtPrice") && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Display price: <FormattedPrice amount={Number(watch("compareAtPrice")) || 0} />
+                                        </p>
+                                    )}
                                     <p className="mt-1 text-xs text-gray-500">
                                         Original price for showing a discount. Leave empty for no compare price.
                                     </p>
@@ -613,61 +607,13 @@ export default function EditProductPage() {
                                         {...register("categoryId")}
                                         className={`w-full p-2 border rounded-md ${errors.categoryId ? 'border-red-500' : 'border-gray-300'}`}
                                     >
-                                        <option value="">Select a category</option>
-                                        {categories.map((category) => (
+                                        <option value="">Select a category</option>                                        {categories.map((category) => (
                                             <option key={category.id} value={category.id}>
-                                                {category.name}
+                                                {category.displayName || category.name}
                                             </option>
                                         ))}
                                     </select>                                    {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId.message}</p>}
-                                </div>
-                            </div>
-
-                            {/* Customization Configuration */}
-                            {watch("isCustomizable") && (
-                                <div className="border border-gray-200 rounded-md p-4">
-                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Customization Configuration</h3>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        Configure the customization settings for this product.
-                                    </p>
-
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label htmlFor="customizationTemplate" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Customization Template
-                                            </label>
-                                            <textarea
-                                                id="customizationTemplate"
-                                                {...register("customizationTemplate")}
-                                                rows={4}
-                                                className={`w-full p-2 border rounded-md ${errors.customizationTemplate ? 'border-red-500' : 'border-gray-300'}`}
-                                                placeholder='{"textAreas": [{"id": "text1", "x": 100, "y": 100, "width": 200, "height": 50}]}'
-                                            />
-                                            {errors.customizationTemplate && <p className="mt-1 text-sm text-red-500">{errors.customizationTemplate.message}</p>}
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                JSON configuration for customizable elements and their properties
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <label htmlFor="printArea" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Print Area Configuration
-                                            </label>
-                                            <textarea
-                                                id="printArea"
-                                                {...register("printArea")}
-                                                rows={3}
-                                                className={`w-full p-2 border rounded-md ${errors.printArea ? 'border-red-500' : 'border-gray-300'}`}
-                                                placeholder='{"x": 50, "y": 50, "width": 300, "height": 200}'
-                                            />
-                                            {errors.printArea && <p className="mt-1 text-sm text-red-500">{errors.printArea.message}</p>}
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                JSON coordinates defining where customizations can be placed
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                </div>                            </div>
                         </div>
                     </div>
 

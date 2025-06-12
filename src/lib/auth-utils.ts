@@ -3,6 +3,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { UserRole } from "@prisma/client";
 import { db } from "./db";
 
 // Auth options configuration for NextAuth
@@ -63,15 +64,14 @@ export const authOptions: NextAuthOptions = {
                     name: token.name as string,
                     email: token.email as string,
                     image: token.picture as string | null,
-                    role: token.role as string
+                    role: token.role as UserRole
                 };
             }
             return session;
-        },
-        async jwt({ token, user }) {
+        }, async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.role = user.role;
+                token.role = user.role as UserRole;
             } else if (token.email) {
                 const existingUser = await db.user.findUnique({
                     where: {
@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
 
                 if (existingUser) {
                     token.id = existingUser.id;
-                    token.role = existingUser.role;
+                    token.role = existingUser.role as UserRole;
                 }
             }
             return token;

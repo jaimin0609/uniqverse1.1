@@ -112,11 +112,15 @@ export default function CheckoutPage() {
                     });
                 }
 
+                // Clear the cart ID from localStorage to prevent re-syncing
+                localStorage.removeItem('uniqverse-cart-id');
+
                 // Then clear the local cart
                 clearCart();
             } catch (error) {
                 console.error('Error clearing cart from server:', error);
-                // Still clear local cart even if server request fails
+                // Still clear local cart and cart ID even if server request fails
+                localStorage.removeItem('uniqverse-cart-id');
                 clearCart();
             }
 

@@ -171,18 +171,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                             </p>
                                         </div>                                        {item.variantName && (
                                             <p className="mt-1 text-sm text-gray-500">{item.variantName}</p>
-                                        )}                                        {/* Customization info */}
-                                        {item.customizations && (
-                                            <div className="mt-1 text-sm text-blue-600">
-                                                <span className="inline-flex items-center">
-                                                    ✨ Customized
-                                                    {item.customizations.additionalPrice && item.customizations.additionalPrice > 0 && (
-                                                        <span className="ml-1">
-                                                            (+<ClientPrice amount={item.customizations.additionalPrice} />)
-                                                        </span>
-                                                    )}
-                                                </span>
-                                            </div>
                                         )}
 
                                         {/* Quantity controls and remove button */}

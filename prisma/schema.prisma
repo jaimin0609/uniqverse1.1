@@ -8,35 +8,38 @@ datasource db {
 }
 
 model User {
-  id                   String                @id @default(cuid())
-  name                 String?
-  email                String                @unique
-  emailVerified        DateTime?
-  password             String?
-  image                String?
-  role                 UserRole              @default(CUSTOMER)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  accounts             Account[]
-  addresses            Address[]
-  AdminAuditLog        AdminAuditLog[]
-  BlogPost             BlogPost[]
-  Cart                 Cart?
-  InventoryHistory     InventoryHistory[]
-  InventorySettings    InventorySettings[]
-  Media                Media[]
-  orders               Order[]
-  Page                 Page[]
-  reviews              Review[]
-  sessions             Session[]
-  UserSecuritySettings UserSecuritySettings?
-  VerificationToken    VerificationToken[]
-  Product              Product[]             @relation("UserWishlist")
-  chatbotPatterns      ChatbotPattern[]      // Added this line for the opposite relation
-  supportTickets       SupportTicket[]       // Added this line for the opposite relation
-  ticketReplies        TicketReply[]         // Added this line for the opposite relation
-  couponUsages         CouponUsage[]
-  customDesigns        CustomDesign[]        // Added this line for the custom designs relation
+  id                     String                @id @default(cuid())
+  name                   String?
+  email                  String                @unique
+  emailVerified          DateTime?
+  password               String?
+  image                  String?
+  role                   UserRole              @default(CUSTOMER)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  accounts               Account[]
+  addresses              Address[]
+  AdminAuditLog          AdminAuditLog[]
+  BlogPost               BlogPost[]
+  Cart                   Cart?
+  chatbotConversations   ChatbotConversation[]
+  chatbotLearningReviews ChatbotLearning[]
+  chatbotPatterns        ChatbotPattern[]
+  couponUsages           CouponUsage[]
+  InventoryHistory       InventoryHistory[]
+  InventorySettings      InventorySettings[]
+  Media                  Media[]
+  orders                 Order[]
+  Page                   Page[]
+  reviews                Review[]
+  sessions               Session[]
+  supportTickets         SupportTicket[]
+  ticketReplies          TicketReply[]
+  UserSecuritySettings   UserSecuritySettings?
+  VerificationToken      VerificationToken[]
+  Product                Product[]             @relation("UserWishlist")
+  VendorProducts         Product[]             @relation("VendorProducts")
+  vendorApplication      VendorApplication?
 }
 
 model Account {
@@ -96,9 +99,7 @@ model Product {
   tags              String?
   brand             String?
   isPublished       Boolean            @default(false)
-  isFeatured        Boolean            @default(false)
   featuredOrder     Int?
-  isDeleted         Boolean            @default(false)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   supplierUrl       String?
@@ -107,22 +108,22 @@ model Product {
   shippingTime      String?
   profitMargin      Float?
   supplierId        String?
+  vendorId          String?
   lowStockThreshold Int?               @default(10)
-  variantTypes      String?            // Stores structured variant types/options as JSON
-  isCustomizable    Boolean            @default(false)  // Whether product can be customized
-  customizationTemplate String?        // JSON string of base template for customization
-  printArea         String?            // JSON string defining print area coordinates
+  isFeatured        Boolean            @default(false)
+  variantTypes      String?
+  isDeleted         Boolean            @default(false)
   CartItem          CartItem[]
   InventoryHistory  InventoryHistory[]
   orderItems        OrderItem[]
   category          Category           @relation(fields: [categoryId], references: [id])
   supplier          Supplier?          @relation(fields: [supplierId], references: [id])
+  vendor            User?              @relation("VendorProducts", fields: [vendorId], references: [id])
   images            ProductImage[]
   variants          ProductVariant[]
   reviews           Review[]
+  coupons           Coupon[]           @relation("CouponToProduct")
   User              User[]             @relation("UserWishlist")
-  coupons           Coupon[]           // Relation to coupons
-  customDesigns     CustomDesign[]     // Relation to custom designs
 
   @@index([categoryId])
   @@index([createdAt])
@@ -132,6 +133,7 @@ model Product {
   @@index([price])
   @@index([supplierId])
   @@index([tags])
+  @@index([vendorId])
 }
 
 model ProductImage {
@@ -155,10 +157,10 @@ model ProductVariant {
   inventory        Int                @default(0)
   image            String?
   productId        String
-  type             String?            // Variant type (color, size, etc.)
-  options          String?            // JSON string of variant options
+  options          String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
+  type             String?
   CartItem         CartItem[]
   InventoryHistory InventoryHistory[]
   orderItems       OrderItem[]
@@ -178,11 +180,11 @@ model Category {
   children    Category[]    @relation("CategoryHierarchy")
   PricingRule PricingRule[]
   products    Product[]
-  coupons     Coupon[]      // Relation to coupons
+  coupons     Coupon[]      @relation("CategoryToCoupon")
 }
 
 model Supplier {
-  id                   String                @id @default(cuid())
+  id                   String                 @id @default(cuid())
   name                 String
   description          String?
   website              String?
@@ -191,13 +193,13 @@ model Supplier {
   contactEmail         String?
   contactPhone         String?
   averageShipping      Int?
-  status               SupplierStatus        @default(ACTIVE)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  status               SupplierStatus         @default(ACTIVE)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  DropshippingSettings DropshippingSettings[]
   PricingRule          PricingRule[]
   products             Product[]
   SupplierOrder        SupplierOrder[]
-  DropshippingSettings DropshippingSettings[]
 }
 
 model Order {
@@ -223,10 +225,10 @@ model Order {
   updatedAt         DateTime          @updatedAt
   paidAt            DateTime?
   cancelledAt       DateTime?
+  couponUsages      CouponUsage[]
   shippingAddress   Address?          @relation(fields: [shippingAddressId], references: [id])
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items             OrderItem[]
-  couponUsages      CouponUsage[]
 
   @@index([createdAt])
   @@index([fulfillmentStatus])
@@ -243,7 +245,6 @@ model OrderItem {
   productId              String
   variantId              String?
   orderId                String
-  customDesignId         String?         // Link to custom design if applicable
   supplierOrderId        String?
   supplierOrderStatus    String?
   supplierTrackingNumber String?
@@ -253,13 +254,11 @@ model OrderItem {
   updatedAt              DateTime
   order                  Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product                Product         @relation(fields: [productId], references: [id])
-  customDesign           CustomDesign?   @relation(fields: [customDesignId], references: [id])
   SupplierOrder          SupplierOrder?  @relation(fields: [supplierOrderId], references: [id])
   variant                ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
   @@index([productId])
-  @@index([customDesignId])
   @@index([supplierOrderId])
   @@index([variantId])
 }
@@ -315,7 +314,7 @@ model AdminAuditLog {
   details       String
   performedById String?
   createdAt     DateTime @default(now())
-  User          User?    @relation(fields: [performedById], references: [id], onDelete: SetNull)
+  User          User?    @relation(fields: [performedById], references: [id])
 }
 
 model BlogCategory {
@@ -329,29 +328,29 @@ model BlogCategory {
 }
 
 model BlogPost {
-  id           String         @id
-  title        String
-  slug         String         @unique
-  excerpt      String?
-  content      String
-  coverImage   String?
-  isPublished  Boolean        @default(false)
-  publishedAt  DateTime?
-  authorId     String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  metaTitle    String?
-  metaDesc     String?
-  tags         String?
-  isAdEnabled  Boolean        @default(false)
+  id            String         @id
+  title         String
+  slug          String         @unique
+  excerpt       String?
+  content       String
+  coverImage    String?
+  isPublished   Boolean        @default(false)
+  publishedAt   DateTime?
+  authorId      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  metaTitle     String?
+  metaDesc      String?
+  tags          String?
   externalLinks Json?
-  User         User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  BlogCategory BlogCategory[] @relation("BlogPostToCategory")
+  isAdEnabled   Boolean        @default(false)
+  User          User?          @relation(fields: [authorId], references: [id])
+  BlogCategory  BlogCategory[] @relation("BlogPostToCategory")
 }
 
 model Cart {
   id        String     @id
-  userId    String?    @unique  // Made optional for guest carts
+  userId    String?    @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime
   User      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -364,18 +363,15 @@ model CartItem {
   productId      String
   variantId      String?
   quantity       Int             @default(1)
-  customDesignId String?         // Link to custom design if applicable
   createdAt      DateTime        @default(now())
   updatedAt      DateTime
   Cart           Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
   Product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   ProductVariant ProductVariant? @relation(fields: [variantId], references: [id])
-  customDesign   CustomDesign?   @relation(fields: [customDesignId], references: [id])
 
   @@index([cartId])
   @@index([productId])
   @@index([variantId])
-  @@index([customDesignId])
 }
 
 model HomepageSection {
@@ -401,7 +397,7 @@ model InventoryHistory {
   userId         String?
   timestamp      DateTime        @default(now())
   Product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  User           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  User           User?           @relation(fields: [userId], references: [id])
   ProductVariant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@index([productId])
@@ -420,7 +416,7 @@ model InventorySettings {
   createdAt                DateTime @default(now())
   updatedAt                DateTime
   updatedBy                String?
-  User                     User?    @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+  User                     User?    @relation(fields: [updatedBy], references: [id])
 }
 
 model Media {
@@ -437,7 +433,7 @@ model Media {
   userId           String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime
-  User             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  User             User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -456,7 +452,7 @@ model Page {
   authorId    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime
-  User        User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  User        User?         @relation(fields: [authorId], references: [id])
   PageSection PageSection[]
 }
 
@@ -560,11 +556,11 @@ model ResourceMetric {
 }
 
 model SiteSettings {
-  id        String   @id
+  id        String   @id @default(cuid())
   key       String   @unique
   value     String
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model SupplierOrder {
@@ -598,14 +594,14 @@ model UserSecuritySettings {
 }
 
 model ChatbotPattern {
-  id        String          @id @default(cuid())
-  priority  Int             @default(0)
+  id        String           @id @default(cuid())
+  priority  Int              @default(0)
   response  String
-  isActive  Boolean         @default(true)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   createdBy String?
-  author    User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  author    User?            @relation(fields: [createdBy], references: [id])
   triggers  ChatbotTrigger[]
 
   @@index([priority])
@@ -627,20 +623,120 @@ model ChatbotFallback {
   updatedAt DateTime @updatedAt
 }
 
-// Support ticket models
+model ChatbotConversation {
+  id                 String            @id @default(cuid())
+  sessionId          String
+  userId             String?
+  ipAddress          String?
+  userAgent          String?
+  startedAt          DateTime          @default(now())
+  endedAt            DateTime?
+  totalMessages      Int               @default(0)
+  satisfactionRating Int?
+  wasEscalated       Boolean           @default(false)
+  wasResolved        Boolean           @default(false)
+  tags               String[]
+  user               User?             @relation(fields: [userId], references: [id])
+  feedback           ChatbotFeedback[]
+  messages           ChatbotMessage[]
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model ChatbotMessage {
+  id             String              @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  timestamp      DateTime            @default(now())
+  patternMatched String?
+  confidence     Float?
+  processingTime Int?
+  wasHelpful     Boolean?
+  context        Json?
+  conversation   ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([timestamp])
+}
+
+model ChatbotFeedback {
+  id             String              @id @default(cuid())
+  conversationId String
+  messageId      String?
+  rating         Int
+  comment        String?
+  feedbackType   String
+  createdAt      DateTime            @default(now())
+  conversation   ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model ChatbotLearning {
+  id               String   @id @default(cuid())
+  userMessage      String
+  expectedResponse String?
+  frequency        Int      @default(1)
+  status           String   @default("pending")
+  lastOccurred     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  reviewedBy       String?
+  reviewer         User?    @relation(fields: [reviewedBy], references: [id])
+
+  @@index([status])
+  @@index([frequency])
+  @@index([lastOccurred])
+}
+
+model ChatbotAnalytics {
+  id                 String   @id @default(cuid())
+  date               DateTime @unique
+  totalConversations Int      @default(0)
+  totalMessages      Int      @default(0)
+  avgSatisfaction    Float?
+  escalationRate     Float?
+  resolutionRate     Float?
+  avgResponseTime    Float?
+  topTopics          Json?
+  unmatchedQueries   Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@index([date])
+}
+
+model WebsiteContext {
+  id          String   @id @default(cuid())
+  page        String
+  title       String
+  content     String
+  keywords    String[]
+  category    String
+  lastUpdated DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  @@index([page])
+  @@index([category])
+  @@index([keywords])
+}
+
 model SupportTicket {
-  id             String           @id @default(cuid())
-  subject        String
-  description    String
-  status         TicketStatus     @default(OPEN)
-  priority       TicketPriority   @default(MEDIUM)
-  userId         String
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  replies        TicketReply[]
-  attachments    TicketAttachment[]
-  
+  id          String             @id @default(cuid())
+  subject     String
+  description String
+  status      TicketStatus       @default(OPEN)
+  priority    TicketPriority     @default(MEDIUM)
+  userId      String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments TicketAttachment[]
+  replies     TicketReply[]
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])
@@ -651,47 +747,177 @@ model TicketReply {
   content      String
   isAdminReply Boolean       @default(false)
   ticketId     String
-  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
-  
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([ticketId])
   @@index([userId])
 }
 
 model TicketAttachment {
-  id           String        @id @default(cuid())
-  filename     String
-  url          String
-  mimeType     String
-  ticketId     String
-  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  createdAt    DateTime      @default(now())
-  
+  id        String        @id @default(cuid())
+  filename  String
+  url       String
+  mimeType  String
+  ticketId  String
+  createdAt DateTime      @default(now())
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
   @@index([ticketId])
 }
 
-model CustomDesign {
+model Promotion {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  type        PromotionType @default(BANNER)
+  imageUrl    String?
+  videoUrl    String?
+  linkUrl     String?
+  position    Int           @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
+model Event {
   id              String   @id @default(cuid())
-  designData      String   // JSON string of design configuration (layers, objects, etc.)
-  previewImageUrl String?  // Generated preview image URL
-  productId       String
-  userId          String?  // Optional for guest users
+  title           String
+  description     String?
+  imageUrl        String?
+  videoUrl        String?
+  contentType     String   @default("image")
+  textOverlay     String?
+  textPosition    String   @default("center")
+  textColor       String   @default("#FFFFFF")
+  textSize        String   @default("text-2xl")
+  textShadow      Boolean  @default(false)
+  backgroundColor String?
+  opacity         Int      @default(100)
+  effectType      String?
+  linkUrl         String?
+  startDate       DateTime
+  endDate         DateTime
   isActive        Boolean  @default(true)
-  designName      String?  // User-provided name for the design
-  metadata        String?  // Additional metadata (price adjustments, complexity, etc.)
+  position        Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderItems      OrderItem[] // Relation to order items
-  cartItems       CartItem[]  // Relation to cart items
-  
-  @@index([productId])
+
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
+model Coupon {
+  id              String        @id @default(cuid())
+  code            String        @unique
+  description     String?
+  discountType    DiscountType
+  discountValue   Float
+  minimumPurchase Float?
+  maximumDiscount Float?
+  usageLimit      Int?
+  usageCount      Int           @default(0)
+  isActive        Boolean       @default(true)
+  startDate       DateTime
+  endDate         DateTime
+  showOnBanner    Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  couponUsages    CouponUsage[]
+  categories      Category[]    @relation("CategoryToCoupon")
+  products        Product[]     @relation("CouponToProduct")
+
+  @@index([code])
+  @@index([startDate, endDate])
+  @@index([isActive])
+  @@index([showOnBanner])
+}
+
+model CouponUsage {
+  id             String   @id @default(cuid())
+  couponId       String
+  userId         String
+  orderId        String
+  discountAmount Float
+  usedAt         DateTime @default(now())
+  coupon         Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([couponId])
   @@index([userId])
-  @@index([createdAt])
+  @@index([orderId])
+}
+
+model DropshippingSettings {
+  id                       String    @id @default(cuid())
+  autoProcess              Boolean   @default(true)
+  autoSendOrders           Boolean   @default(false)
+  statusCheckInterval      Int       @default(12)
+  defaultShippingDays      Int       @default(7)
+  notificationEmail        String?
+  profitMargin             Int       @default(30)
+  automaticFulfillment     Boolean   @default(true)
+  notifyCustomerOnShipment Boolean   @default(true)
+  defaultSupplier          String?
+  supplierNotes            String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  supplier                 Supplier? @relation(fields: [defaultSupplier], references: [id])
+}
+
+model NewsletterSubscription {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  status           NewsletterStatus @default(ACTIVE)
+  subscribedAt     DateTime         @default(now())
+  unsubscribedAt   DateTime?
+  unsubscribeToken String?          @unique
+  preferences      String?
+  source           String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([subscribedAt])
+  @@index([unsubscribeToken])
+}
+
+model VendorApplication {
+  id                   String                    @id @default(cuid())
+  userId               String                    @unique
+  businessName         String
+  businessType         String
+  businessDescription  String
+  businessAddress      String
+  businessPhone        String
+  businessWebsite      String?
+  taxId                String
+  bankAccount          String
+  expectedMonthlyVolume String
+  productCategories    String[]
+  hasBusinessLicense   Boolean                   @default(false)
+  agreesToTerms        Boolean                   @default(false)
+  agreeToCommission    Boolean                   @default(false)
+  status               VendorApplicationStatus   @default(PENDING)
+  submittedAt          DateTime                  @default(now())
+  reviewedAt           DateTime?
+  rejectionReason      String?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([submittedAt])
 }
 
 enum UserRole {
@@ -794,133 +1020,15 @@ enum DiscountType {
   FIXED_AMOUNT
 }
 
-model Promotion {
-  id          String        @id @default(cuid())
-  title       String
-  description String?
-  type        PromotionType @default(BANNER)
-  imageUrl    String?
-  videoUrl    String?
-  linkUrl     String?
-  position    Int           @default(0)
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@index([startDate, endDate])
-  @@index([isActive])
-}
-
-model Event {
-  id               String   @id @default(cuid())
-  title            String
-  description      String?
-  imageUrl         String?
-  videoUrl         String?
-  contentType      String   @default("image") // Can be "image" or "video"
-  textOverlay      String?
-  textPosition     String   @default("center") // Can be "top-left", "top-center", "top-right", "center", "bottom-left", "bottom-center", "bottom-right"
-  textColor        String   @default("#FFFFFF")
-  textSize         String   @default("text-2xl") // Tailwind text size class
-  textShadow       Boolean  @default(false)
-  backgroundColor  String?  // For background color if needed
-  opacity          Int      @default(100) // 0-100
-  effectType       String?  // "fade", "zoom", "slide", etc.
-  linkUrl          String?  // Optional link for the event
-  startDate        DateTime
-  endDate          DateTime
-  isActive         Boolean  @default(true)
-  position         Int      @default(0) // For ordering multiple events
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@index([startDate, endDate])
-  @@index([isActive])
-}
-
-model Coupon {
-  id              String        @id @default(cuid())
-  code            String        @unique
-  description     String?
-  discountType    DiscountType
-  discountValue   Float
-  minimumPurchase Float?
-  maximumDiscount Float?
-  usageLimit      Int?
-  usageCount      Int           @default(0)
-  isActive        Boolean       @default(true)
-  startDate       DateTime
-  endDate         DateTime
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  // Relations
-  products      Product[]
-  categories    Category[]
-  couponUsages  CouponUsage[]
-
-  @@index([code])
-  @@index([startDate, endDate])
-  @@index([isActive])
-}
-
-model CouponUsage {
-  id             String   @id @default(cuid())
-  couponId       String
-  userId         String
-  orderId        String
-  discountAmount Float
-  usedAt         DateTime @default(now())
-  
-  // Relations
-  coupon        Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  @@index([couponId])
-  @@index([userId])
-  @@index([orderId])
-}
-
-model DropshippingSettings {
-  id                       String    @id @default(cuid())
-  autoProcess              Boolean   @default(true)
-  autoSendOrders           Boolean   @default(false)
-  statusCheckInterval      Int       @default(12)
-  defaultShippingDays      Int       @default(7)
-  notificationEmail        String?
-  profitMargin             Int       @default(30)
-  automaticFulfillment     Boolean   @default(true)
-  notifyCustomerOnShipment Boolean   @default(true)
-  defaultSupplier          String?
-  supplierNotes            String?
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
-  supplier                 Supplier? @relation(fields: [defaultSupplier], references: [id])
-}
-
-model NewsletterSubscription {
-  id                String                   @id @default(cuid())
-  email             String                   @unique
-  status            NewsletterStatus         @default(ACTIVE)
-  subscribedAt      DateTime                 @default(now())
-  unsubscribedAt    DateTime?
-  unsubscribeToken  String?                  @unique
-  preferences       String?                  // JSON string for email preferences
-  source            String?                  // Where they subscribed from (homepage, checkout, etc.)
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-
-  @@index([email])
-  @@index([status])
-  @@index([subscribedAt])
-  @@index([unsubscribeToken])
-}
-
 enum NewsletterStatus {
   ACTIVE
   UNSUBSCRIBED
   BOUNCED
+}
+
+enum VendorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
 }

@@ -14,45 +14,9 @@ const productUpdateSchema = z.object({
     price: z.number().min(0, "Price must be a positive number"),
     compareAtPrice: z.number().nullable().optional(),
     inventory: z.number().int().min(0, "Inventory must be a non-negative integer"),
-    images: z.array(z.string()).min(1, "At least one product image is required"),
-    categoryId: z.string().min(1, "Category is required"),
+    images: z.array(z.string()).min(1, "At least one product image is required"), categoryId: z.string().min(1, "Category is required"),
     isPublished: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
-    isCustomizable: z.boolean().optional(),
-    customizationTemplate: z
-        .string()
-        .optional()
-        .refine(
-            (value) => {
-                if (!value) return true;
-                try {
-                    JSON.parse(value);
-                    return true;
-                } catch {
-                    return false;
-                }
-            },
-            {
-                message: "Customization template must be valid JSON",
-            }
-        ),
-    printArea: z
-        .string()
-        .optional()
-        .refine(
-            (value) => {
-                if (!value) return true;
-                try {
-                    JSON.parse(value);
-                    return true;
-                } catch {
-                    return false;
-                }
-            },
-            {
-                message: "Print area must be valid JSON",
-            }
-        ),
     variants: z.record(z.array(z.string())).optional(),
 });
 
@@ -69,7 +33,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const productId = params.id; const product = await db.product.findUnique({
+        const { id: productId } = await params; const product = await db.product.findUnique({
             where: { id: productId },
             include: {
                 category: true,
@@ -144,7 +108,7 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const productId = params.id;
+        const { id: productId } = await params;
         const data = await request.json();
 
         console.log("Updating product data:", data);
@@ -196,13 +160,9 @@ export async function PUT(
                 slug: validatedData.data.slug,
                 description: validatedData.data.description,
                 price: validatedData.data.price,
-                compareAtPrice: validatedData.data.compareAtPrice,
-                inventory: validatedData.data.inventory,
+                compareAtPrice: validatedData.data.compareAtPrice, inventory: validatedData.data.inventory,
                 isPublished: validatedData.data.isPublished,
                 isFeatured: validatedData.data.isFeatured,
-                isCustomizable: validatedData.data.isCustomizable,
-                customizationTemplate: validatedData.data.customizationTemplate || null,
-                printArea: validatedData.data.printArea || null,
                 category: {
                     connect: { id: validatedData.data.categoryId },
                 },

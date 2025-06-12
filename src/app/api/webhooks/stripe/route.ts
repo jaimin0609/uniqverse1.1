@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { constructEventFromPayload } from '@/lib/stripe';
 import { db } from '@/lib/db';
-import { OrderStatus, PaymentStatus } from '@/generated/prisma';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { DropshippingService } from '@/services/dropshipping/dropshipping-service';
 import {
     sendOrderConfirmationEmail,

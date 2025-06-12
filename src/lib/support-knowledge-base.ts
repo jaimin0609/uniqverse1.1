@@ -55,12 +55,9 @@ export const knowledgeBase = {
         tracking: "Available through your account or via the link in your shipping confirmation email",
         cancellation: "Orders can be cancelled within 1 hour of placing if not yet processed",
         modification: "Cannot modify after placing, but you can cancel (if eligible) and reorder"
-    },
-
-    // Products information
+    },    // Products information
     products: {
         warranty: "Most products come with a standard 1-year manufacturer warranty",
-        customization: "Selected products can be customized - see product details page",
         availability: "Product inventory is updated in real-time on our website"
     },
 
@@ -69,9 +66,7 @@ export const knowledgeBase = {
         creation: "Click on 'Account' in the top navigation and select 'Register'",
         password: "Can be reset through the login page by clicking 'Forgot Password'",
         deletion: "Contact support to request account deletion"
-    },
-
-    // Chat patterns and responses for the custom chatbot
+    },    // Chat patterns and responses for the custom chatbot
     chatPatterns: [
         {
             patterns: ["hello", "hi", "hey", "greetings"],
@@ -84,7 +79,40 @@ export const knowledgeBase = {
         {
             patterns: ["thanks", "thank you", "thx"],
             response: "You're welcome! Is there anything else I can help you with?"
+        },        // Product Search Patterns
+        {
+            patterns: ["gift", "gifts", "present", "gift for", "gift ideas"],
+            response: "I'd love to help you find the perfect gift! What kind of gift are you looking for and who is it for? For example, you could say 'I want to find a gift for my wife' or 'I need a birthday present for my friend'."
         },
+        {
+            patterns: ["shopping", "buy", "purchase", "find products", "looking for", "product", "products", "best product", "best products"],
+            response: "I can help you find products in our store! Tell me what you're looking for - you can mention the type of item, who it's for, or the occasion. You can also [browse our shop](/shop) to see all available products."
+        },
+        {
+            patterns: ["men", "male", "him", "man", "boy", "boys", "for men", "men's"],
+            response: "I can help you find great products for men! Are you looking for clothing, accessories, or something specific? Let me know what type of item you're interested in and I'll suggest some perfect options."
+        },
+        {
+            patterns: ["women", "female", "her", "woman", "girl", "girls", "for women", "women's"],
+            response: "I can help you find wonderful products for women! Are you looking for clothing, jewelry, accessories, or something else? Tell me more about what you have in mind!"
+        },
+        {
+            patterns: ["recommend", "recommendation", "suggest", "what should I buy", "best", "top", "popular"],
+            response: "I'd be happy to recommend products for you! Please tell me more about what you're looking for - for example, the type of item, your budget, or who it's for, and I'll find some great options."
+        },
+        {
+            patterns: ["wife", "girlfriend", "mother", "mom", "her", "woman", "female"],
+            response: "I can help you find something special for her! Are you looking for clothing, jewelry, accessories, or something else? Let me know the occasion or her interests, and I'll suggest some perfect options."
+        },
+        {
+            patterns: ["husband", "boyfriend", "father", "dad", "him", "man", "male"],
+            response: "Great! I can help you find something perfect for him. What type of item are you considering - clothing, accessories, or something else? Tell me about the occasion or his interests!"
+        },
+        {
+            patterns: ["birthday", "anniversary", "christmas", "valentine", "holiday"],
+            response: "Special occasions deserve special gifts! Tell me who you're shopping for and what type of gift you have in mind, and I'll help you find something perfect for the occasion."
+        },
+        // Regular Support Patterns
         {
             patterns: ["shipping", "deliver", "ship", "shipping time", "delivery time"],
             response: "We offer Standard Shipping (3-5 business days), Express Shipping (2-3 business days), and Next Day Delivery (next business day). Standard Shipping is free for orders over $50, otherwise $4.99. Express Shipping is $9.99 and Next Day Delivery is $19.99. We do ship internationally, which takes 7-14 business days depending on the location."

@@ -5,6 +5,26 @@ import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
 import { cacheInvalidation } from "@/lib/redis";
 
+// Helper function to build hierarchical category tree
+function buildCategoryTree(categories: any[], parentId: string | null = null, level: number = 0): any[] {
+    const result: any[] = [];
+
+    const children = categories.filter(cat => cat.parentId === parentId);
+
+    for (const child of children) {
+        result.push({
+            ...child,
+            level,
+            displayName: '  '.repeat(level) + child.name
+        });
+
+        // Recursively add children
+        result.push(...buildCategoryTree(categories, child.id, level + 1));
+    }
+
+    return result;
+}
+
 // Get all categories
 export async function GET(request: NextRequest) {
     try {
@@ -43,7 +63,13 @@ export async function GET(request: NextRequest) {
             _count: undefined, // Remove the _count property
         }));
 
-        return NextResponse.json({ categories: formattedCategories });
+        // Build hierarchical tree for dropdowns
+        const hierarchicalCategories = buildCategoryTree(formattedCategories);
+
+        return NextResponse.json({
+            categories: formattedCategories,
+            hierarchicalCategories
+        });
     } catch (error) {
         console.error("Error fetching categories:", error);
         return NextResponse.json(

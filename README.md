@@ -8,6 +8,7 @@ A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, 
 - 👤 User authentication with NextAuth.js
 - 💻 Responsive design with mobile-first approach
 - 🖥️ Admin dashboard for product and order management
+- 🏪 **Multi-Vendor Marketplace** - Complete vendor management system with application workflow
 - 🔍 Advanced search and filtering
 - 💳 Stripe payment integration
 - 📱 Progressive Web App (PWA) capabilities
@@ -52,6 +53,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 For more detailed documentation, see:
 - [Project Documentation](./docs/PROJECT_DOCUMENTATION.md)
 - [Project Progress](./docs/PROJECT_PROGRESS.md)
+- [Vendor Management System](./docs/VENDOR_MANAGEMENT_SYSTEM.md)
 - [Product Customization System](./docs/PRODUCT_CUSTOMIZATION_SYSTEM.md)
 - [Customization Setup Guide](./docs/CUSTOMIZATION_SETUP_GUIDE.md)
 - [Customization User Guide](./docs/CUSTOMIZATION_USER_GUIDE.md)

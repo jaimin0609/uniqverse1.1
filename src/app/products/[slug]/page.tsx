@@ -205,13 +205,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     image: variant.image,
                     options: variant.options,
                     type: variant.type
-                }))}
-                averageRating={averageRating}
+                }))} averageRating={averageRating}
                 reviewCount={product.reviews.length}
                 description={product.description}
-                isCustomizable={product.isCustomizable}
-                customizationTemplate={product.customizationTemplate}
-                printArea={product.printArea}
             />
 
             {/* Product Reviews */}

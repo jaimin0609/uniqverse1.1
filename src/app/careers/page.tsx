@@ -447,6 +447,55 @@ export default function CareersPage() {
                                 </details>
                             </div>
                         </div>
+                    </div>                </section>
+
+                {/* Vendor Partnership Section */}
+                <section className="py-16 bg-blue-50">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold mb-4">Partner With Us</h2>
+                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                                Are you a business owner looking to expand your reach? Join our marketplace as a vendor partner and sell your products to thousands of customers.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-8 mb-12">
+                            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+                                <div className="bg-blue-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <Briefcase className="h-8 w-8 text-blue-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Business Growth</h3>
+                                <p className="text-gray-600">
+                                    Expand your customer base and increase sales by leveraging our established marketplace platform.
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+                                <div className="bg-green-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <Users className="h-8 w-8 text-green-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Large Audience</h3>
+                                <p className="text-gray-600">
+                                    Access thousands of active customers who are actively searching for unique products.
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+                                <div className="bg-purple-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                    <Award className="h-8 w-8 text-purple-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Easy Management</h3>
+                                <p className="text-gray-600">
+                                    Use our comprehensive vendor dashboard to manage inventory, orders, and track your performance.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <Button size="lg" asChild>
+                                <Link href="/careers/vendor">Apply to Become a Vendor</Link>
+                            </Button>
+                        </div>
                     </div>
                 </section>
 

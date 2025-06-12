@@ -314,8 +314,8 @@ export default function ImportCJProductsPage() {
                             ? { ...p, isImported: true }
                             : p
                     )
-                );                // Navigate to the product edit page after successful import
-                router.push(`/admin/products/${data.product.id}/edit`);
+                );                // Open the product edit page in a new tab instead of redirecting
+                window.open(`/admin/products/${data.product.id}/edit`, '_blank');
             } else {
                 toast.error(data.error || "Failed to import product");
             }

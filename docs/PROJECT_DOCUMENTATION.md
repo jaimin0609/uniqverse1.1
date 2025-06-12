@@ -80,9 +80,17 @@ src/
 ### User Management
 - **Authentication**: Email/password and social login (Google OAuth)
 - **Password Reset**: Complete secure password reset flow with email verification
-- **User Roles**: Admin, Customer, Manager
+- **User Roles**: Admin, Vendor, Customer with role-based access control
 - **Profile Management**: User details, addresses, order history
 - **Wish List**: Save favorite products
+
+### Multi-Vendor Marketplace
+- **Vendor Application System**: Comprehensive vendor onboarding with business verification
+- **Vendor Dashboard**: Complete vendor management interface with analytics and reporting
+- **Vendor Product Management**: Full CRUD operations for vendor products with inventory tracking
+- **Admin Vendor Oversight**: Administrative tools for vendor approval, monitoring, and management
+- **Vendor Analytics**: Sales performance, revenue tracking, and customer insights
+- **Commission Management**: Revenue sharing system with performance metrics
 
 ### Customer Support
 - **AI Chatbot**: Automated responses to common queries using pattern matching and AI.

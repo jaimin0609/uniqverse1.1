@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { OrderStatus, PaymentStatus } from '@/generated/prisma';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 
 // This endpoint allows cancelling a payment for an order

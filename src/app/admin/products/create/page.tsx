@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Plus, X, Upload, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useCurrency } from "@/contexts/currency-provider";
+import { FormattedPrice } from "@/components/ui/formatted-price";
 
 interface Category {
     id: string;
     name: string;
     slug: string;
+    displayName?: string;
+    level?: number;
 }
 
 const MAX_IMAGES = 8; // Maximum number of images per product (standardized to 8)
@@ -21,24 +25,22 @@ export default function CreateProductPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
-    const [variants, setVariants] = useState<{ [key: string]: string[] }>({}); const [formData, setFormData] = useState({
+    const [variants, setVariants] = useState<{ [key: string]: string[] }>({});
+
+    // Get currency context for price display
+    const { currency, formatPrice } = useCurrency(); const [formData, setFormData] = useState({
         name: "",
         slug: "",
         description: "",
         price: "",
         compareAtPrice: "",
-        categoryId: "",
-        inventory: "0",
+        categoryId: "", inventory: "0",
         isPublished: true,
         isFeatured: false,
-        isCustomizable: false,
-        customizationTemplate: "",
-        printArea: "",
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [showVariantOptions, setShowVariantOptions] = useState(false);
-    const [newVariantType, setNewVariantType] = useState("");
-    const [newVariantOption, setNewVariantOption] = useState("");
+    const [newVariantType, setNewVariantType] = useState(""); const [newVariantOption, setNewVariantOption] = useState("");
 
     // Fetch categories on component mount
     useEffect(() => {
@@ -50,10 +52,8 @@ export default function CreateProductPage() {
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch categories');
-                }
-
-                const data = await response.json();
-                setCategories(data.categories || []);
+                } const data = await response.json();
+                setCategories(data.hierarchicalCategories || data.categories || []);
             } catch (error) {
                 console.error("Error fetching categories:", error);
                 // Fallback to empty categories array
@@ -210,13 +210,9 @@ export default function CreateProductPage() {
                 description: formData.description.trim(),
                 price: parseFloat(formData.price),
                 compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
-                inventory: parseInt(formData.inventory),
-                categoryId: formData.categoryId,
+                inventory: parseInt(formData.inventory), categoryId: formData.categoryId,
                 isPublished: formData.isPublished, // Already a boolean from the checkbox
                 isFeatured: formData.isFeatured, // Already a boolean from the checkbox
-                isCustomizable: formData.isCustomizable,
-                customizationTemplate: formData.customizationTemplate.trim() || null,
-                printArea: formData.printArea.trim() || null,
                 variants: Object.keys(variants).length > 0 ? variants : undefined,
                 images: uploadedImageUrls,
             };
@@ -576,33 +572,13 @@ export default function CreateProductPage() {
                                 />
                                 <label htmlFor="isFeatured" className="ml-2 text-sm text-gray-700">
                                     Featured Product
-                                </label>
-                            </div>
-
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="isCustomizable"
-                                    name="isCustomizable"
-                                    checked={formData.isCustomizable}
-                                    onChange={(e) => setFormData({ ...formData, isCustomizable: e.target.checked })}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="isCustomizable" className="ml-2 text-sm text-gray-700">
-                                    Customizable Product
-                                </label>
-                            </div>
-                            <p className="mt-1 text-xs text-gray-500">
-                                Allow customers to personalize this product
-                            </p>
+                                </label>                            </div>
                         </div>
 
                             <div className="border border-gray-200 rounded-md p-4">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Pricing</h3>
-
-                                <div className="mb-3">
+                                <h3 className="text-sm font-medium text-gray-700 mb-3">Pricing</h3>                                <div className="mb-3">
                                     <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price ($)
+                                        Price ({currency})
                                     </label>
                                     <input
                                         type="text"
@@ -613,11 +589,16 @@ export default function CreateProductPage() {
                                         className={`w-full p-2 border rounded-md ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
                                     />
                                     {errors.price && <p className="mt-1 text-sm text-red-500">{errors.price}</p>}
+                                    {formData.price && !isNaN(Number(formData.price)) && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Display price: <FormattedPrice amount={Number(formData.price) || 0} />
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
                                     <label htmlFor="compareAtPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Compare at Price ($)
+                                        Compare at Price ({currency})
                                     </label>
                                     <input
                                         type="text"
@@ -629,6 +610,11 @@ export default function CreateProductPage() {
                                     />
                                     {errors.compareAtPrice && (
                                         <p className="mt-1 text-sm text-red-500">{errors.compareAtPrice}</p>
+                                    )}
+                                    {formData.compareAtPrice && !isNaN(Number(formData.compareAtPrice)) && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Display price: <FormattedPrice amount={Number(formData.compareAtPrice) || 0} />
+                                        </p>
                                     )}
                                     <p className="mt-1 text-xs text-gray-500">
                                         Original price for showing discounts
@@ -668,59 +654,14 @@ export default function CreateProductPage() {
                                         onChange={handleInputChange}
                                         className={`w-full p-2 border rounded-md ${errors.categoryId ? 'border-red-500' : 'border-gray-300'}`}
                                     >
-                                        <option value="">Select a category</option>
-                                        {categories.map((category) => (
+                                        <option value="">Select a category</option>                                        {categories.map((category) => (
                                             <option key={category.id} value={category.id}>
-                                                {category.name}
+                                                {category.displayName || category.name}
                                             </option>
                                         ))}
                                     </select>
                                     {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>}
-                                </div>
-                            </div>
-
-                            {/* Customization Configuration */}
-                            {formData.isCustomizable && (
-                                <div className="border border-gray-200 rounded-md p-4">
-                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Customization Configuration</h3>
-
-                                    <div className="mb-4">
-                                        <label htmlFor="customizationTemplate" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Customization Template (JSON)
-                                        </label>
-                                        <textarea
-                                            id="customizationTemplate"
-                                            name="customizationTemplate"
-                                            value={formData.customizationTemplate}
-                                            onChange={handleInputChange}
-                                            rows={4}
-                                            placeholder='{"allowText": true, "allowImages": true, "maxTextLength": 50}'
-                                            className="w-full p-2 border border-gray-300 rounded-md text-sm font-mono"
-                                        />
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            JSON configuration defining what customization options are available
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="printArea" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Print Area (JSON)
-                                        </label>
-                                        <textarea
-                                            id="printArea"
-                                            name="printArea"
-                                            value={formData.printArea}
-                                            onChange={handleInputChange}
-                                            rows={3}
-                                            placeholder='{"x": 50, "y": 50, "width": 200, "height": 100}'
-                                            className="w-full p-2 border border-gray-300 rounded-md text-sm font-mono"
-                                        />
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            JSON coordinates defining where customizations can be placed
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+                                </div>                            </div>
                         </div>
                     </div>
 

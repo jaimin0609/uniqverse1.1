@@ -11,7 +11,6 @@ export type CartItem = {
     image: string;
     variantId?: string;
     variantName?: string;
-    customizations?: Record<string, any>;
 };
 
 type CartStore = {
@@ -48,12 +47,10 @@ export const useCartStore = create<CartStore>()(
             },
 
             addItem: (newItem: CartItem) => {
-                set((state) => {
-                    // Check if the item is already in the cart
+                set((state) => {                    // Check if the item is already in the cart
                     const existingItemIndex = state.items.findIndex(
                         (item) => item.productId === newItem.productId &&
-                            item.variantId === newItem.variantId &&
-                            JSON.stringify(item.customizations) === JSON.stringify(newItem.customizations)
+                            item.variantId === newItem.variantId
                     );
 
                     let updatedItems = [...state.items];

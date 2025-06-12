@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/generated/prisma";
+import { Prisma } from "@prisma/client";
 import { cacheInvalidation } from "@/lib/redis";
 
 // GET /api/admin/blog-posts - List all blog posts

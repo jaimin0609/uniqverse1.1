@@ -48,6 +48,7 @@ interface Coupon {
     usageLimit: number | null;
     usageCount: number;
     isActive: boolean;
+    showOnBanner: boolean;
     startDate: string;
     endDate: string;
     createdAt: string;
@@ -188,6 +189,7 @@ export default function CouponsPage() {
                                     <TableHead>Discount</TableHead>
                                     <TableHead>Valid Period</TableHead>
                                     <TableHead>Usage</TableHead>
+                                    <TableHead>Banner</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="w-[100px]">Actions</TableHead>
                                 </TableRow>
@@ -234,13 +236,23 @@ export default function CouponsPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span>{coupon.usageCount} used</span>
-                                                {coupon.usageLimit && (
+                                                <span>{coupon.usageCount} used</span>                                                {coupon.usageLimit && (
                                                     <span className="text-xs text-gray-500">
                                                         Limit: {coupon.usageLimit}
                                                     </span>
                                                 )}
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {coupon.showOnBanner ? (
+                                                <Badge variant="default" className="bg-purple-100 text-purple-800">
+                                                    On Banner
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-gray-500">
+                                                    Hidden
+                                                </Badge>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             {hasReachedLimit(coupon) ? (

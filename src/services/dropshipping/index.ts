@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Supplier } from "@/generated/prisma";
+import { Supplier } from "@prisma/client";
 
 /**
  * Service functions for dropshipping operations

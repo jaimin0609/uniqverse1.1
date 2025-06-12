@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
                 maximumDiscount: data.maximumDiscount,
                 usageLimit: data.usageLimit,
                 isActive: data.isActive ?? true,
+                showOnBanner: data.showOnBanner ?? false,
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 ...(data.productIds && {
@@ -129,11 +130,10 @@ export async function POST(req: NextRequest) {
                 details: `Created coupon: ${coupon.code}`,
                 performedById: session.user.id,
             },
-        });
-
-        // Invalidate coupons cache
+        });        // Invalidate coupons cache
         await cache.del("coupons:admin:list");
         await cache.del(`coupon:code:${coupon.code}`);
+        await cache.del("coupons:banner:active");
 
         return NextResponse.json(coupon, { status: 201 });
     } catch (error) {

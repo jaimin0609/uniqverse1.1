@@ -24,34 +24,92 @@ interface Promotion {
     endDate: string;
 }
 
+interface Coupon {
+    id: string;
+    code: string;
+    description: string | null;
+    discountType: "PERCENTAGE" | "FIXED_AMOUNT";
+    discountValue: number;
+    endDate: string;
+    minimumPurchase: number | null;
+    maximumDiscount: number | null;
+}
+
+interface BannerItem {
+    id: string;
+    title: string;
+    description: string | null;
+    type: "promotion" | "coupon";
+    imageUrl?: string | null;
+    linkUrl?: string | null;
+    endDate: string;
+    discountType?: "PERCENTAGE" | "FIXED_AMOUNT";
+    discountValue?: number;
+    minimumPurchase?: number | null;
+    maximumDiscount?: number | null;
+}
+
 export function PromotionBanner({ className }: PromotionBannerProps) {
-    const [promotions, setPromotions] = useState<Promotion[]>([]);
+    const [bannerItems, setBannerItems] = useState<BannerItem[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        // Fetch active promotions from the API
-        const fetchPromotions = async () => {
+        // Fetch both active promotions and banner coupons
+        const fetchBannerContent = async () => {
             try {
-                const response = await fetch("/api/promotions?active=true");
-                if (response.ok) {
-                    const data = await response.json();
-                    setPromotions(data);
+                const [promotionsResponse, couponsResponse] = await Promise.all([
+                    fetch("/api/promotions?active=true"),
+                    fetch("/api/coupons/banner")
+                ]);
+
+                const items: BannerItem[] = [];
+
+                // Add promotions
+                if (promotionsResponse.ok) {
+                    const promotions: Promotion[] = await promotionsResponse.json();
+                    const promotionItems: BannerItem[] = promotions.map(promo => ({
+                        id: promo.id,
+                        title: promo.title,
+                        description: promo.description,
+                        type: "promotion" as const,
+                        imageUrl: promo.imageUrl,
+                        linkUrl: promo.linkUrl,
+                        endDate: promo.endDate
+                    }));
+                    items.push(...promotionItems);
                 }
+
+                // Add banner coupons
+                if (couponsResponse.ok) {
+                    const coupons: Coupon[] = await couponsResponse.json();
+                    const couponItems: BannerItem[] = coupons.map(coupon => ({
+                        id: coupon.id,
+                        title: coupon.code,
+                        description: coupon.description || `${coupon.discountType === "PERCENTAGE" ? coupon.discountValue + "%" : "$" + coupon.discountValue} off${coupon.minimumPurchase ? ` on orders over $${coupon.minimumPurchase}` : ""}`,
+                        type: "coupon" as const,
+                        endDate: coupon.endDate,
+                        discountType: coupon.discountType,
+                        discountValue: coupon.discountValue,
+                        minimumPurchase: coupon.minimumPurchase,
+                        maximumDiscount: coupon.maximumDiscount
+                    }));
+                    items.push(...couponItems);
+                }
+
+                setBannerItems(items);
             } catch (error) {
-                console.error("Error fetching promotions:", error);
+                console.error("Error fetching banner content:", error);
             }
         };
 
-        fetchPromotions();
-    }, []);
-
-    useEffect(() => {
-        if (promotions.length > 1) {
+        fetchBannerContent();
+    }, []); useEffect(() => {
+        if (bannerItems.length > 1) {
             // Set up auto rotation
             autoPlayRef.current = setInterval(() => {
-                setCurrentIndex((prevIndex) => (prevIndex + 1) % promotions.length);
+                setCurrentIndex((prevIndex) => (prevIndex + 1) % bannerItems.length);
             }, 5000); // Change slide every 5 seconds
         }
 
@@ -60,30 +118,26 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                 clearInterval(autoPlayRef.current);
             }
         };
-    }, [promotions.length]);
+    }, [bannerItems.length]);
 
-    // If there are no promotions, don't render anything
-    if (promotions.length === 0) {
+    // If there are no banner items, don't render anything
+    if (bannerItems.length === 0) {
         return null;
     }
 
     const handlePrevious = () => {
         setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? promotions.length - 1 : prevIndex - 1
+            prevIndex === 0 ? bannerItems.length - 1 : prevIndex - 1
         );
     };
 
     const handleNext = () => {
         setCurrentIndex((prevIndex) =>
-            (prevIndex + 1) % promotions.length
+            (prevIndex + 1) % bannerItems.length
         );
-    };
-
-    // Helper function to check if string is a coupon code format
-    const isCouponCode = (text: string | null) => {
-        if (!text) return false;
-        // Assuming coupon codes are something like "SUMMER20", "SALE50", etc.
-        return /^[A-Z0-9]{4,15}$/.test(text.trim());
+    };    // Helper function to check if string is a coupon code format
+    const isCouponCode = (item: BannerItem) => {
+        return item.type === "coupon";
     };
 
     // Helper to copy code to clipboard
@@ -108,30 +162,28 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
         return { days, hours, minutes };
     };
 
-    const currentPromotion = promotions[currentIndex];
-    const timeRemaining = getTimeRemaining(currentPromotion.endDate);
+    const currentItem = bannerItems[currentIndex];
+    const timeRemaining = getTimeRemaining(currentItem.endDate);
     const showCountdown = timeRemaining !== null;
-    const isCoupon = isCouponCode(currentPromotion.title);
-
-    return (
+    const isCoupon = isCouponCode(currentItem); return (
         <div className={`w-full bg-gradient-to-r from-blue-50 to-purple-50 py-3 ${className}`}>
             <div className="container mx-auto px-4 relative">
                 <div className="flex items-center justify-center">
-                    {promotions.length > 1 && (
+                    {bannerItems.length > 1 && (
                         <button
                             onClick={handlePrevious}
                             className="absolute left-4 rounded-full p-1 bg-white/80 hover:bg-white shadow-sm z-10"
-                            aria-label="Previous promotion"
+                            aria-label="Previous banner item"
                         >
                             <ChevronLeft size={20} />
                         </button>
                     )}
 
                     <div className="flex-1 flex items-center justify-center text-center px-10">
-                        {currentPromotion.imageUrl && (
+                        {currentItem.imageUrl && (
                             <div className="mr-3 hidden sm:block">
                                 <Image
-                                    src={currentPromotion.imageUrl}
+                                    src={currentItem.imageUrl}
                                     alt=""
                                     width={40}
                                     height={40}
@@ -143,11 +195,11 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
                             <div>
                                 <span className="font-semibold text-sm sm:text-base">
-                                    {currentPromotion.title}
+                                    {currentItem.title}
                                 </span>
-                                {currentPromotion.description && (
+                                {currentItem.description && (
                                     <span className="text-sm text-gray-600 ml-2">
-                                        {currentPromotion.description}
+                                        {currentItem.description}
                                     </span>
                                 )}
                             </div>
@@ -158,9 +210,9 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                                         size="sm"
                                         variant="outline"
                                         className="gap-1"
-                                        onClick={() => copyToClipboard(currentPromotion.title)}
+                                        onClick={() => copyToClipboard(currentItem.title)}
                                     >
-                                        {copiedCode === currentPromotion.title ? (
+                                        {copiedCode === currentItem.title ? (
                                             <>
                                                 <Check size={14} className="text-green-500" />
                                                 <span>Copied!</span>
@@ -185,9 +237,9 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                                 </div>
                             )}
 
-                            {currentPromotion.linkUrl && (
+                            {currentItem.linkUrl && (
                                 <Link
-                                    href={currentPromotion.linkUrl}
+                                    href={currentItem.linkUrl}
                                     className="text-blue-600 hover:underline text-sm font-medium"
                                 >
                                     Learn More
@@ -196,11 +248,11 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                         </div>
                     </div>
 
-                    {promotions.length > 1 && (
+                    {bannerItems.length > 1 && (
                         <button
                             onClick={handleNext}
                             className="absolute right-4 rounded-full p-1 bg-white/80 hover:bg-white shadow-sm z-10"
-                            aria-label="Next promotion"
+                            aria-label="Next banner item"
                         >
                             <ChevronRight size={20} />
                         </button>
@@ -208,15 +260,15 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
                 </div>
 
                 {/* Dots for navigation */}
-                {promotions.length > 1 && (
+                {bannerItems.length > 1 && (
                     <div className="flex justify-center mt-2">
-                        {promotions.map((_, index) => (
+                        {bannerItems.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
                                 className={`h-1.5 rounded-full mx-1 ${index === currentIndex ? "w-4 bg-blue-500" : "w-1.5 bg-gray-300"
                                     }`}
-                                aria-label={`Go to promotion ${index + 1}`}
+                                aria-label={`Go to banner item ${index + 1}`}
                             />
                         ))}
                     </div>

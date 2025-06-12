@@ -1,5 +1,5 @@
 // This file re-exports types from the Prisma client
-import { $Enums } from '../generated/prisma';
+import { $Enums } from '@prisma/client';
 
 // Re-export the enum types
 export type PromotionType = $Enums.PromotionType;

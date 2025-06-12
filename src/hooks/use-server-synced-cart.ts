@@ -34,9 +34,7 @@ export function useServerSyncedCart() {
             console.error('Error removing item from cart:', error);
             // Item is already removed from local cart, so no need to rollback
         }
-    };
-
-    /**
+    };    /**
      * Clear the entire cart and sync with server
      */
     const clearCart = async () => {
@@ -55,11 +53,15 @@ export function useServerSyncedCart() {
                 });
             }
 
+            // Clear the cart ID from localStorage to prevent re-syncing
+            localStorage.removeItem('uniqverse-cart-id');
+
             // Then clear the local cart
             clearCartLocal();
         } catch (error) {
             console.error('Error clearing cart:', error);
-            // Still clear local cart even if server request fails
+            // Still clear local cart and cart ID even if server request fails
+            localStorage.removeItem('uniqverse-cart-id');
             clearCartLocal();
         }
     };

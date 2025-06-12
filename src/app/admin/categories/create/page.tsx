@@ -10,6 +10,8 @@ interface Category {
     id: string;
     name: string;
     slug: string;
+    displayName?: string;
+    level?: number;
 }
 
 export default function CreateCategoryPage() {
@@ -31,10 +33,8 @@ export default function CreateCategoryPage() {
                 const response = await fetch('/api/admin/categories');
                 if (!response.ok) {
                     throw new Error('Failed to fetch categories');
-                }
-
-                const data = await response.json();
-                setParentCategories(data.categories || []);
+                } const data = await response.json();
+                setParentCategories(data.hierarchicalCategories || data.categories || []);
             } catch (error) {
                 console.error('Error fetching categories:', error);
             }
@@ -193,10 +193,9 @@ export default function CreateCategoryPage() {
                                 onChange={handleInputChange}
                                 className="w-full p-2 border border-gray-300 rounded-md"
                             >
-                                <option value="">None (Top Level Category)</option>
-                                {parentCategories.map((category) => (
+                                <option value="">None (Top Level Category)</option>                                {parentCategories.map((category) => (
                                     <option key={category.id} value={category.id}>
-                                        {category.name}
+                                        {category.displayName || category.name}
                                     </option>
                                 ))}
                             </select>

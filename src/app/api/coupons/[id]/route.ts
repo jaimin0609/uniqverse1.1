@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
+import { cache } from "@/lib/redis";
 
 export async function GET(
     req: NextRequest,
@@ -91,9 +92,7 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }
-
-        // Update the coupon
+        }        // Update the coupon
         const updatedCoupon = await db.coupon.update({
             where: { id: params.id },
             data: {
@@ -105,6 +104,7 @@ export async function PUT(
                 maximumDiscount: data.maximumDiscount,
                 usageLimit: data.usageLimit,
                 isActive: data.isActive,
+                showOnBanner: data.showOnBanner,
                 startDate: data.startDate ? new Date(data.startDate) : undefined,
                 endDate: data.endDate ? new Date(data.endDate) : undefined,
                 // Handle product connections if provided
@@ -126,9 +126,7 @@ export async function PUT(
                     }
                 }),
             },
-        });
-
-        // Log the admin action
+        });        // Log the admin action
         await db.adminAuditLog.create({
             data: {
                 id: crypto.randomUUID(),
@@ -137,6 +135,12 @@ export async function PUT(
                 performedById: session.user.id,
             },
         });
+
+        // Invalidate related caches
+        await cache.del("coupons:admin:list");
+        await cache.del(`coupon:code:${existingCoupon.code}`);
+        await cache.del(`coupon:code:${updatedCoupon.code}`);
+        await cache.del("coupons:banner:active");
 
         return NextResponse.json(updatedCoupon);
     } catch (error) {
@@ -177,9 +181,7 @@ export async function DELETE(
 
         await db.coupon.delete({
             where: { id: params.id },
-        });
-
-        // Log the admin action
+        });        // Log the admin action
         await db.adminAuditLog.create({
             data: {
                 id: crypto.randomUUID(),
@@ -188,6 +190,11 @@ export async function DELETE(
                 performedById: session.user.id,
             },
         });
+
+        // Invalidate related caches
+        await cache.del("coupons:admin:list");
+        await cache.del(`coupon:code:${coupon.code}`);
+        await cache.del("coupons:banner:active");
 
         return NextResponse.json({ message: "Coupon deleted successfully" });
     } catch (error) {

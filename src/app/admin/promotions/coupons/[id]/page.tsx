@@ -55,6 +55,7 @@ const couponSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
     isActive: z.boolean().default(true),
+    showOnBanner: z.boolean().default(false),
     productIds: z.array(z.string()).optional(),
     categoryIds: z.array(z.string()).optional(),
 }).refine(data => {
@@ -91,9 +92,9 @@ interface CategoryOption {
 }
 
 interface CouponProps {
-    params: {
+    params: Promise<{
         id?: string;
-    };
+    }>;
 }
 
 export default function CouponForm({ params }: CouponProps) {
@@ -102,6 +103,7 @@ export default function CouponForm({ params }: CouponProps) {
     const [submitting, setSubmitting] = useState(false);
     const [products, setProducts] = useState<ProductOption[]>([]);
     const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [couponId, setCouponId] = useState<string | undefined>(undefined);
 
     const form = useForm<CouponFormValues>({
         resolver: zodResolver(couponSchema) as any,
@@ -116,21 +118,29 @@ export default function CouponForm({ params }: CouponProps) {
             startDate: new Date(),
             endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
             isActive: true,
+            showOnBanner: false,
             productIds: [],
             categoryIds: [],
         },
     });
 
-    const isEditing = !!params.id;
-    const watchDiscountType = form.watch("discountType");
+    const isEditing = !!couponId;
+    const watchDiscountType = form.watch("discountType"); useEffect(() => {
+        // Handle async params
+        const handleParams = async () => {
+            const resolvedParams = await params;
+            setCouponId(resolvedParams.id);
+        };
+        handleParams();
+    }, [params]);
 
     useEffect(() => {
         fetchProductsAndCategories();
 
-        if (isEditing) {
+        if (isEditing && couponId) {
             fetchCoupon();
         }
-    }, [isEditing]);
+    }, [isEditing, couponId]);
 
     const fetchProductsAndCategories = async () => {
         try {
@@ -158,12 +168,12 @@ export default function CouponForm({ params }: CouponProps) {
         } catch (error) {
             console.error("Error fetching products and categories:", error);
         }
-    };
+    }; const fetchCoupon = async () => {
+        if (!couponId) return;
 
-    const fetchCoupon = async () => {
         try {
             setIsFetching(true);
-            const response = await fetch(`/api/coupons/${params.id}`);
+            const response = await fetch(`/api/coupons/${couponId}`);
             if (response.ok) {
                 const data = await response.json();
 
@@ -184,14 +194,12 @@ export default function CouponForm({ params }: CouponProps) {
         } finally {
             setIsFetching(false);
         }
-    };
-
-    const onSubmit = async (values: CouponFormValues) => {
+    }; const onSubmit = async (values: CouponFormValues) => {
         try {
             setSubmitting(true);
 
-            const url = isEditing
-                ? `/api/coupons/${params.id}`
+            const url = isEditing && couponId
+                ? `/api/coupons/${couponId}`
                 : "/api/coupons";
 
             const method = isEditing ? "PUT" : "POST";
@@ -618,6 +626,27 @@ export default function CouponForm({ params }: CouponProps) {
                                         <FormLabel className="text-base">Active Status</FormLabel>
                                         <FormDescription>
                                             Enable or disable this coupon.
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control as any}
+                            name="showOnBanner"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base">Show on Promotional Banner</FormLabel>
+                                        <FormDescription>
+                                            Display this coupon code on the promotional banner for easy customer access.
                                         </FormDescription>
                                     </div>
                                     <FormControl>

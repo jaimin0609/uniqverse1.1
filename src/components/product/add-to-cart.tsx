@@ -27,8 +27,6 @@ interface AddToCartProps {
     productStock: number;
     variants?: ProductVariant[];
     onVariantChange?: (variantId: string) => void;
-    customDesignData?: string | null;
-    customPreviewUrl?: string | null;
     finalPrice?: number;
 }
 
@@ -41,8 +39,6 @@ export function AddToCart({
     productStock,
     variants = [],
     onVariantChange,
-    customDesignData,
-    customPreviewUrl,
     finalPrice,
 }: AddToCartProps) {
     const [quantity, setQuantity] = useState(1);
@@ -53,8 +49,9 @@ export function AddToCart({
 
     // Find the selected variant
     const selectedVariant = variants.find(
-        (variant) => variant.id === selectedVariantId
-    );    // Determine the price to use (variant price or product price, plus customization)
+        (variant) => variant.id === selectedVariantId);
+
+    // Determine the price to use (variant price or product price)
     const basePrice = selectedVariant ? selectedVariant.price : productPrice;
     const price = finalPrice || basePrice;
 
@@ -90,17 +87,8 @@ export function AddToCart({
         if (productStock <= 0) {
             toast.error("This product is out of stock");
             return;
-        }
-
-        // Use variant image if available, otherwise use custom preview or product image
-        const variantImage = selectedVariant?.image || customPreviewUrl || productImage;
-
-        // Prepare customizations data if any
-        const customizations = customDesignData ? {
-            designData: customDesignData,
-            previewUrl: customPreviewUrl,
-            additionalPrice: (finalPrice || basePrice) - basePrice
-        } : undefined;
+        }        // Use variant image if available, otherwise use product image
+        const variantImage = selectedVariant?.image || productImage;
 
         const item: CartItem = {
             id: uuid(), // Generate a unique ID for this cart item
@@ -112,7 +100,6 @@ export function AddToCart({
             image: variantImage,
             variantId: selectedVariantId || undefined,
             variantName: selectedVariant?.name || undefined,
-            customizations,
         };
 
         addItem(item);

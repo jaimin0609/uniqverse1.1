@@ -96,217 +96,213 @@ export async function POST(request: NextRequest) {
                 error: "No valid product IDs provided",
                 details: "The list of product IDs contained only invalid entries"
             }, { status: 400 });
-        }
+        } console.log(`Processing ${validProductIds.length} products with rate limiting`);
 
-        console.log(`Processing ${validProductIds.length} products in batches`);
-
-        // Process the products in parallel with a limit to prevent rate limiting
+        // Process the products sequentially with rate limiting to comply with CJ API limits
         const importResults: ImportResult[] = [];
-        const batchSize = 5; // Process 5 products at a time
         const now = new Date(); // Use the same date for all createdAt/updatedAt fields
 
-        for (let i = 0; i < validProductIds.length; i += batchSize) {
-            const batch = validProductIds.slice(i, i + batchSize);
-            console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(validProductIds.length / batchSize)}, with ${batch.length} products`);
+        // Rate limiting: CJ Dropshipping allows 1 request per second
+        const RATE_LIMIT_DELAY = 1100; // 1.1 seconds to be safe
+        let lastRequestTime = 0;
 
-            const batchPromises = batch.map(async (productId): Promise<ImportResult> => {
-                try {
-                    // Clean up the product ID format using more robust handling
-                    let cleanedProductId = productId;
+        for (let i = 0; i < validProductIds.length; i++) {
+            const productId = validProductIds[i];
 
-                    // Extract the numeric part of the product ID using regex
-                    const numericMatch = productId.match(/(\d+)/);
-                    if (numericMatch && numericMatch[1]) {
-                        const numericPart = numericMatch[1];
-                        // Always format consistently as pid:NUMBER:null
-                        cleanedProductId = `pid:${numericPart}:null`;
-                    } else if (productId.startsWith('pid:pid:')) {
-                        // Handle the specific double-prefix case as fallback
-                        const parts = productId.split(':');
-                        if (parts.length >= 3 && /^\d+$/.test(parts[2])) {
-                            cleanedProductId = `pid:${parts[2]}:null`;
-                        }
-                    } else if (productId.includes('pid:')) {
-                        // Handle other prefix cases as fallback
-                        const parts = productId.split(':');
-                        if (parts.length >= 2 && /^\d+$/.test(parts[1])) {
-                            cleanedProductId = `pid:${parts[1]}:null`;
-                        }
-                    } else if (/^\d+$/.test(productId)) {
-                        // If it's just a number, add the prefix and suffix
-                        cleanedProductId = `pid:${productId}:null`;
+            // Implement rate limiting
+            const now = Date.now();
+            const timeSinceLastRequest = now - lastRequestTime;
+            if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+                const delayNeeded = RATE_LIMIT_DELAY - timeSinceLastRequest;
+                console.log(`Rate limiting: waiting ${delayNeeded}ms before next request`);
+                await new Promise(resolve => setTimeout(resolve, delayNeeded));
+            }
+            lastRequestTime = Date.now();
+
+            console.log(`Processing product ${i + 1}/${validProductIds.length}: ${productId}`);
+
+            try {
+                // Clean up the product ID format using more robust handling
+                let cleanedProductId = productId;
+
+                // Extract the numeric part of the product ID using regex
+                const numericMatch = productId.match(/(\d+)/);
+                if (numericMatch && numericMatch[1]) {
+                    const numericPart = numericMatch[1];
+                    // Always format consistently as pid:NUMBER:null
+                    cleanedProductId = `pid:${numericPart}:null`;
+                } else if (productId.startsWith('pid:pid:')) {
+                    // Handle the specific double-prefix case as fallback
+                    const parts = productId.split(':');
+                    if (parts.length >= 3 && /^\d+$/.test(parts[2])) {
+                        cleanedProductId = `pid:${parts[2]}:null`;
                     }
-
-                    // Get complete product information
-                    const result = await client.getCompleteProductInformation(cleanedProductId);
-
-                    if (!result.success || !result.product) {
-                        return {
-                            productId,
-                            success: false,
-                            error: result.error || "Failed to fetch product information"
-                        };
+                } else if (productId.includes('pid:')) {
+                    // Handle other prefix cases as fallback
+                    const parts = productId.split(':');
+                    if (parts.length >= 2 && /^\d+$/.test(parts[1])) {
+                        cleanedProductId = `pid:${parts[1]}:null`;
                     }
+                } else if (/^\d+$/.test(productId)) {
+                    // If it's just a number, add the prefix and suffix
+                    cleanedProductId = `pid:${productId}:null`;
+                }                // Get complete product information
+                const result = await client.getCompleteProductInformation(cleanedProductId);
 
-                    // Extract product data from the result
-                    const product = result.product;
+                if (!result.success || !result.product) {
+                    importResults.push({
+                        productId,
+                        success: false,
+                        error: result.error || "Product not found in CJ Dropshipping"
+                    });
+                    continue; // Skip to next product
+                }
 
-                    // Check if the product already exists
-                    const existingProduct = await db.product.findFirst({
-                        where: {
+                // Extract product data from the result
+                const product = result.product;
+
+                // Check if the product already exists
+                const existingProduct = await db.product.findFirst({
+                    where: {
+                        supplierProductId: cleanedProductId,
+                    },
+                });
+
+                if (existingProduct) {
+                    importResults.push({
+                        productId,
+                        success: false,
+                        error: "Product already exists in the database",
+                        existingProductId: existingProduct.id
+                    });
+                    continue; // Skip to next product
+                }
+
+                // Generate a unique slug from the product name
+                const baseSlug = product.productNameEn.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+
+                // Add random suffix to ensure uniqueness
+                const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
+
+                // Calculate price with markup (similar to single import logic)
+                const costPrice = parseFloat(product.sellPrice) || 0;
+                const markupMultiplier = 1 + markup; // Convert percentage to multiplier
+                const price = Math.ceil((costPrice * markupMultiplier) * 100) / 100; // Round up to nearest cent
+                const compareAtPrice = Math.ceil((costPrice * (markupMultiplier + 0.5)) * 100) / 100; // Add extra 50% for compare price
+
+                // Use transaction to ensure atomicity of the database operations
+                const newProduct = await db.$transaction(async (tx) => {
+                    // Create the product in the database
+                    const newProduct = await tx.product.create({
+                        data: {
+                            name: product.productNameEn,
+                            slug: slug,
+                            description: product.description || "",
+                            price: price,
+                            costPrice: costPrice,
+                            compareAtPrice: compareAtPrice,
+                            sku: product.productSku || `CJ-${Date.now()}`,
+                            barcode: product.ean || "",
+                            inventory: 999, // Use dropshipping inventory
+                            weight: product.weight || 0,
+                            dimensions: `${product.length || 0}x${product.width || 0}x${product.height || 0}`,
+                            isPublished: false, // Default to unpublished
+                            categoryId: categoryId,
+                            supplierId: supplierId,
                             supplierProductId: cleanedProductId,
-                        },
+                            profitMargin: markup, // Save the markup percentage
+                            createdAt: now,
+                            updatedAt: now,
+                        }
                     });
 
-                    if (existingProduct) {
-                        return {
-                            productId,
-                            success: false,
-                            error: "Product already exists in the database",
-                            existingProductId: existingProduct.id
-                        };
-                    }
-
-                    // Generate a unique slug from the product name
-                    const baseSlug = product.productNameEn.toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/-+/g, '-')
-                        .replace(/^-|-$/g, '');
-
-                    // Add random suffix to ensure uniqueness
-                    const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
-
-                    // Calculate price with markup (similar to single import logic)
-                    const costPrice = parseFloat(product.sellPrice) || 0;
-                    const markupMultiplier = 1 + markup; // Convert percentage to multiplier
-                    const price = Math.ceil((costPrice * markupMultiplier) * 100) / 100; // Round up to nearest cent
-                    const compareAtPrice = Math.ceil((costPrice * (markupMultiplier + 0.5)) * 100) / 100; // Add extra 50% for compare price
-
-                    // Use transaction to ensure atomicity of the database operations
-                    const newProduct = await db.$transaction(async (tx) => {
-                        // Create the product in the database
-                        const newProduct = await tx.product.create({
+                    // Add product images
+                    if (product.productImage) {
+                        await tx.productImage.create({
                             data: {
-                                name: product.productNameEn,
-                                slug: slug,
-                                description: product.description || "",
-                                price: price,
-                                costPrice: costPrice,
-                                compareAtPrice: compareAtPrice,
-                                sku: product.productSku || `CJ-${Date.now()}`,
-                                barcode: product.ean || "",
-                                inventory: 999, // Use dropshipping inventory
-                                weight: product.weight || 0,
-                                weightUnit: "kg",
-                                dimensions: `${product.length || 0}x${product.width || 0}x${product.height || 0}`,
-                                isPublished: false, // Default to unpublished
-                                isDigital: false,
-                                categoryId: categoryId,
-                                supplierId: supplierId,
-                                supplierProductId: cleanedProductId,
-                                supplierData: JSON.stringify(product),
-                                isDeleted: false,
-                                profitMargin: markup, // Save the markup percentage
+                                productId: newProduct.id,
+                                url: product.productImage,
+                                position: 1,
+                                alt: product.productNameEn || "Product Image",
                                 createdAt: now,
                                 updatedAt: now,
-                            }
+                            },
                         });
+                    }
 
-                        // Add product images
-                        if (product.productImage) {
-                            await tx.productImage.create({
-                                data: {
-                                    productId: newProduct.id,
-                                    url: product.productImage,
-                                    position: 1,
-                                    alt: product.productNameEn || "Product Image",
-                                    createdAt: now,
-                                    updatedAt: now,
-                                },
-                            });
-                        }
-
-                        // Add additional images if available
-                        if (product.productImageSet && Array.isArray(product.productImageSet)) {
-                            for (let imgIndex = 0; imgIndex < product.productImageSet.length; imgIndex++) {
-                                const imageUrl = product.productImageSet[imgIndex];
-                                if (imageUrl && imageUrl !== product.productImage) {
-                                    await tx.productImage.create({
-                                        data: {
-                                            productId: newProduct.id,
-                                            url: imageUrl,
-                                            position: imgIndex + 2, // Start from position 2
-                                            alt: `${product.productNameEn || "Product"} - ${imgIndex + 1}`,
-                                            createdAt: now,
-                                            updatedAt: now,
-                                        },
-                                    });
-                                }
-                            }
-                        }
-
-                        // Add product variants if available
-                        if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
-                            for (const variant of product.variants) {
-                                // Skip invalid or incomplete variants
-                                if (!variant.variantId || !variant.variantName) continue;
-
-                                const variantCostPrice = parseFloat(variant.variantSellPrice || product.sellPrice);
-                                const variantPrice = Math.ceil((variantCostPrice * markupMultiplier) * 100) / 100;
-                                const variantComparePrice = Math.ceil((variantCostPrice * (markupMultiplier + 0.5)) * 100) / 100; // Consistent with main product (50% extra)
-
-                                await tx.productVariant.create({
+                    // Add additional images if available
+                    if (product.productImageSet && Array.isArray(product.productImageSet)) {
+                        for (let imgIndex = 0; imgIndex < product.productImageSet.length; imgIndex++) {
+                            const imageUrl = product.productImageSet[imgIndex];
+                            if (imageUrl && imageUrl !== product.productImage) {
+                                await tx.productImage.create({
                                     data: {
                                         productId: newProduct.id,
-                                        name: variant.variantName,
-                                        sku: variant.variantSku || `${newProduct.sku}-${variant.variantId}`,
-                                        price: variantPrice,
-                                        costPrice: variantCostPrice,
-                                        compareAtPrice: variantComparePrice,
-                                        inventory: 999, // Use dropshipping inventory
-                                        type: variant.propertyName || "variant",
-                                        options: variant.propertyList ? JSON.stringify(variant.propertyList) : null,
-                                        image: variant.variantImage || product.productImage,
+                                        url: imageUrl,
+                                        position: imgIndex + 2, // Start from position 2
+                                        alt: `${product.productNameEn || "Product"} - ${imgIndex + 1}`,
                                         createdAt: now,
                                         updatedAt: now,
                                     },
                                 });
                             }
                         }
+                    }
 
-                        return newProduct;
-                    });
+                    // Add product variants if available
+                    if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+                        for (const variant of product.variants) {
+                            // Skip invalid or incomplete variants
+                            if (!variant.variantId || !variant.variantName) continue;
 
-                    // Log action outside the transaction to avoid rollback if this fails
-                    await logAdminAction(
-                        "product_imported",
-                        `Admin imported product '${newProduct.name}' from CJ Dropshipping`,
-                        session.user.id
-                    );
+                            const variantCostPrice = parseFloat(variant.variantSellPrice || product.sellPrice);
+                            const variantPrice = Math.ceil((variantCostPrice * markupMultiplier) * 100) / 100;
+                            const variantComparePrice = Math.ceil((variantCostPrice * (markupMultiplier + 0.5)) * 100) / 100; // Consistent with main product (50% extra)
 
-                    return {
-                        productId,
-                        success: true,
-                        productDbId: newProduct.id,
-                        productName: newProduct.name
-                    };
-                } catch (error: any) {
-                    console.error(`Error importing product ${productId}:`, error);
-                    return {
-                        productId,
-                        success: false,
-                        error: error.message || String(error)
-                    };
-                }
-            });
+                            await tx.productVariant.create({
+                                data: {
+                                    productId: newProduct.id,
+                                    name: variant.variantName,
+                                    sku: variant.variantSku || `${newProduct.sku}-${variant.variantId}`,
+                                    price: variantPrice,
+                                    costPrice: variantCostPrice,
+                                    compareAtPrice: variantComparePrice,
+                                    inventory: 999, // Use dropshipping inventory
+                                    type: variant.propertyName || "variant",
+                                    options: variant.propertyList ? JSON.stringify(variant.propertyList) : null,
+                                    image: variant.variantImage || product.productImage,
+                                    createdAt: now,
+                                    updatedAt: now,
+                                },
+                            });
+                        }
+                    }
 
-            // Wait for the current batch to complete
-            const batchResults = await Promise.all(batchPromises);
-            importResults.push(...batchResults);
+                    return newProduct;
+                });                    // Log action outside the transaction to avoid rollback if this fails
+                await logAdminAction(
+                    "product_imported",
+                    `Admin imported product '${newProduct.name}' from CJ Dropshipping`,
+                    session.user.id
+                );
 
-            // Add a small delay between batches to prevent rate limiting
-            if (i + batchSize < productIds.length) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                importResults.push({
+                    productId,
+                    success: true,
+                    productDbId: newProduct.id,
+                    productName: newProduct.name
+                });
+
+            } catch (error: any) {
+                console.error(`Error importing product ${productId}:`, error);
+                importResults.push({
+                    productId,
+                    success: false,
+                    error: error.message || String(error)
+                });
             }
         }
 

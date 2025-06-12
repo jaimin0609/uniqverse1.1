@@ -4,12 +4,12 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-utils";
 import { DropshippingService } from "@/services/dropshipping/dropshipping-service";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 
 // POST endpoint to manually process dropshipping for an order
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -19,9 +19,7 @@ export async function POST(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orderId = params.id;
-
-        // Verify the order exists
+        const { id: orderId } = await params;        // Verify the order exists
         const order = await db.order.findUnique({
             where: { id: orderId },
             include: {

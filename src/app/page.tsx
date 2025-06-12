@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ShoppingBag, Star, Truck, Shield } from "lucide-react";
+import { ArrowRight, ShoppingBag, Star, Truck, Shield, Store, TrendingUp, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { InfiniteProducts } from "@/components/product/infinite-products";

@@ -17,11 +17,9 @@ export const productSchema = z.object({
         .number()
         .int({ message: "Stock must be a whole number" })
         .min(0, { message: "Stock must be greater than or equal to 0" })
-        .refine((val) => !isNaN(val), { message: "Stock must be a valid number" }),
-    categoryId: z.string().min(1, { message: "Please select a category" }),
+        .refine((val) => !isNaN(val), { message: "Stock must be a valid number" }), categoryId: z.string().min(1, { message: "Please select a category" }),
     images: z.array(z.string()).min(1, { message: "At least one product image is required" }),
     isFeatured: z.boolean().default(false),
-    isCustomizable: z.boolean().default(false),
 });
 
 export const productVariantSchema = z.object({
@@ -104,47 +102,9 @@ export const productFormSchema = z.object({
         .default(true),
     isFeatured: z
         .boolean()
-        .default(false),
-    variants: z
-        .record(z.array(z.string()))
-        .optional(),
-    isCustomizable: z
-        .boolean()
-        .default(false),
-    customizationTemplate: z
-        .string()
-        .optional()
-        .refine(
-            (value) => {
-                if (!value) return true;
-                try {
-                    JSON.parse(value);
-                    return true;
-                } catch {
-                    return false;
-                }
-            },
-            {
-                message: "Customization template must be valid JSON",
-            }
-        ),
-    printArea: z
-        .string()
-        .optional()
-        .refine(
-            (value) => {
-                if (!value) return true;
-                try {
-                    JSON.parse(value);
-                    return true;
-                } catch {
-                    return false;
-                }
-            },
-            {
-                message: "Print area must be valid JSON",
-            }
-        )
+        .default(false), variants: z
+            .record(z.array(z.string()))
+            .optional()
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

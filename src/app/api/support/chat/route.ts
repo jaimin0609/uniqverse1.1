@@ -504,12 +504,8 @@ function getFollowUpResponse(topic: string | null, message: string): string {
                 // Handle case where kb.products might not exist or is incomplete
                 if (!kb || !(kb as any).products) {
                     return `I apologize, but I don't have detailed product information available right now. Please check our product pages on the website for specifications and features, or contact our support team for specific product details.`;
-                }
-
-                if (message.toLowerCase().includes('warranty') || message.toLowerCase().includes('guarantee')) {
+                } if (message.toLowerCase().includes('warranty') || message.toLowerCase().includes('guarantee')) {
                     return `Product warranty information: ${(kb as any).products.warranty || 'Available on product pages'}. For specific product warranty details, please check the product description page or documentation that came with your item.`;
-                } else if (message.toLowerCase().includes('custom') || message.toLowerCase().includes('personalize')) {
-                    return `About product customization: ${(kb as any).products.customization || 'Available for select products'}. To discuss specific customization options, please contact our customer service team directly.`;
                 } else if (message.toLowerCase().includes('difference') || message.toLowerCase().includes('compare')) {
                     return `For product comparisons: Each product page has detailed specifications. If you're trying to compare specific products, I recommend viewing them side by side on our website or asking about the particular models you're interested in.`;
                 } else if (message.toLowerCase().includes('availability') || message.toLowerCase().includes('stock') || message.toLowerCase().includes('in stock')) {

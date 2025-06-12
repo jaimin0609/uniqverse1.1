@@ -26,10 +26,9 @@ export function Header() {
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Debug session information
-    console.log("Header session data:", session);
-
-    // Normalize role check to match Prisma UserRole enum (ADMIN not admin)
-    const isAdmin = session?.user?.role === 'ADMIN'; const toggleMenu = () => {
+    console.log("Header session data:", session);    // Normalize role check to match Prisma UserRole enum (ADMIN not admin)
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const isVendor = session?.user?.role === 'VENDOR'; const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };    // Add keyboard listener for search shortcuts
     useEffect(() => {
@@ -183,9 +182,7 @@ export function Header() {
         setIsSearchOpen(false);
         setSuggestions([]);
         router.push(`/products/${slug}`);
-    };
-
-    // Define navigation links
+    };    // Define navigation links
     const navLinks = [
         { name: "Home", href: "/" },
         { name: "Shop", href: "/shop" }, {
@@ -196,8 +193,8 @@ export function Header() {
                 { name: "Shop Featured", href: "/shop/featured" },
                 { name: "New Arrivals", href: "/shop/new" },
             ]
-        },
-        { name: "About", href: "/about" },
+        }, { name: "About", href: "/about" },
+        { name: "Careers", href: "/careers" },
         { name: "Support", href: "/support" },
         { name: "Contact", href: "/contact" },
     ];
@@ -319,14 +316,17 @@ export function Header() {
                                     </Link>
                                     <Link href="/account/wishlist" className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
                                         <Heart className="h-4 w-4 mr-2" /> Wishlist
-                                    </Link>
-
-                                    {/* Show Admin Dashboard link only for admin users */}
+                                    </Link>                                    {/* Show Admin Dashboard link only for admin users */}
                                     {isAdmin && (
                                         <Link href="/admin" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
                                             Admin Dashboard
                                         </Link>
-                                    )}                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>                                    <button
+                                    )}                                    {/* Show Vendor Dashboard link only for vendor users */}
+                                    {isVendor && (
+                                        <Link href="/vendor" className="block px-4 py-2 text-sm text-primary font-medium hover:bg-slate-100 dark:hover:bg-slate-800">
+                                            Vendor Dashboard
+                                        </Link>
+                                    )}<div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>                                    <button
                                         onClick={(e) => {
                                             e.preventDefault();
                                             handleLogout();
@@ -435,9 +435,7 @@ export function Header() {
                                     >
                                         <Heart className="h-5 w-5 mr-2" />
                                         Wishlist
-                                    </Link>
-
-                                    {/* Add Admin Dashboard link for admin users in mobile menu */}
+                                    </Link>                                    {/* Add Admin Dashboard link for admin users in mobile menu */}
                                     {isAdmin && (
                                         <Link
                                             href="/admin"
@@ -447,7 +445,17 @@ export function Header() {
                                             <User className="h-5 w-5 mr-2" />
                                             Admin Dashboard
                                         </Link>
-                                    )}                                    {session ? (<button
+                                    )}                                    {/* Add Vendor Dashboard link for vendor users in mobile menu */}
+                                    {isVendor && (
+                                        <Link
+                                            href="/vendor"
+                                            onClick={closeMenu}
+                                            className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                        >
+                                            <User className="h-5 w-5 mr-2" />
+                                            Vendor Dashboard
+                                        </Link>
+                                    )}{session ? (<button
                                         onClick={(e) => {
                                             e.preventDefault();
                                             handleLogout();
