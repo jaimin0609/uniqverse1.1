@@ -14,6 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { ClientDate } from "@/components/ui/client-date";
 import {
     Card,
     CardContent,
@@ -288,10 +289,12 @@ export default function SuppliersPage() {
                                                     <div className="flex flex-col">
                                                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 mb-1">
                                                             <CheckCircle className="h-3 w-3 mr-1" /> Connected
-                                                        </Badge>
-                                                        {lastTestResults[supplier.id] && (
+                                                        </Badge>                                                        {lastTestResults[supplier.id] && (
                                                             <span className="text-xs text-gray-500">
-                                                                Last tested: {new Date(lastTestResults[supplier.id].timestamp).toLocaleString()}
+                                                                Last tested: <ClientDate
+                                                                    date={lastTestResults[supplier.id].timestamp}
+                                                                    format="long"
+                                                                />
                                                                 {lastTestResults[supplier.id].success ?
                                                                     <CheckCircle className="h-3 w-3 ml-1 inline text-green-500" /> :
                                                                     <XCircle className="h-3 w-3 ml-1 inline text-red-500" />}

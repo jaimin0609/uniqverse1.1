@@ -16,6 +16,7 @@ import {
     Users,
 } from "lucide-react";
 import { format } from "date-fns";
+import { ClientDate } from "@/components/ui/client-date";
 
 // User type definition
 interface UserData {
@@ -337,9 +338,8 @@ export default function UsersPage() {
                                                 }`}>
                                                 {user.role}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {format(new Date(user.createdAt), 'MMM d, yyyy')}
+                                        </td>                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <ClientDate date={user.createdAt} format="short" />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {user._count.orders}

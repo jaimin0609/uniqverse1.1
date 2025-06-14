@@ -71,10 +71,8 @@ export async function GET(request: NextRequest) {
 
             if (result.success) {
                 // Add debugging
-                console.log(`Successfully retrieved ${result.categories.length} categories${result.cached ? ' (from cache)' : ''}`);
-
-                // Process the nested CJ Dropshipping category structure
-                const flattenedCategories = [];
+                console.log(`Successfully retrieved ${result.categories.length} categories${result.cached ? ' (from cache)' : ''}`);                // Process the nested CJ Dropshipping category structure
+                const flattenedCategories: Array<{ id: any, name: any, slug: string }> = [];
 
                 // First level categories (categoryFirst)
                 for (const firstLevelCat of result.categories) {

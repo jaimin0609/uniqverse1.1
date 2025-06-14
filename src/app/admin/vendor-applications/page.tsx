@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ClientDate } from '@/components/ui/client-date';
 import {
     Dialog,
     DialogContent,
@@ -306,10 +307,12 @@ export default function AdminVendorApplicationsPage() {
                                                         <div className="flex items-center text-sm text-gray-600">
                                                             <Building className="w-4 h-4 mr-2" />
                                                             {application.businessType}
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-gray-600">
+                                                        </div>                                                        <div className="flex items-center text-sm text-gray-600">
                                                             <Calendar className="w-4 h-4 mr-2" />
-                                                            {new Date(application.submittedAt).toLocaleDateString()}
+                                                            <ClientDate
+                                                                date={application.submittedAt}
+                                                                format="short"
+                                                            />
                                                         </div>
                                                     </div>
 
@@ -416,13 +419,18 @@ export default function AdminVendorApplicationsPage() {
                                                                             <Badge className={statusConfig[selectedApplication.status].color}>
                                                                                 {statusConfig[selectedApplication.status].label}
                                                                             </Badge>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-600">
-                                                                            Submitted: {new Date(selectedApplication.submittedAt).toLocaleDateString()}
+                                                                        </div>                                                                        <p className="text-sm text-gray-600">
+                                                                            Submitted: <ClientDate
+                                                                                date={selectedApplication.submittedAt}
+                                                                                format="short"
+                                                                            />
                                                                         </p>
                                                                         {selectedApplication.reviewedAt && (
                                                                             <p className="text-sm text-gray-600">
-                                                                                Reviewed: {new Date(selectedApplication.reviewedAt).toLocaleDateString()}
+                                                                                Reviewed: <ClientDate
+                                                                                    date={selectedApplication.reviewedAt}
+                                                                                    format="short"
+                                                                                />
                                                                             </p>
                                                                         )}
                                                                     </div>

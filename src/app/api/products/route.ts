@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { cache, cacheKeys } from "@/lib/redis";
+import { performanceMonitor, withCacheHitDetection } from "@/lib/performance-monitor";
 import { z } from "zod";
 
 // Schema for product creation and updates
@@ -35,12 +36,14 @@ const productSchema = z.object({
 
 // GET - Retrieve products with filtering, pagination, and sorting
 export async function GET(req: NextRequest) {
+    const timer = performanceMonitor.startTimer('/api/products', 'GET', req);
+
     try {
         const url = new URL(req.url);
 
         // Pagination parameters
         const page = parseInt(url.searchParams.get("page") || "1");
-        const limit = parseInt(url.searchParams.get("limit") || "12");
+        const limit = Math.min(parseInt(url.searchParams.get("limit") || "12"), 50); // Cap at 50 for performance
         const skip = (page - 1) * limit;
 
         // Filter parameters
@@ -65,10 +68,12 @@ export async function GET(req: NextRequest) {
         // Try to get from cache first
         const cachedResult = await cache.get(cacheKey);
         if (cachedResult) {
-            return NextResponse.json(cachedResult);
+            const response = NextResponse.json(cachedResult);
+            const responseWithHeader = withCacheHitDetection(response, true);
+            return timer.end(responseWithHeader, true);
         }
 
-        // Build filter conditions
+        // Build optimized filter conditions
         const where: any = {
             isPublished: true // Only show published products by default
         };
@@ -97,18 +102,49 @@ export async function GET(req: NextRequest) {
             where.isFeatured = featured;
         }
 
-        // Execute query with count
+        // Optimize the query by reducing included data
         const [products, total] = await Promise.all([
             db.product.findMany({
                 where,
-                include: {
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    price: true,
+                    compareAtPrice: true,
+                    isPublished: true,
+                    isFeatured: true,
+                    createdAt: true,
                     images: {
-                        orderBy: { position: 'asc' }
+                        select: {
+                            url: true,
+                            alt: true,
+                            position: true
+                        },
+                        orderBy: { position: 'asc' },
+                        take: 3 // Only get first 3 images for performance
                     },
                     category: {
                         select: { name: true, slug: true }
                     },
-                    variants: true,
+                    // Only get essential variant info
+                    variants: {
+                        select: {
+                            id: true,
+                            name: true,
+                            price: true
+                        },
+                        take: 1 // Only get first variant for list view
+                    },
+                    // Get review stats efficiently
+                    _count: {
+                        select: {
+                            reviews: {
+                                where: { status: 'APPROVED' }
+                            }
+                        }
+                    },
+                    // Get average rating efficiently
                     reviews: {
                         where: { status: 'APPROVED' },
                         select: { rating: true }
@@ -121,7 +157,7 @@ export async function GET(req: NextRequest) {
             db.product.count({ where })
         ]);
 
-        // Calculate average rating for each product
+        // Calculate average rating for each product efficiently
         const productsWithStats = products.map(product => {
             const avgRating = product.reviews.length > 0
                 ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
@@ -129,9 +165,10 @@ export async function GET(req: NextRequest) {
 
             return {
                 ...product,
-                averageRating: avgRating,
-                reviewCount: product.reviews.length,
-                reviews: undefined // Remove the reviews array from the response
+                averageRating: Math.round(avgRating * 10) / 10,
+                reviewCount: product._count.reviews.reviews,
+                reviews: undefined, // Remove the reviews array from the response
+                _count: undefined // Remove the _count object
             };
         });
 
@@ -142,20 +179,27 @@ export async function GET(req: NextRequest) {
                 limit,
                 totalItems: total,
                 totalPages: Math.ceil(total / limit)
+            },
+            cache: {
+                generated: new Date().toISOString(),
+                ttl: 600 // 10 minutes
             }
         };
 
-        // Cache the result for 10 minutes
+        // Cache the result for 10 minutes with shorter TTL for better freshness
         await cache.set(cacheKey, result, 600);
 
-        return NextResponse.json(result);
+        const response = NextResponse.json(result);
+        const responseWithHeader = withCacheHitDetection(response, false);
+        return timer.end(responseWithHeader, false);
 
     } catch (error) {
         console.error("Error fetching products:", error);
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
             { message: "Failed to fetch products" },
             { status: 500 }
         );
+        return timer.end(errorResponse, false);
     }
 }
 

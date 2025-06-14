@@ -100,33 +100,37 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
     };    // Set up intersection observer for infinite scrolling with debounce
     useEffect(() => {
         let timeout: NodeJS.Timeout;
+        let observer: IntersectionObserver;
 
-        const observer = new IntersectionObserver(
-            entries => {
-                const target = entries[0];
-                // Clear any previous timeout to prevent rapid multiple calls
-                if (timeout) clearTimeout(timeout);
+        const observerCallback = (entries: IntersectionObserverEntry[]) => {
+            const target = entries[0];
+            // Clear any previous timeout to prevent rapid multiple calls
+            if (timeout) clearTimeout(timeout);
 
-                if (target.isIntersecting && pagination.hasMore && !loading && !fetchInProgress.current) {
-                    // Add a small delay to avoid multiple rapid fetches
-                    timeout = setTimeout(() => {
-                        fetchMoreProducts();
-                    }, 300);
-                }
-            },
-            {
-                threshold: 0.1,
-                rootMargin: "200px" // Load a bit earlier before reaching the bottom
+            if (target.isIntersecting && pagination.hasMore && !loading && !fetchInProgress.current) {
+                // Add a small delay to avoid multiple rapid fetches
+                timeout = setTimeout(() => {
+                    fetchMoreProducts();
+                }, 300);
             }
-        );
+        };
+
+        observer = new IntersectionObserver(observerCallback, {
+            threshold: 0.1,
+            rootMargin: "200px" // Load a bit earlier before reaching the bottom
+        });
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current);
-        } return () => {
-            if (loaderRef.current) {
-                observer.unobserve(loaderRef.current);
+        }
+
+        return () => {
+            if (observer) {
+                observer.disconnect();
             }
-            if (timeout) clearTimeout(timeout);
+            if (timeout) {
+                clearTimeout(timeout);
+            }
         };
     }, [pagination.hasMore, loading]);
 

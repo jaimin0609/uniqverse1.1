@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, RefreshCw } from "lucide-react";
+import { ClientDate } from "@/components/ui/client-date";
 
 interface Category {
     id: string;
@@ -140,11 +141,12 @@ export default function CategoriesPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">{category.productCount || 0}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
-                                            {new Date(category.createdAt).toLocaleDateString()}
-                                        </div>
+                                    </td>                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <ClientDate
+                                            date={category.createdAt}
+                                            className="text-sm text-gray-500"
+                                            format="short"
+                                        />
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Button variant="ghost" size="sm" asChild className="mr-2">

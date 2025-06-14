@@ -52,7 +52,25 @@ interface State {
     toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+
+// Cleanup function to clear all toast timeouts
+export function clearAllToastTimeouts() {
+    for (const [toastId, timeout] of toastTimeouts.entries()) {
+        clearTimeout(timeout);
+    }
+    toastTimeouts.clear();
+}
+
+// Add cleanup on visibility change or page unload
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', clearAllToastTimeouts);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            clearAllToastTimeouts();
+        }
+    });
+}
 
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {

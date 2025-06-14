@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Share2, Copy, Check, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +35,16 @@ export function SocialShare({
     size = 'sm'
 }: SocialShareProps) {
     const [copied, setCopied] = useState(false);
+    const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Use current URL if none provided
     const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
@@ -60,15 +70,19 @@ export function SocialShare({
         } else {
             handleCopyLink();
         }
-    };
-
-    // Copy link to clipboard
+    };    // Copy link to clipboard
     const handleCopyLink = async () => {
         try {
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
             toast.success('Link copied to clipboard!');
-            setTimeout(() => setCopied(false), 2000);
+
+            // Clear any existing timeout
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
+            }
+
+            copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
         } catch (error) {
             console.error('Failed to copy link:', error);
             toast.error('Failed to copy link');

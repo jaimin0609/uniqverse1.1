@@ -54,6 +54,7 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+    const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         // Fetch both active promotions and banner coupons
@@ -111,11 +112,12 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
             autoPlayRef.current = setInterval(() => {
                 setCurrentIndex((prevIndex) => (prevIndex + 1) % bannerItems.length);
             }, 5000); // Change slide every 5 seconds
-        }
-
-        return () => {
+        } return () => {
             if (autoPlayRef.current) {
                 clearInterval(autoPlayRef.current);
+            }
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
             }
         };
     }, [bannerItems.length]);
@@ -138,13 +140,17 @@ export function PromotionBanner({ className }: PromotionBannerProps) {
     };    // Helper function to check if string is a coupon code format
     const isCouponCode = (item: BannerItem) => {
         return item.type === "coupon";
-    };
-
-    // Helper to copy code to clipboard
+    };    // Helper to copy code to clipboard
     const copyToClipboard = (code: string) => {
         navigator.clipboard.writeText(code);
         setCopiedCode(code);
-        setTimeout(() => setCopiedCode(null), 2000); // Reset after 2 seconds
+
+        // Clear any existing timeout
+        if (copyTimeoutRef.current) {
+            clearTimeout(copyTimeoutRef.current);
+        }
+
+        copyTimeoutRef.current = setTimeout(() => setCopiedCode(null), 2000); // Reset after 2 seconds
     };
 
     // Parse end date for countdown

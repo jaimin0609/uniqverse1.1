@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { ShoppingCart, Check } from "lucide-react";
@@ -27,6 +27,16 @@ export function QuickAddToCart({
 }: QuickAddToCartProps) {
     const [isAdding, setIsAdding] = useState(false);
     const { addItem } = useCartStore();
+    const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (resetTimeoutRef.current) {
+                clearTimeout(resetTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Handler for adding to cart
     const handleAddToCart = (e: React.MouseEvent) => {
@@ -42,13 +52,14 @@ export function QuickAddToCart({
             price: productPrice,
             quantity: 1,
             image: productImage,
-        };
-
-        addItem(item);
+        }; addItem(item);
         toast.success(`Added ${productName} to your cart`);
 
         // Reset the button after a short delay
-        setTimeout(() => {
+        if (resetTimeoutRef.current) {
+            clearTimeout(resetTimeoutRef.current);
+        }
+        resetTimeoutRef.current = setTimeout(() => {
             setIsAdding(false);
         }, 1500);
     };

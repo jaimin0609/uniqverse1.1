@@ -141,13 +141,25 @@ export default function OrderDetailPage() {
     const [trackingInfo, setTrackingInfo] = useState({
         trackingNumber: "",
         trackingUrl: ""
-    });
-
-    // Printing refs
+    });    // Printing refs
     const invoiceRef = useRef<HTMLDivElement>(null);
     const shippingLabelRef = useRef<HTMLDivElement>(null);
     const [showInvoice, setShowInvoice] = useState(false);
     const [showShippingLabel, setShowShippingLabel] = useState(false);
+
+    // Timeout tracking for memory leak prevention
+    const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+
+    // Cleanup function to clear all timeouts
+    const clearAllTimeouts = () => {
+        timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+        timeoutRefs.current = [];
+    };
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => clearAllTimeouts();
+    }, []);
 
     const companyInfo = {
         name: "Uniqverse",
@@ -389,11 +401,9 @@ export default function OrderDetailPage() {
         } finally {
             setIsUpdating(false);
         }
-    };
-
-    const handlePrintInvoice = () => {
+    }; const handlePrintInvoice = () => {
         setShowInvoice(true);
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             if (invoiceRef.current) {
                 const originalContents = document.body.innerHTML;
                 const printContents = invoiceRef.current.innerHTML;
@@ -405,16 +415,15 @@ export default function OrderDetailPage() {
                 window.location.reload();
             }
         }, 200);
+        timeoutRefs.current.push(timeout);
     };
 
     const handlePrintShippingLabel = () => {
         if (!order?.shippingAddress) {
             toast.error("No shipping address available to print label");
             return;
-        }
-
-        setShowShippingLabel(true);
-        setTimeout(() => {
+        } setShowShippingLabel(true);
+        const timeout = setTimeout(() => {
             if (shippingLabelRef.current) {
                 const originalContents = document.body.innerHTML;
                 const printContents = shippingLabelRef.current.innerHTML;
@@ -426,6 +435,7 @@ export default function OrderDetailPage() {
                 window.location.reload();
             }
         }, 200);
+        timeoutRefs.current.push(timeout);
     };
 
     if (isLoading) {

@@ -21,6 +21,7 @@ import {
     Tag, // Add Tag icon for promotions
     HomeIcon, // Add Home icon
     Mail, // Add Mail icon for newsletter
+    Activity, // Add Activity icon for performance
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { handleLogout } from '@/utils/logout-utils';
@@ -127,6 +128,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 { title: "All Promotions", href: "/admin/promotions" },
                 { title: "Coupons", href: "/admin/promotions/coupons" },
                 { title: "Events", href: "/admin/events" }
+            ]
+        }, {
+            title: "Performance",
+            href: "/admin/performance",
+            icon: <Activity className="h-5 w-5" />,
+            subItems: [
+                { title: "Performance Dashboard", href: "/admin/performance" },
+                { title: "Memory Leaks", href: "/admin/memory-leaks" }
             ]
         },
         {

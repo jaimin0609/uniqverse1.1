@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -9,7 +9,14 @@ export default function LogoutPage() {
     const { data: session } = useSession();
     const [logoutStatus, setLogoutStatus] = useState('logging_out');
 
-    useEffect(() => {
+    // Refs to track all timeouts for cleanup
+    const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+
+    // Cleanup function to clear all timeouts
+    const clearAllTimeouts = () => {
+        timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+        timeoutRefs.current = [];
+    }; useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
         const performLogout = async () => {
@@ -37,12 +44,11 @@ export default function LogoutPage() {
                         });
 
                         console.log('SignOut completed, redirecting to home...');
-                        setLogoutStatus('success');
-
-                        // Force navigation to home page after a brief delay
-                        setTimeout(() => {
+                        setLogoutStatus('success');                        // Force navigation to home page after a brief delay
+                        const redirectTimeout = setTimeout(() => {
                             window.location.replace('/');
                         }, 1000);
+                        timeoutRefs.current.push(redirectTimeout);
 
                     } catch (error) {
                         console.error('SignOut error:', error);
@@ -53,33 +59,28 @@ export default function LogoutPage() {
                 }
             } catch (error) {
                 console.error('Logout error:', error);
-                setLogoutStatus('error');
-
-                // Fallback: direct redirect after short delay
-                timeoutId = setTimeout(() => {
+                setLogoutStatus('error');                // Fallback: direct redirect after short delay
+                const fallbackTimeout = setTimeout(() => {
                     window.location.replace('/');
                 }, 2000);
+                timeoutRefs.current.push(fallbackTimeout);
             }
-        };
+        };        // Add a small delay to prevent immediate execution
+        const initialTimeout = setTimeout(performLogout, 500);
+        timeoutRefs.current.push(initialTimeout);
 
-        // Add a small delay to prevent immediate execution
-        timeoutId = setTimeout(performLogout, 500);
-
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId);
-        };
-    }, [router]);
-
-    // Fallback redirect if logout takes too long
+        return () => clearAllTimeouts();
+    }, [router]);    // Fallback redirect if logout takes too long
     useEffect(() => {
         const fallbackTimeout = setTimeout(() => {
             if (logoutStatus === 'logging_out') {
-                console.log('Logout taking too long, forcing redirect');
-                window.location.replace('/');
+                console.log('Logout taking too long, forcing redirect'); window.location.replace('/');
             }
         }, 8000); // 8 second fallback
 
-        return () => clearTimeout(fallbackTimeout);
+        timeoutRefs.current.push(fallbackTimeout);
+
+        return () => clearAllTimeouts();
     }, [logoutStatus]);
 
     return (

@@ -52,9 +52,7 @@ interface OrderCompleteProps {
 export default function OrderComplete({ orderId, orderNumber, items = [], shippingAddress, total, subtotal, shippingCost, taxAmount }: OrderCompleteProps) {
     const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-
-    // Fetch order details when component loads
+    const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);    // Fetch order details when component loads
     useEffect(() => {
         const fetchOrderDetails = async () => {
             if (!orderId) {
@@ -92,13 +90,14 @@ export default function OrderComplete({ orderId, orderNumber, items = [], shippi
 
         fetchOrderDetails();
 
-        // Clean up polling interval on unmount
+        // Clean up polling interval on unmount or when orderId changes
         return () => {
             if (pollingInterval) {
                 clearInterval(pollingInterval);
+                setPollingInterval(null);
             }
         };
-    }, [orderId, pollingInterval]);
+    }, [orderId]); // Remove pollingInterval from dependencies to prevent infinite loops
 
     // Estimated delivery date (7 days from now)
     const estimatedDeliveryDate = new Date();

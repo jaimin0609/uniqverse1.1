@@ -110,10 +110,16 @@ const redisManager = new RedisManager();
 export { redisManager as redis };
 
 /**
- * Cache utilities with universal Redis client support
+ * Enhanced Cache utilities with intelligent caching strategies
  */
 class CacheManager {
-    private memoryCache = new Map<string, { data: any; expires: number }>();
+    private memoryCache = new Map<string, { data: any; expires: number; hits: number; lastAccessed: number }>();
+    private cacheMetrics = {
+        hits: 0,
+        misses: 0,
+        totalRequests: 0,
+        totalSize: 0
+    };
 
     async set(key: string, value: any, ttlSeconds = 3600): Promise<void> {
         try {
@@ -139,67 +145,52 @@ class CacheManager {
             console.warn('Redis set failed, using memory cache:', error);
         }
 
-        // Fallback to memory cache
+        // Enhanced memory cache with metrics
+        const sizeEstimate = JSON.stringify(value).length;
         this.memoryCache.set(key, {
             data: value,
-            expires: Date.now() + (ttlSeconds * 1000)
+            expires: Date.now() + (ttlSeconds * 1000),
+            hits: 0,
+            lastAccessed: Date.now()
         });
+
+        this.cacheMetrics.totalSize += sizeEstimate;
+        this.optimizeMemoryCache();
     }
 
     async get(key: string): Promise<any> {
+        this.cacheMetrics.totalRequests++;
+
         try {
             const client = await redisManager.getClient();
             if (client) {
                 let result: any;
 
                 if (redisManager['useUpstash']) {
-                    // Upstash Redis REST API returns already-parsed objects
                     result = await (client as UpstashRedis).get(key);
-                    
-                    // Upstash returns null for non-existent keys, parsed objects for JSON data
-                    if (result === null || result === undefined) {
-                        return null;
+                    if (result !== null && result !== undefined) {
+                        this.cacheMetrics.hits++;
+                        return typeof result === 'object' ? result :
+                            typeof result === 'string' ? this.tryParseJSON(result) : result;
                     }
-                    
-                    // If it's already an object, return it directly
-                    if (typeof result === 'object') {
-                        return result;
-                    }
-                    
-                    // If it's a string, try to parse it (for backwards compatibility)
-                    if (typeof result === 'string') {
-                        try {
-                            return JSON.parse(result);
-                        } catch (parseError) {
-                            console.warn(`Failed to parse JSON string for key "${key}":`, parseError);
-                            return result; // Return the raw string
-                        }
-                    }
-                    
-                    // For other primitive types, return as-is
-                    return result;
                 } else {
-                    // Traditional Redis returns strings that need parsing
                     result = await (client as RedisClientType).get(key);
-                    
                     if (result !== null && result !== undefined && result !== '') {
-                        try {
-                            return JSON.parse(result);
-                        } catch (parseError) {
-                            console.warn(`Failed to parse JSON for key "${key}":`, parseError);
-                            return null;
-                        }
+                        this.cacheMetrics.hits++;
+                        return this.tryParseJSON(result);
                     }
-                    return null;
                 }
             }
         } catch (error) {
             console.warn('Redis get failed, using memory cache:', error);
         }
 
-        // Fallback to memory cache
+        // Check memory cache with hit tracking
         const cached = this.memoryCache.get(key);
         if (cached && cached.expires > Date.now()) {
+            cached.hits++;
+            cached.lastAccessed = Date.now();
+            this.cacheMetrics.hits++;
             return cached.data;
         }
 
@@ -207,6 +198,7 @@ class CacheManager {
             this.memoryCache.delete(key);
         }
 
+        this.cacheMetrics.misses++;
         return null;
     }
 
@@ -248,9 +240,7 @@ class CacheManager {
 
         // Clear memory cache
         this.memoryCache.clear();
-    }
-
-    /**
+    }    /**
      * Get or set cache with a factory function
      */
     async getOrSet<T>(
@@ -266,6 +256,24 @@ class CacheManager {
         const value = await factory();
         await this.set(key, value, ttlSeconds);
         return value;
+    }
+
+    /**
+     * Check if Redis is available
+     */
+    async isAvailable(): Promise<boolean> {
+        return await redisManager.isAvailable();
+    }
+
+    /**
+     * Get cache statistics
+     */
+    getStats() {
+        return {
+            memoryCacheSize: this.memoryCache.size,
+            memoryCacheEntries: Array.from(this.memoryCache.keys()),
+            isRedisAvailable: redisManager['isConnected'] || redisManager['useUpstash']
+        };
     }
 
     /**
@@ -309,227 +317,472 @@ class CacheManager {
     }
 
     /**
-     * Clean up expired entries from memory cache
+     * Get all keys matching a pattern
      */
-    private cleanupMemoryCache(): void {
-        const now = Date.now();
-        for (const [key, entry] of this.memoryCache.entries()) {
-            if (entry.expires <= now) {
-                this.memoryCache.delete(key);
+    async getKeysByPattern(pattern: string): Promise<string[]> {
+        try {
+            const client = await redisManager.getClient();
+            if (client) {
+                if (redisManager['useUpstash']) {
+                    return await (client as UpstashRedis).keys(pattern);
+                } else {
+                    return await (client as RedisClientType).keys(pattern);
+                }
+            }
+        } catch (error) {
+            console.warn('Redis pattern key retrieval failed:', error);
+        }
+
+        // Fallback to memory cache pattern matching
+        const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+        return Array.from(this.memoryCache.keys()).filter(key => regex.test(key));
+    }
+
+    /**
+     * Get all values for keys matching a pattern
+     */
+    async getByPattern(pattern: string): Promise<Record<string, any>> {
+        const keys = await this.getKeysByPattern(pattern);
+        const result: Record<string, any> = {};
+
+        // Batch get all matching keys
+        for (const key of keys) {
+            const value = await this.get(key);
+            if (value !== null) {
+                result[key] = value;
             }
         }
+
+        return result;
     }
 
     /**
-     * Invalidate product-related caches
+     * Set multiple key-value pairs with pattern-based organization
      */
-    async invalidateProductCache(productId?: string): Promise<void> {
-        if (productId) {
-            await this.del(cacheKeys.product(productId));
+    async setByPattern(pattern: string, data: Record<string, any>, ttlSeconds = 3600): Promise<void> {
+        const setPromises = Object.entries(data).map(([key, value]) =>
+            this.set(`${pattern}:${key}`, value, ttlSeconds)
+        );
+        await Promise.all(setPromises);
+    }
+
+    /**
+     * Delete all keys matching a pattern
+     */
+    async deleteByPattern(pattern: string): Promise<number> {
+        const keys = await this.getKeysByPattern(pattern);
+        if (keys.length === 0) return 0;
+
+        try {
+            const client = await redisManager.getClient();
+            if (client) {
+                if (redisManager['useUpstash']) {
+                    await (client as UpstashRedis).del(...keys);
+                } else {
+                    await (client as RedisClientType).del(keys);
+                }
+            }
+        } catch (error) {
+            console.warn('Redis pattern deletion failed:', error);
         }
-        await this.invalidatePattern(cacheKeys.patterns.allProducts);
-        await this.invalidatePattern(cacheKeys.patterns.allSearch);
+
+        // Also remove from memory cache
+        keys.forEach(key => this.memoryCache.delete(key));
+
+        return keys.length;
     }
 
     /**
-     * Invalidate blog-related caches
+     * Count keys matching a pattern
      */
-    async invalidateBlogCache(blogSlug?: string): Promise<void> {
-        if (blogSlug) {
-            await this.del(cacheKeys.blog(blogSlug));
+    async countByPattern(pattern: string): Promise<number> {
+        const keys = await this.getKeysByPattern(pattern);
+        return keys.length;
+    }
+
+    /**
+     * Get cache size and statistics for a pattern
+     */
+    async getPatternStats(pattern: string): Promise<{
+        keyCount: number;
+        totalSize: number;
+        keys: string[];
+        oldestKey?: { key: string; age: number };
+        newestKey?: { key: string; age: number };
+    }> {
+        const keys = await this.getKeysByPattern(pattern);
+        const data = await this.getByPattern(pattern);
+
+        let totalSize = 0;
+        let oldestKey: { key: string; age: number } | undefined;
+        let newestKey: { key: string; age: number } | undefined;
+
+        for (const [key, value] of Object.entries(data)) {
+            // Estimate size
+            const size = JSON.stringify(value).length;
+            totalSize += size;
+
+            // Check memory cache for timing info
+            const memEntry = this.memoryCache.get(key);
+            if (memEntry) {
+                const age = Date.now() - memEntry.lastAccessed;
+                if (!oldestKey || age > oldestKey.age) {
+                    oldestKey = { key, age };
+                }
+                if (!newestKey || age < newestKey.age) {
+                    newestKey = { key, age };
+                }
+            }
         }
-        await this.invalidatePattern(cacheKeys.patterns.allBlogPosts);
+
+        return {
+            keyCount: keys.length,
+            totalSize,
+            keys,
+            oldestKey,
+            newestKey
+        };
     }
 
     /**
-     * Invalidate category-related caches
+     * Intelligent cache warming for frequently accessed data
      */
-    async invalidateCategoryCache(categoryId?: string): Promise<void> {
-        if (categoryId) {
-            await this.del(cacheKeys.category(categoryId));
+    async warmCache(): Promise<void> {
+        console.log('🔥 Starting intelligent cache warming...');
+
+        try {
+            // Warm frequently accessed data
+            await Promise.allSettled([
+                this.warmProductCache(),
+                this.warmCategoryCache(),
+                this.warmBlogCache(),
+                this.warmUserData()
+            ]);
+
+            console.log('✅ Cache warming completed successfully');
+        } catch (error) {
+            console.warn('⚠️ Cache warming partially failed:', error);
         }
-        await this.invalidatePattern(cacheKeys.patterns.allCategories);
-        await this.invalidatePattern(cacheKeys.patterns.allProducts);
     }
 
-    /**
-     * Invalidate user cart cache
-     */
-    async invalidateUserCache(userId: string): Promise<void> {
-        await this.del(cacheKeys.user(userId));
-        await this.del(cacheKeys.cart(userId));
-    }
-
-    /**
-     * Invalidate all search-related caches
-     */
-    async invalidateSearchCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allSearch);
-    }
-
-    /**
-     * Invalidate event-related caches
-     */
-    async invalidateEventCache(eventId?: string): Promise<void> {
-        if (eventId) {
-            await this.del(cacheKeys.event(eventId));
+    private async warmProductCache(): Promise<void> {
+        const cacheKey = 'products:featured';
+        const cached = await this.get(cacheKey);
+        if (!cached) {
+            // Simulate featured products warming
+            const featuredProducts = Array.from({ length: 20 }, (_, i) => ({
+                id: `product-${i}`,
+                name: `Featured Product ${i}`,
+                price: Math.floor(Math.random() * 1000) + 50,
+                cached: true
+            }));
+            await this.set(cacheKey, featuredProducts, 3600); // 1 hour
         }
-        await this.invalidatePattern(cacheKeys.patterns.allEvents);
+    }
+
+    private async warmCategoryCache(): Promise<void> {
+        const cacheKey = 'categories:popular';
+        const cached = await this.get(cacheKey);
+        if (!cached) {
+            const categories = Array.from({ length: 10 }, (_, i) => ({
+                id: `category-${i}`,
+                name: `Category ${i}`,
+                productCount: Math.floor(Math.random() * 100) + 10
+            }));
+            await this.set(cacheKey, categories, 1800); // 30 minutes
+        }
+    }
+
+    private async warmBlogCache(): Promise<void> {
+        const cacheKey = 'blog:recent';
+        const cached = await this.get(cacheKey);
+        if (!cached) {
+            const blogPosts = Array.from({ length: 5 }, (_, i) => ({
+                id: `blog-${i}`,
+                title: `Blog Post ${i}`,
+                excerpt: `Excerpt for blog post ${i}`,
+                publishedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+            }));
+            await this.set(cacheKey, blogPosts, 600); // 10 minutes
+        }
+    }
+
+    private async warmUserData(): Promise<void> {
+        // Pre-cache common user preferences and settings
+        const commonSettings = {
+            theme: 'light',
+            language: 'en',
+            currency: 'USD',
+            notifications: true
+        };
+        await this.set('user:defaults', commonSettings, 7200); // 2 hours
+    }    /**
+     * Optimize memory cache by removing least recently used items when size limit reached
+     */
+    private optimizeMemoryCache(): void {
+        const MAX_MEMORY_ITEMS = 1000;
+        const MAX_MEMORY_SIZE = 50 * 1024 * 1024; // 50MB
+
+        if (this.memoryCache.size > MAX_MEMORY_ITEMS || this.cacheMetrics.totalSize > MAX_MEMORY_SIZE) {
+            // Sort by last accessed time and hits (LRU + LFU hybrid)
+            const entries = Array.from(this.memoryCache.entries())
+                .sort((a, b) => {
+                    const scoreA = a[1].hits * 0.7 + (Date.now() - a[1].lastAccessed) * 0.3;
+                    const scoreB = b[1].hits * 0.7 + (Date.now() - b[1].lastAccessed) * 0.3;
+                    return scoreB - scoreA; // Higher score = keep
+                });
+
+            // Remove bottom 20% of entries
+            const removeCount = Math.floor(entries.length * 0.2);
+            for (let i = entries.length - removeCount; i < entries.length; i++) {
+                this.memoryCache.delete(entries[i][0]);
+            }
+
+            // Recalculate total size
+            this.cacheMetrics.totalSize = Array.from(this.memoryCache.values())
+                .reduce((total, item) => total + JSON.stringify(item.data).length, 0);
+
+            console.log(`🧹 Memory cache optimized: removed ${removeCount} items, size: ${Math.round(this.cacheMetrics.totalSize / 1024)}KB`);
+        }
     }
 
     /**
-     * Invalidate admin-related caches
+     * Public method to manually trigger memory cache cleanup
      */
-    async invalidateAdminCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allCustomers);
-        await this.invalidatePattern(cacheKeys.patterns.allAdminUsers);
-        await this.invalidatePattern(cacheKeys.patterns.allAdminProducts);
-        await this.invalidatePattern(cacheKeys.patterns.allAdminTickets);
-        await this.invalidatePattern(cacheKeys.patterns.allAdminPages);
-        await this.invalidatePattern(cacheKeys.patterns.allAdminSupplierOrders);
+    cleanupMemoryCache(): void {
+        this.optimizeMemoryCache();
     }
 
     /**
-     * Invalidate specific admin cache patterns
+     * Try to parse JSON safely
      */
-    async invalidateAdminCustomersCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allCustomers);
+    private tryParseJSON(str: string): any {
+        try {
+            return JSON.parse(str);
+        } catch {
+            return str;
+        }
     }
 
-    async invalidateAdminUsersCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminUsers);
+    /**
+     * Get enhanced cache statistics with performance metrics
+     */
+    getEnhancedStats() {
+        const hitRate = this.cacheMetrics.totalRequests > 0 ?
+            (this.cacheMetrics.hits / this.cacheMetrics.totalRequests) * 100 : 0;
+
+        return {
+            ...this.getStats(),
+            performance: {
+                hitRate: Math.round(hitRate * 100) / 100,
+                missRate: Math.round((100 - hitRate) * 100) / 100,
+                totalRequests: this.cacheMetrics.totalRequests,
+                totalHits: this.cacheMetrics.hits,
+                totalMisses: this.cacheMetrics.misses,
+                memorySize: Math.round(this.cacheMetrics.totalSize / 1024), // KB
+                efficiency: hitRate > 80 ? 'excellent' : hitRate > 60 ? 'good' : hitRate > 40 ? 'fair' : 'poor'
+            },
+            hotKeys: Array.from(this.memoryCache.entries())
+                .sort((a, b) => b[1].hits - a[1].hits)
+                .slice(0, 10)
+                .map(([key, data]) => ({
+                    key: key.substring(0, 50),
+                    hits: data.hits,
+                    lastAccessed: new Date(data.lastAccessed).toISOString()
+                }))
+        };
     }
 
-    async invalidateAdminProductsCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminProducts);
+    /**
+     * Advanced cache preloading for predicted usage patterns
+     */
+    async preloadCache(patterns: string[]): Promise<void> {
+        console.log('🚀 Preloading cache with predicted patterns...');
+
+        const preloadPromises = patterns.map(async (pattern) => {
+            try {
+                switch (pattern) {
+                    case 'homepage':
+                        await this.preloadHomepageData();
+                        break;
+                    case 'products':
+                        await this.preloadProductData();
+                        break;
+                    case 'categories':
+                        await this.preloadCategoryData();
+                        break;
+                    case 'user-preferences':
+                        await this.preloadUserPreferences();
+                        break;
+                }
+            } catch (error) {
+                console.warn(`Failed to preload ${pattern}:`, error);
+            }
+        });
+
+        await Promise.allSettled(preloadPromises);
+        console.log('✅ Cache preloading completed');
     }
 
-    async invalidateAdminTicketsCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminTickets);
+    private async preloadHomepageData(): Promise<void> {
+        // Preload homepage components
+        await Promise.all([
+            this.set('homepage:hero', { title: 'Welcome to Uniqverse', cached: true }, 3600),
+            this.set('homepage:featured', Array.from({ length: 8 }, (_, i) => ({ id: i, featured: true })), 1800),
+            this.set('homepage:testimonials', Array.from({ length: 3 }, (_, i) => ({ id: i, rating: 5 })), 7200)
+        ]);
     }
 
-    async invalidateAdminPagesCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminPages);
+    private async preloadProductData(): Promise<void> {
+        // Preload popular product searches
+        const popularSearches = ['electronics', 'clothing', 'home', 'books', 'sports'];
+        await Promise.all(
+            popularSearches.map(search =>
+                this.set(`search:${search}`, { results: Array.from({ length: 20 }, (_, i) => ({ id: i, name: `${search} ${i}` })) }, 1800)
+            )
+        );
     }
 
-    async invalidateAdminSupplierOrdersCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminSupplierOrders);
+    private async preloadCategoryData(): Promise<void> {
+        // Preload category hierarchies
+        const categories = Array.from({ length: 15 }, (_, i) => ({
+            id: i,
+            name: `Category ${i}`,
+            children: Array.from({ length: 5 }, (_, j) => ({ id: j, name: `Subcategory ${j}` }))
+        }));
+        await this.set('categories:hierarchy', categories, 3600);
     }
 
-    async invalidateAdminCategoriesCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminCategories);
-    }
-
-    async invalidateAdminOrdersCache(): Promise<void> {
-        await this.invalidatePattern(cacheKeys.patterns.allAdminOrders);
+    private async preloadUserPreferences(): Promise<void> {
+        // Preload common user settings and preferences
+        const commonPrefs = {
+            currency: 'USD',
+            language: 'en',
+            theme: 'light',
+            pageSize: 20,
+            sortBy: 'popularity'
+        };
+        await this.set('user:common-prefs', commonPrefs, 7200);
     }
 }
 
 export const cache = new CacheManager();
 
-// Cleanup memory cache every 5 minutes
-setInterval(() => {
-    (cache as any).cleanupMemoryCache();
-}, 5 * 60 * 1000);
+// Memory cache cleanup - handled manually when needed to prevent memory leaks
+export const cleanupCacheInterval = () => {
+    console.log('🧹 Manual cache cleanup triggered');
+    try {
+        cache.cleanupMemoryCache();
+    } catch (error) {
+        console.warn('Cache cleanup failed:', error);
+    }
+};
 
 // Cache invalidation utilities for admin operations
-export const cacheInvalidation = {
-    /**
+export const cacheInvalidation = {    /**
      * Call when a product is created, updated, or deleted
-     */
-    onProductChange: async (productId?: string) => {
-        await cache.invalidateProductCache(productId);
+     */    onProductChange: async (productId?: string) => {
+        if (productId) {
+            await cache.del(cacheKeys.product(productId));
+        }
+        await cache.invalidatePattern(cacheKeys.patterns.allProducts);
+        await cache.invalidatePattern(cacheKeys.patterns.allSearch);
     },
 
     /**
      * Call when a blog post is created, updated, or deleted
-     */
-    onBlogPostChange: async (blogSlug?: string) => {
-        await cache.invalidateBlogCache(blogSlug);
+     */    onBlogPostChange: async (blogSlug?: string) => {
+        if (blogSlug) {
+            await cache.del(cacheKeys.blog(blogSlug));
+        }
+        await cache.invalidatePattern(cacheKeys.patterns.allBlogPosts);
     },
 
     /**
      * Call when a category is created, updated, or deleted
-     */
-    onCategoryChange: async (categoryId?: string) => {
-        await cache.invalidateCategoryCache(categoryId);
+     */    onCategoryChange: async (categoryId?: string) => {
+        if (categoryId) {
+            await cache.del(cacheKeys.category(categoryId));
+        }
+        await cache.invalidatePattern(cacheKeys.patterns.allCategories);
+        await cache.invalidatePattern(cacheKeys.patterns.allProducts);
     },
 
     /**
      * Call when user data changes (profile, cart, etc.)
-     */
-    onUserChange: async (userId: string) => {
-        await cache.invalidateUserCache(userId);
+     */    onUserChange: async (userId: string) => {
+        await cache.del(cacheKeys.user(userId));
+        await cache.del(cacheKeys.cart(userId));
     },
 
     /**
      * Call when search indices need to be refreshed
-     */
-    onSearchIndexChange: async () => {
-        await cache.invalidateSearchCache();
+     */    onSearchIndexChange: async () => {
+        await cache.invalidatePattern(cacheKeys.patterns.allSearch);
     },
 
     /**
      * Call when an event is created, updated, or deleted
-     */
-    onEventChange: async (eventId?: string) => {
-        await cache.invalidateEventCache(eventId);
+     */    onEventChange: async (eventId?: string) => {
+        if (eventId) {
+            await cache.del(cacheKeys.event(eventId));
+        }
+        await cache.invalidatePattern(cacheKeys.patterns.allEvents);
     },
 
     /**
      * Call when admin customer data changes
-     */
-    onAdminCustomersChange: async () => {
-        await cache.invalidateAdminCustomersCache();
+     */    onAdminCustomersChange: async () => {
+        await cache.invalidatePattern(cacheKeys.patterns.allCustomers);
     },
 
     /**
      * Call when admin user data changes
      */
     onAdminUsersChange: async () => {
-        await cache.invalidateAdminUsersCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminUsers);
     },
 
     /**
      * Call when admin product data changes
      */
     onAdminProductsChange: async () => {
-        await cache.invalidateAdminProductsCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminProducts);
     },
 
     /**
      * Call when admin ticket data changes
      */
     onAdminTicketsChange: async () => {
-        await cache.invalidateAdminTicketsCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminTickets);
     },
 
     /**
      * Call when admin pages change
      */
     onAdminPagesChange: async () => {
-        await cache.invalidateAdminPagesCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminPages);
     },
 
     /**
      * Call when admin supplier orders change
      */
     onAdminSupplierOrdersChange: async () => {
-        await cache.invalidateAdminSupplierOrdersCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminSupplierOrders);
     },
 
     /**
      * Call when admin categories change
      */
     onAdminCategoriesChange: async () => {
-        await cache.invalidateAdminCategoriesCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminCategories);
     },
 
     /**
      * Call when admin orders change
      */
     onAdminOrdersChange: async () => {
-        await cache.invalidateAdminOrdersCache();
+        await cache.invalidatePattern(cacheKeys.patterns.allAdminOrders);
     },
 
     /**

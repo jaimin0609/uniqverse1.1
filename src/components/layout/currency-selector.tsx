@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Check, ChevronsUpDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,16 @@ export function CurrencySelector() {
     const { currency, setCurrency, isLoading, availableCurrencies, exchangeRates, lastUpdated, isFallback } = useCurrency();
     const [open, setOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState('');
+    const debugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (debugTimeoutRef.current) {
+                clearTimeout(debugTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Filter currencies based on search term
     const filteredCurrencies = availableCurrencies.filter(code => {
@@ -66,10 +76,11 @@ export function CurrencySelector() {
                 description: `Exchange rate: $1 USD = ${formatted}`,
                 variant: 'success'
             }
-        }));
-
-        // Debug logging for localStorage
-        setTimeout(() => {
+        }));        // Debug logging for localStorage
+        if (debugTimeoutRef.current) {
+            clearTimeout(debugTimeoutRef.current);
+        }
+        debugTimeoutRef.current = setTimeout(() => {
             const saved = localStorage.getItem('uniqverse-currency');
             console.log(`After setCurrency(), localStorage shows: ${saved}`);
         }, 100);

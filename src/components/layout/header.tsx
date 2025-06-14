@@ -78,7 +78,19 @@ export function Header() {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isSearchOpen, suggestions.length]); const toggleSearch = () => {
+    }, [isSearchOpen, suggestions.length]);
+
+    // Cleanup debounce timer on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
+        };
+    }, []);
+
+    const toggleSearch = () => {
         setIsSearchOpen(!isSearchOpen);
         if (!isSearchOpen) {
             setSearchTerm(""); // Reset search term when opening the search overlay

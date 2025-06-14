@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -22,10 +22,40 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     const [isNavigating, setIsNavigating] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Reset navigation state when drawer is opened
+    // Refs to track timeouts for cleanup
+    const checkoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);    // Reset navigation state when drawer is opened
     useEffect(() => {
         if (isOpen) {
             setIsNavigating(false);
+        }
+    }, [isOpen]);
+
+    // Cleanup timeouts when component unmounts or when drawer closes
+    useEffect(() => {
+        return () => {
+            if (checkoutTimeoutRef.current) {
+                clearTimeout(checkoutTimeoutRef.current);
+                checkoutTimeoutRef.current = null;
+            }
+            if (navigationTimeoutRef.current) {
+                clearTimeout(navigationTimeoutRef.current);
+                navigationTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
+    // Clear timeouts when drawer closes
+    useEffect(() => {
+        if (!isOpen) {
+            if (checkoutTimeoutRef.current) {
+                clearTimeout(checkoutTimeoutRef.current);
+                checkoutTimeoutRef.current = null;
+            }
+            if (navigationTimeoutRef.current) {
+                clearTimeout(navigationTimeoutRef.current);
+                navigationTimeoutRef.current = null;
+            }
         }
     }, [isOpen]);
 
@@ -78,16 +108,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             // Continue with checkout even if sync fails
         } finally {
             setIsLoading(false);
-        }
-
-        onClose();
+        } onClose();
 
         // Short delay to ensure the drawer closes cleanly before navigation
-        setTimeout(() => {
+        checkoutTimeoutRef.current = setTimeout(() => {
             router.push("/checkout");
 
             // Safety timeout to reset navigation state if something goes wrong
-            setTimeout(() => {
+            navigationTimeoutRef.current = setTimeout(() => {
                 setIsNavigating(false);
             }, 5000);
         }, 100);
