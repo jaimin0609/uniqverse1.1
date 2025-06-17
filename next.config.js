@@ -56,15 +56,15 @@ const nextConfig = {
         ]
       }
     ];
-  },
-  // Add redirects to fix routing
+  },  // Add redirects to fix routing
   async redirects() {
     return [
-      {
-        source: '/admin',
-        destination: '/admin',
-        permanent: false,
-      },
+      // Remove the problematic self-redirect that causes infinite loop
+      // {
+      //   source: '/admin',
+      //   destination: '/admin',
+      //   permanent: false,
+      // },
     ];
   },
   images: {

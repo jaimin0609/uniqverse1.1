@@ -8,6 +8,11 @@ export async function middleware(request: NextRequest) {
 
     // Handle admin routes
     if (path.startsWith('/admin') && path !== '/admin/direct') {
+        // Skip middleware for API routes within admin to prevent redirect loops
+        if (path.startsWith('/admin/api/')) {
+            return NextResponse.next()
+        }
+
         // Get the token from the request
         const token = await getToken({
             req: request,
@@ -26,19 +31,21 @@ export async function middleware(request: NextRequest) {
             // Not logged in - redirect to login with callback
             const url = new URL(`/auth/login`, request.url)
             url.searchParams.set('callbackUrl', encodeURI('/admin'))
+            console.log("Redirecting to login:", url.toString())
             return NextResponse.redirect(url)
         }
 
         // Check if the user has admin role
         if (token.role !== 'ADMIN') {
             // Not an admin - redirect to homepage
+            console.log("User is not admin, redirecting to homepage")
             return NextResponse.redirect(new URL('/', request.url))
         }
 
         // Allow access for admin users
         console.log("Admin access granted for:", token.email)
         return NextResponse.next()
-    }    // Handle vendor routes (vendor application is now at /careers/vendor, so all /vendor routes require auth)
+    }// Handle vendor routes (vendor application is now at /careers/vendor, so all /vendor routes require auth)
     if (path.startsWith('/vendor')) {
         // Get the token from the request
         const token = await getToken({
@@ -77,5 +84,15 @@ export async function middleware(request: NextRequest) {
 
 // Configure the middleware to run only on specific paths
 export const config = {
-    matcher: ['/admin/:path*', '/vendor/:path*'],
+    matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
+        '/admin/:path*',
+        '/vendor/:path*'
+    ]
 }
