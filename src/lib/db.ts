@@ -1,15 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 
-// Function to create PrismaClient with Accelerate extension
+// Function to create PrismaClient
 function createPrismaClient() {
     try {
         const prisma = new PrismaClient({
             log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
         });
 
-        // Add Accelerate extension for improved performance
-        return prisma.$extends(withAccelerate());
+        return prisma;
     } catch (error) {
         console.error("Failed to initialize Prisma Client:", error);
         console.error("Please run 'npx prisma generate' to generate the Prisma Client.");
