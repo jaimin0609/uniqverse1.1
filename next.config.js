@@ -2,6 +2,8 @@ const withPWA = require('next-pwa');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+  trailingSlash: false,
   reactStrictMode: true,
   // Enable TypeScript checking for production builds
   typescript: {

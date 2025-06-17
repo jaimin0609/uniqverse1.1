@@ -1,38 +1,40 @@
 {
-    "version": 2,
-    "env": {
-        "NEXTAUTH_URL": "$VERCEL_URL"
-    },
-    "headers": [
+  "version": 2,
+  "env": {
+    "NEXTAUTH_URL": "${VERCEL_URL}",
+    "NEXTAUTH_SECRET": "${NEXTAUTH_SECRET}"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-            "source": "/(.*)",
-            "headers": [
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                },
-                {
-                    "key": "X-Frame-Options",
-                    "value": "DENY"
-                },
-                {
-                    "key": "X-XSS-Protection",
-                    "value": "1; mode=block"
-                }
-            ]
-        }
-    ],
-    "redirects": [
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
         {
-            "source": "/admin",
-            "destination": "/admin/dashboard",
-            "permanent": false
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         }
-    ],
-    "regions": [
-        "iad1"
-    ],
-    "github": {
-        "silent": true
+      ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/admin/dashboard",
+      "permanent": false
+    }
+  ],
+  "regions": [
+    "iad1"
+  ],
+  "github": {
+    "silent": true
+  },
+  "buildCommand": "prisma generate && next build"
 }
