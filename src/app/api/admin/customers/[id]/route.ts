@@ -17,9 +17,10 @@ const customerUpdateSchema = z.object({
 // Get a specific customer with their orders and addresses
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -27,7 +28,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const customerId = params.id;
+        const customerId = resolvedParams.id;
 
         // Fetch customer with all their orders and addresses
         const customer = await db.user.findUnique({
@@ -82,9 +83,10 @@ export async function GET(
 // Update a customer
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -92,7 +94,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const customerId = params.id;
+        const customerId = resolvedParams.id;
         const data = await request.json();
 
         // Validate update data
@@ -184,9 +186,10 @@ export async function PATCH(
 // Delete a customer
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -194,7 +197,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const customerId = params.id;
+        const customerId = resolvedParams.id;
 
         // Check if customer exists
         const existingCustomer = await db.user.findUnique({

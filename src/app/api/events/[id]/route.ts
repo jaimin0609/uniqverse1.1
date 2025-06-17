@@ -11,11 +11,12 @@ async function auth() {
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Await params before accessing
-        const { id } = params;
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
 
         // Try to get event from cache first
         const cacheKey = `event:${id}`;
@@ -50,11 +51,12 @@ export async function GET(
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Await params before accessing
-        const { id } = params;
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
 
         // Check authentication and authorization
         const session = await auth();
@@ -118,11 +120,12 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Await params before accessing
-        const { id } = params;
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
 
         // Check authentication and authorization
         const session = await auth();

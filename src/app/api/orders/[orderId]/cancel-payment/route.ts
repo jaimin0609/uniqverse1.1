@@ -7,9 +7,10 @@ import { getServerSession } from 'next-auth';
 // POST /api/orders/[orderId]/cancel-payment
 export async function POST(
     req: NextRequest,
-    { params }: { params: { orderId: string } }
+    { params }: { params: Promise<{ orderId: string }> }
 ) {
-    const orderId = params.orderId;
+    const resolvedParams = await params;
+    const orderId = resolvedParams.orderId;
 
     try {
         // Verify that the order exists

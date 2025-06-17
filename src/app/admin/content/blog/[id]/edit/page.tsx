@@ -75,7 +75,7 @@ type BlogPostFormValues = {
     externalLinks?: Array<{ title: string; url: string }>;
 };
 
-export default function EditBlogPostPage({ params }: { params: { id: string } }) {
+export default function EditBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +85,17 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     const [externalLinks, setExternalLinks] = useState<Array<{ title: string; url: string }>>([]);
     const [newLinkTitle, setNewLinkTitle] = useState("");
     const [newLinkUrl, setNewLinkUrl] = useState("");
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);    // Form
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
+
+    // Initialize params
+    useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
     const form = useForm<BlogPostFormValues>({
         resolver: zodResolver(blogPostSchema) as any,
         defaultValues: {
@@ -102,17 +112,17 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
             categories: [],
             externalLinks: [],
         },
-    });
-
-    // Fetch blog post data and categories
+    });    // Fetch blog post data and categories
     useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
 
             try {
                 // Fetch blog post data
-                const response = await fetch(`/api/admin/blog-posts/${params.id}`);
+                const response = await fetch(`/api/admin/blog-posts/${resolvedParams.id}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch blog post");
                 }
@@ -162,7 +172,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         };
 
         fetchData();
-    }, [params.id, form]);
+    }, [resolvedParams, form]);
 
     // Add external link
     const addExternalLink = () => {
@@ -189,10 +199,10 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     // Remove external link
     const removeExternalLink = (index: number) => {
         setExternalLinks(externalLinks.filter((_, i) => i !== index));
-    };
-
-    // Form submission handler
+    };    // Form submission handler
     const onSubmit = async (values: BlogPostFormValues) => {
+        if (!resolvedParams) return;
+
         setIsSubmitting(true);
 
         try {
@@ -200,7 +210,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
             values.externalLinks = externalLinks;
             values.categories = selectedCategories;
 
-            const response = await fetch(`/api/admin/blog-posts/${params.id}`, {
+            const response = await fetch(`/api/admin/blog-posts/${resolvedParams.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -221,12 +231,12 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    // Delete blog post
+    };    // Delete blog post
     const deleteBlogPost = async () => {
+        if (!resolvedParams) return;
+
         try {
-            const response = await fetch(`/api/admin/blog-posts/${params.id}`, {
+            const response = await fetch(`/api/admin/blog-posts/${resolvedParams.id}`, {
                 method: "DELETE",
             });
 

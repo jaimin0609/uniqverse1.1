@@ -22,7 +22,11 @@ export const metadata: Metadata = {
   title: "UniQVerse | Modern E-Commerce Platform",
   description: "A modern e-commerce platform for unique products",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icons/icon-32x32.svg", sizes: "32x32", type: "image/svg+xml" },
+      { url: "/icons/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+    apple: "/icons/icon-192x192.svg",
   },
   manifest: "/manifest.json",
   appleWebApp: {

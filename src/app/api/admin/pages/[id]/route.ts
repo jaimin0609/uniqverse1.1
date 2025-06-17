@@ -7,16 +7,17 @@ import { cacheInvalidation } from "@/lib/redis";
 // GET /api/admin/pages/[id] - Get a specific page
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const page = await db.page.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!page) {
@@ -39,9 +40,10 @@ export async function GET(
 // PUT /api/admin/pages/[id] - Update a page
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,9 +58,7 @@ export async function PUT(
             metaTitle,
             metaDesc,
             externalLinks,
-        } = data;
-
-        // Validate required fields
+        } = data;        // Validate required fields
         if (!title || !slug) {
             return NextResponse.json(
                 { error: "Title and slug are required" },
@@ -68,7 +68,7 @@ export async function PUT(
 
         // Check if the page exists
         const existingPage = await db.page.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!existingPage) {
@@ -90,11 +90,9 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }
-
-        // Update the page
+        }        // Update the page
         const updatedPage = await db.page.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 title,
                 slug,
@@ -123,9 +121,10 @@ export async function PUT(
 // DELETE /api/admin/pages/[id] - Delete a page
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -133,7 +132,7 @@ export async function DELETE(
 
         // Check if the page exists
         const existingPage = await db.page.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!existingPage) {
@@ -141,11 +140,9 @@ export async function DELETE(
                 { error: "Page not found" },
                 { status: 404 }
             );
-        }
-
-        // Delete the page
+        }        // Delete the page
         await db.page.delete({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         // Invalidate admin pages cache

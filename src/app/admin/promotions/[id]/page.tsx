@@ -67,16 +67,25 @@ type FormResolver = Partial<
 >;
 
 interface PromotionProps {
-    params: {
+    params: Promise<{
         id?: string;
-    };
+    }>;
 }
 
 export default function PromotionForm({ params }: PromotionProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false); const [resolvedParams, setResolvedParams] = useState<{ id?: string } | null>(null);
+
+    // Initialize params
+    useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
 
     const form = useForm<PromotionFormValues>({
         resolver: zodResolver(promotionSchema) as any,
@@ -94,18 +103,18 @@ export default function PromotionForm({ params }: PromotionProps) {
         },
     });
 
-    const isEditing = !!params.id;
+    const isEditing = !!resolvedParams?.id;
 
     useEffect(() => {
-        if (isEditing) {
+        if (isEditing && resolvedParams) {
             fetchPromotion();
         }
-    }, [isEditing]);
+    }, [isEditing, resolvedParams]); const fetchPromotion = async () => {
+        if (!resolvedParams?.id) return;
 
-    const fetchPromotion = async () => {
         try {
             setIsFetching(true);
-            const response = await fetch(`/api/promotions/${params.id}`);
+            const response = await fetch(`/api/promotions/${resolvedParams.id}`);
             if (response.ok) {
                 const data = await response.json();
 
@@ -131,7 +140,7 @@ export default function PromotionForm({ params }: PromotionProps) {
             setSubmitting(true);
 
             const url = isEditing
-                ? `/api/promotions/${params.id}`
+                ? `/api/promotions/${resolvedParams?.id}`
                 : "/api/promotions";
 
             const method = isEditing ? "PUT" : "POST";

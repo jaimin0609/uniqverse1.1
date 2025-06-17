@@ -5,9 +5,10 @@ import { db } from '@/lib/db';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated
@@ -15,7 +16,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const orderId = params.id;
+        const orderId = resolvedParams.id;
 
         // Find the order and ensure it belongs to the current user
         const order = await db.order.findUnique({

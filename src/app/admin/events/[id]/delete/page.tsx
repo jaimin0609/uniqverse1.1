@@ -7,24 +7,33 @@ import { toast } from "sonner";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
-export default function DeleteEventPage({ params }: { params: { id: string } }) {
+export default function DeleteEventPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [event, setEvent] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
     useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchEvent = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`/api/events/${params.id}`);
+                const response = await fetch(`/api/events/${resolvedParams.id}`);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch event: ${response.status}`);
-                }
-
-                const data = await response.json();
+                } const data = await response.json();
                 setEvent(data);
                 setError(null);
             } catch (err) {
@@ -37,13 +46,15 @@ export default function DeleteEventPage({ params }: { params: { id: string } }) 
         };
 
         fetchEvent();
-    }, [params.id]);
+    }, [resolvedParams]);
 
     const handleDelete = async () => {
+        if (!resolvedParams) return;
+
         setIsDeleting(true);
 
         try {
-            const response = await fetch(`/api/events/${params.id}`, {
+            const response = await fetch(`/api/events/${resolvedParams.id}`, {
                 method: "DELETE",
             });
 
@@ -137,8 +148,8 @@ export default function DeleteEventPage({ params }: { params: { id: string } }) 
                                 Position: {event.position}
                             </div>
                             <div className={`px-2 py-1 rounded text-xs ${event.isActive
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
                                 }`}>
                                 {event.isActive ? 'Active' : 'Inactive'}
                             </div>

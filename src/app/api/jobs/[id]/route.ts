@@ -21,11 +21,12 @@ const jobUpdateSchema = z.object({
 // Get a specific job position
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const job = await db.jobPosition.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 _count: {
                     select: {
@@ -66,9 +67,10 @@ export async function GET(
 // Update a job position (Admin only)
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -89,7 +91,7 @@ export async function PATCH(
 
         // Check if job exists
         const existingJob = await db.jobPosition.findUnique({
-            where: { id: params.id }
+            where: { id: resolvedParams.id }
         });
 
         if (!existingJob) {
@@ -106,10 +108,8 @@ export async function PATCH(
             updateData.closingDate = validatedData.data.closingDate
                 ? new Date(validatedData.data.closingDate)
                 : null;
-        }
-
-        const job = await db.jobPosition.update({
-            where: { id: params.id },
+        } const job = await db.jobPosition.update({
+            where: { id: resolvedParams.id },
             data: updateData,
             include: {
                 _count: {
@@ -133,9 +133,10 @@ export async function PATCH(
 // Delete a job position (Admin only)
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -145,7 +146,7 @@ export async function DELETE(
 
         // Check if job exists
         const existingJob = await db.jobPosition.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 _count: {
                     select: {
@@ -168,10 +169,8 @@ export async function DELETE(
                 { error: "Cannot delete job position with applications. Archive it instead." },
                 { status: 400 }
             );
-        }
-
-        await db.jobPosition.delete({
-            where: { id: params.id }
+        } await db.jobPosition.delete({
+            where: { id: resolvedParams.id }
         });
 
         return NextResponse.json({

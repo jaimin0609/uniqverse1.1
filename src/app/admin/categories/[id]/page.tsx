@@ -16,24 +16,33 @@ interface Category {
     level?: number;
 }
 
-export default function EditCategoryPage({ params }: { params: { id: string } }) {
+export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [parentCategories, setParentCategories] = useState<Category[]>([]);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
     const [formData, setFormData] = useState({
         name: "",
         slug: "",
         description: "",
         parentId: "",
     });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [errors, setErrors] = useState<{ [key: string]: string }>({}); useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
 
     useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchData = async () => {
             try {
                 // Fetch the current category
-                const categoryResponse = await fetch(`/api/admin/categories/${params.id}`);
+                const categoryResponse = await fetch(`/api/admin/categories/${resolvedParams.id}`);
                 if (!categoryResponse.ok) {
                     throw new Error('Failed to fetch category');
                 }
@@ -54,7 +63,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
                 // Filter out the current category and its children from potential parents
                 const allCategories = categoriesData.hierarchicalCategories || categoriesData.categories;
                 const filteredCategories = allCategories.filter(
-                    (category: Category) => category.id !== params.id
+                    (category: Category) => category.id !== resolvedParams.id
                 );
                 setParentCategories(filteredCategories || []);
             } catch (error) {
@@ -65,9 +74,8 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
                 setIsLoading(false);
             }
         };
-
         fetchData();
-    }, [params.id, router]);
+    }, [resolvedParams, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -101,19 +109,17 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    }; const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!resolvedParams) return;
 
         if (!validateForm()) {
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const response = await fetch(`/api/admin/categories/${params.id}`, {
+        setIsSaving(true); try {
+            const response = await fetch(`/api/admin/categories/${resolvedParams.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -135,17 +141,15 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
         } finally {
             setIsSaving(false);
         }
-    };
+    }; const handleDelete = async () => {
+        if (!resolvedParams) return;
 
-    const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete this category? This will affect all products in this category.')) {
             return;
         }
 
-        setIsSaving(true);
-
-        try {
-            const response = await fetch(`/api/admin/categories/${params.id}`, {
+        setIsSaving(true); try {
+            const response = await fetch(`/api/admin/categories/${resolvedParams.id}`, {
                 method: 'DELETE',
             });
 
@@ -162,9 +166,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
         } finally {
             setIsSaving(false);
         }
-    };
-
-    if (isLoading) {
+    }; if (isLoading || !resolvedParams) {
         return (
             <div className="container py-8 text-center">
                 <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>

@@ -60,15 +60,22 @@ const eventFormSchema = z.object({
 // Define the form type explicitly
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
-export default function EditEventPage({ params }: { params: { id: string } }) {
+export default function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [previewUrl, setPreviewUrl] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
-    // Unwrap the params object
-    const eventId = params.id;
+    // Initialize params
+    useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
 
     const form = useForm<EventFormValues>({
         resolver: zodResolver(eventFormSchema) as any,
@@ -92,9 +99,7 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
             isActive: true,
             position: 0,
         },
-    });
-
-    const contentType = form.watch("contentType");
+    }); const contentType = form.watch("contentType");
     const imageUrl = form.watch("imageUrl");
     const videoUrl = form.watch("videoUrl");
     const textColor = form.watch("textColor");
@@ -106,10 +111,12 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
 
     // Fetch event data on component mount
     useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchEvent = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`/api/events/${eventId}`);
+                const response = await fetch(`/api/events/${resolvedParams.id}`);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch event: ${response.status}`);
@@ -136,7 +143,7 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
         };
 
         fetchEvent();
-    }, [eventId, form]);
+    }, [resolvedParams, form]);
 
     // Update preview URL when image or video URL changes
     useEffect(() => {
@@ -165,20 +172,23 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
             case "center-right":
                 return "items-center justify-end text-right";
             case "bottom-left":
-                return "items-end justify-start text-left";
-            case "bottom-center":
+                return "items-end justify-start text-left"; case "bottom-center":
                 return "items-end justify-center text-center";
             case "bottom-right":
                 return "items-end justify-end text-right";
             default:
                 return "items-center justify-center text-center";
         }
-    };    // Form submission handler
+    };
+
+    // Form submission handler
     const onSubmit = async (values: EventFormValues) => {
+        if (!resolvedParams) return;
+
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`/api/events/${eventId}`, {
+            const response = await fetch(`/api/events/${resolvedParams.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

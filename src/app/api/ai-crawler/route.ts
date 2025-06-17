@@ -251,7 +251,12 @@ async function crawlSingleUrl(url: string, category: string) {
             });
         }
 
-        return { url, title, contentLength: content.length, keywords: keywords.length };
+        return NextResponse.json({
+            url,
+            title,
+            contentLength: content.length,
+            keywords: keywords.length
+        });
 
     } catch (error) {
         console.error(`Error crawling ${url}:`, error);

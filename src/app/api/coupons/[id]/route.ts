@@ -6,9 +6,10 @@ import { cache } from "@/lib/redis";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and is an admin
@@ -20,7 +21,7 @@ export async function GET(
         }
 
         const coupon = await db.coupon.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 products: true,
                 categories: true,
@@ -49,9 +50,10 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and is an admin
@@ -66,7 +68,7 @@ export async function PUT(
 
         // Get existing coupon
         const existingCoupon = await db.coupon.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 products: true,
                 categories: true,
@@ -94,7 +96,7 @@ export async function PUT(
             }
         }        // Update the coupon
         const updatedCoupon = await db.coupon.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 code: data.code?.toUpperCase(),
                 description: data.description,
@@ -154,9 +156,10 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and is an admin
@@ -165,11 +168,9 @@ export async function DELETE(
                 { error: "Unauthorized" },
                 { status: 401 }
             );
-        }
-
-        // Get coupon before deletion for logging
+        }        // Get coupon before deletion for logging
         const coupon = await db.coupon.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!coupon) {
@@ -180,8 +181,8 @@ export async function DELETE(
         }
 
         await db.coupon.delete({
-            where: { id: params.id },
-        });        // Log the admin action
+            where: { id: resolvedParams.id },
+        });// Log the admin action
         await db.adminAuditLog.create({
             data: {
                 id: crypto.randomUUID(),

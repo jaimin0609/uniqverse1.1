@@ -14,9 +14,10 @@ const applicationUpdateSchema = z.object({
 // Get a specific job application
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -24,7 +25,7 @@ export async function GET(
         }
 
         const application = await db.jobApplication.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 jobPosition: {
                     select: {
@@ -82,9 +83,10 @@ export async function GET(
 // Update a job application (Admin only for status changes)
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user || session.user.role !== "ADMIN") {
@@ -100,11 +102,9 @@ export async function PATCH(
                 { error: "Invalid data", details: validatedData.error.format() },
                 { status: 400 }
             );
-        }
-
-        // Check if application exists
+        }        // Check if application exists
         const existingApplication = await db.jobApplication.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 jobPosition: {
                     select: {
@@ -136,10 +136,8 @@ export async function PATCH(
         if (validatedData.data.status && validatedData.data.status !== existingApplication.status) {
             updateData.reviewedBy = session.user.id;
             updateData.reviewedAt = new Date();
-        }
-
-        const application = await db.jobApplication.update({
-            where: { id: params.id },
+        } const application = await db.jobApplication.update({
+            where: { id: resolvedParams.id },
             data: updateData,
             include: {
                 jobPosition: {
@@ -182,9 +180,10 @@ export async function PATCH(
 // Delete/withdraw a job application
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -192,7 +191,7 @@ export async function DELETE(
         }
 
         const application = await db.jobApplication.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 user: {
                     select: {
@@ -215,12 +214,10 @@ export async function DELETE(
                 { error: "Unauthorized" },
                 { status: 401 }
             );
-        }
-
-        // For users, mark as withdrawn instead of deleting
+        }        // For users, mark as withdrawn instead of deleting
         if (session.user.role !== "ADMIN") {
             await db.jobApplication.update({
-                where: { id: params.id },
+                where: { id: resolvedParams.id },
                 data: {
                     status: "WITHDRAWN",
                     updatedAt: new Date()
@@ -230,11 +227,9 @@ export async function DELETE(
             return NextResponse.json({
                 message: "Application withdrawn successfully"
             });
-        }
-
-        // Admins can delete the application
+        }        // Admins can delete the application
         await db.jobApplication.delete({
-            where: { id: params.id }
+            where: { id: resolvedParams.id }
         });
 
         return NextResponse.json({

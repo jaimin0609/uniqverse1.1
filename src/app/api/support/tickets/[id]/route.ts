@@ -7,9 +7,10 @@ import { cache, cacheInvalidation } from "@/lib/redis";
 // GET - Retrieve a specific ticket with all replies
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user) {
@@ -19,7 +20,7 @@ export async function GET(
             );
         }
 
-        const ticketId = params.id;
+        const ticketId = resolvedParams.id;
 
         // Check if user is admin or the ticket owner
         const isAdmin = session.user.role === "ADMIN";
@@ -66,9 +67,10 @@ export async function GET(
 // PATCH - Update ticket status or priority
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user) {
@@ -78,7 +80,7 @@ export async function PATCH(
             );
         }
 
-        const ticketId = params.id;
+        const ticketId = resolvedParams.id;
         const { status, priority } = await req.json();
 
         // Verify admin role for status updates
@@ -139,9 +141,10 @@ export async function PATCH(
 // POST - Add a reply to a ticket
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user) {
@@ -151,7 +154,7 @@ export async function POST(
             );
         }
 
-        const ticketId = params.id;
+        const ticketId = resolvedParams.id;
         const { content } = await req.json();
 
         if (!content || !content.trim()) {

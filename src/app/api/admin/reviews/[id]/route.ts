@@ -14,9 +14,10 @@ const reviewUpdateSchema = z.object({
 // Get a specific review
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -24,7 +25,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const reviewId = params.id;
+        const reviewId = resolvedParams.id;
 
         const review = await db.review.findUnique({
             where: { id: reviewId },
@@ -78,9 +79,10 @@ export async function GET(
 // Update a review (moderation)
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -88,7 +90,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const reviewId = params.id;
+        const reviewId = resolvedParams.id;
         const data = await request.json();
 
         // Validate update data
@@ -193,9 +195,10 @@ export async function PATCH(
 // Delete a review
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -203,7 +206,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const reviewId = params.id;
+        const reviewId = resolvedParams.id;
 
         // Check if review exists
         const existingReview = await db.review.findUnique({

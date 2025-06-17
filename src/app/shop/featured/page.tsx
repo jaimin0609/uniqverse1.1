@@ -16,8 +16,11 @@ import { db } from "@/lib/db";
 export default async function FeaturedProductsPage({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+    // Resolve the searchParams promise
+    const resolvedSearchParams = await searchParams;
+
     // Fetch all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: {
@@ -26,10 +29,8 @@ export default async function FeaturedProductsPage({
         select: { id: true, name: true, slug: true, parentId: true },
     });    // Add parameters to filter for featured products
     // Create a serializable copy of the search params
-    const serializedSearchParams: Record<string, string | string[]> = {};
-
-    // Only copy over the values that exist
-    for (const [key, value] of Object.entries(searchParams)) {
+    const serializedSearchParams: Record<string, string | string[]> = {};    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
         if (value !== undefined) {
             serializedSearchParams[key] = value;
         }

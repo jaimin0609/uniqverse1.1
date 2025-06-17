@@ -80,7 +80,7 @@ interface OrderItem {
     customerOrderNumber: string;
 }
 
-export default function SupplierOrderDetailPage({ params }: { params: { id: string } }) {
+export default function SupplierOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [order, setOrder] = useState<SupplierOrderDetail | null>(null);
@@ -88,12 +88,21 @@ export default function SupplierOrderDetailPage({ params }: { params: { id: stri
     const [isUpdatingNotes, setIsUpdatingNotes] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
     useEffect(() => {
-        if (params.id) {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (resolvedParams?.id) {
             fetchOrderDetails();
         }
-    }, [params.id]);
+    }, [resolvedParams]);
 
     useEffect(() => {
         if (order?.notes) {
@@ -102,9 +111,11 @@ export default function SupplierOrderDetailPage({ params }: { params: { id: stri
     }, [order?.notes]);
 
     const fetchOrderDetails = async () => {
+        if (!resolvedParams) return;
+
         setIsLoading(true);
         try {
-            const response = await fetch(`/api/admin/supplier-orders/${params.id}`);
+            const response = await fetch(`/api/admin/supplier-orders/${resolvedParams.id}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch supplier order details");
             }
@@ -119,9 +130,11 @@ export default function SupplierOrderDetailPage({ params }: { params: { id: stri
     };
 
     const refreshOrderStatus = async () => {
+        if (!resolvedParams) return;
+
         setIsRefreshing(true);
         try {
-            const response = await fetch(`/api/admin/supplier-orders/${params.id}/check-status`, {
+            const response = await fetch(`/api/admin/supplier-orders/${resolvedParams.id}/check-status`, {
                 method: "POST"
             });
 
@@ -143,12 +156,12 @@ export default function SupplierOrderDetailPage({ params }: { params: { id: stri
         } finally {
             setIsRefreshing(false);
         }
-    };
+    }; const sendOrderToSupplier = async () => {
+        if (!resolvedParams) return;
 
-    const sendOrderToSupplier = async () => {
         setIsSending(true);
         try {
-            const response = await fetch(`/api/admin/supplier-orders/${params.id}/send`, {
+            const response = await fetch(`/api/admin/supplier-orders/${resolvedParams.id}/send`, {
                 method: "POST"
             });
 
@@ -173,9 +186,11 @@ export default function SupplierOrderDetailPage({ params }: { params: { id: stri
     };
 
     const saveNotes = async () => {
+        if (!resolvedParams) return;
+
         setIsUpdatingNotes(true);
         try {
-            const response = await fetch(`/api/admin/supplier-orders/${params.id}`, {
+            const response = await fetch(`/api/admin/supplier-orders/${resolvedParams.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

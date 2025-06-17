@@ -6,18 +6,17 @@ import { db } from "@/lib/db";
 // GET single vendor product
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has vendor role
         if (!session?.user || session.user.role !== "VENDOR") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const vendorId = session.user.id;
-        const productId = params.id;
+        } const vendorId = session.user.id;
+        const productId = resolvedParams.id;
 
         const product = await db.product.findFirst({
             where: {
@@ -66,18 +65,17 @@ export async function GET(
 // PUT update vendor product
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has vendor role
         if (!session?.user || session.user.role !== "VENDOR") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const vendorId = session.user.id;
-        const productId = params.id;
+        } const vendorId = session.user.id;
+        const productId = resolvedParams.id;
         const data = await request.json();
 
         // Verify product belongs to vendor
@@ -183,9 +181,10 @@ export async function PUT(
 // DELETE vendor product
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has vendor role
@@ -194,7 +193,7 @@ export async function DELETE(
         }
 
         const vendorId = session.user.id;
-        const productId = params.id;
+        const productId = resolvedParams.id;
 
         // Verify product belongs to vendor
         const existingProduct = await db.product.findFirst({

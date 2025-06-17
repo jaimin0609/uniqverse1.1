@@ -8,9 +8,10 @@ import { DropshippingService } from "@/services/dropshipping/dropshipping-servic
 // POST endpoint to manually send a supplier order to the supplier API
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -18,7 +19,7 @@ export async function POST(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierOrderId = params.id;
+        const supplierOrderId = resolvedParams.id;
 
         // Verify the supplier order exists
         const supplierOrder = await db.supplierOrder.findUnique({

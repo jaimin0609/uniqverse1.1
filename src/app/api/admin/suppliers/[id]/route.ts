@@ -7,9 +7,10 @@ import { logAdminAction } from "@/lib/admin-utils";
 // GET a single supplier
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -18,7 +19,7 @@ export async function GET(
         }
 
         // Fix: Use params directly as a string
-        const supplierId = String(params.id);
+        const supplierId = String(resolvedParams.id);
 
         // Get supplier details
         const supplier = await db.supplier.findUnique({
@@ -85,9 +86,10 @@ export async function GET(
 // PUT - Update a supplier
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -95,7 +97,7 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierId = params.id;
+        const supplierId = resolvedParams.id;
         const data = await request.json();
 
         // Validate required fields
@@ -173,9 +175,10 @@ export async function PUT(
 // PATCH - Update supplier status
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -183,7 +186,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierId = params.id;
+        const supplierId = resolvedParams.id;
         const data = await request.json();
 
         // Validate data
@@ -234,9 +237,10 @@ export async function PATCH(
 // DELETE - Delete a supplier
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -244,7 +248,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierId = params.id;
+        const supplierId = resolvedParams.id;
 
         // Get existing supplier for logging
         const existingSupplier = await db.supplier.findUnique({

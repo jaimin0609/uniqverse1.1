@@ -32,19 +32,27 @@ interface BlogPost {
     };
 }
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
+export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
     const router = useRouter();
     const [category, setCategory] = useState<Category | null>(null);
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(null);
 
     useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]); useEffect(() => {
+        if (!resolvedParams?.slug) return;
+
         async function fetchCategoryAndPosts() {
             setIsLoading(true);
-            try {
-                // Fetch category
-                const categoryResponse = await fetch(`/api/blog-categories/slug/${params.slug}`);
+            try {                // Fetch category
+                const categoryResponse = await fetch(`/api/blog-categories/slug/${resolvedParams!.slug}`);
                 if (!categoryResponse.ok) {
                     if (categoryResponse.status === 404) {
                         throw new Error("Category not found");
@@ -79,7 +87,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         }
 
         fetchCategoryAndPosts();
-    }, [params.slug]);
+    }, [resolvedParams]);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -88,9 +96,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
             month: 'long',
             day: 'numeric'
         }).format(date);
-    };
-
-    if (isLoading) {
+    }; if (!resolvedParams || isLoading) {
         return (
             <div className="container mx-auto px-4 py-20 flex justify-center items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

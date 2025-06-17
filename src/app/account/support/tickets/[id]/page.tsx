@@ -12,19 +12,18 @@ export const metadata = {
 export default async function CustomerTicketDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
-    const session = await getServerSession(authOptions);
-
-    // Redirect to login if not authenticated
+    const resolvedParams = await params;
+    const session = await getServerSession(authOptions);    // Redirect to login if not authenticated
     if (!session?.user) {
-        redirect("/auth/login?callbackUrl=/account/support/tickets/" + params.id);
+        redirect("/auth/login?callbackUrl=/account/support/tickets/" + resolvedParams.id);
     }
 
     // Check if ticket exists and belongs to user (for security)
     const ticket = await db.supportTicket.findUnique({
         where: {
-            id: params.id,
+            id: resolvedParams.id,
             userId: session.user.id,
         },
         select: { id: true },
@@ -37,7 +36,7 @@ export default async function CustomerTicketDetailPage({
 
     return (
         <div className="container max-w-5xl py-10">
-            <TicketDetail ticketId={params.id} />
+            <TicketDetail ticketId={resolvedParams.id} />
         </div>
     );
 }

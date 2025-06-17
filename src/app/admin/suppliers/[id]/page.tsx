@@ -100,8 +100,9 @@ interface SupplierFormData {
     apiHeaderAuth?: string;
 }
 
-export default function AddSupplierPage({ params }: { params?: { id: string } }) {
+export default function AddSupplierPage({ params }: { params?: Promise<{ id: string }> }) {
     const router = useRouter();
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
     const [formData, setFormData] = useState<SupplierFormData>({
         name: "",
         description: "",
@@ -127,15 +128,24 @@ export default function AddSupplierPage({ params }: { params?: { id: string } })
     const [testDetails, setTestDetails] = useState("");
     const [apiAuthType, setApiAuthType] = useState("api_key");
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [activePlatformTemplate, setActivePlatformTemplate] = useState("custom");
+    const [activePlatformTemplate, setActivePlatformTemplate] = useState("custom");    // Initialize params
+    useEffect(() => {
+        const initializeParams = async () => {
+            if (params) {
+                const resolved = await params;
+                setResolvedParams(resolved);
+            }
+        };
+        initializeParams();
+    }, [params]);
 
     // Check if we're in edit mode
     useEffect(() => {
-        if (params?.id) {
+        if (resolvedParams?.id) {
             setEditMode(true);
-            fetchSupplierData(params.id);
+            fetchSupplierData(resolvedParams.id);
         }
-    }, [params]);
+    }, [resolvedParams]);
 
     const fetchSupplierData = async (id: string) => {
         setIsLoading(true);
@@ -297,7 +307,7 @@ export default function AddSupplierPage({ params }: { params?: { id: string } })
         try {
             const method = editMode ? "PUT" : "POST";
             const url = editMode
-                ? `/api/admin/suppliers/${params?.id}`
+                ? `/api/admin/suppliers/${resolvedParams?.id}`
                 : "/api/admin/suppliers";
 
             const response = await fetch(url, {
@@ -326,11 +336,11 @@ export default function AddSupplierPage({ params }: { params?: { id: string } })
     };
 
     const deleteSupplier = async () => {
-        if (!editMode || !params?.id) return;
+        if (!editMode || !resolvedParams?.id) return;
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`/api/admin/suppliers/${params.id}`, {
+            const response = await fetch(`/api/admin/suppliers/${resolvedParams.id}`, {
                 method: "DELETE",
             });
 
@@ -501,8 +511,8 @@ export default function AddSupplierPage({ params }: { params?: { id: string } })
                                             <div
                                                 key={template.name}
                                                 className={`border rounded-lg p-4 cursor-pointer transition-colors ${activePlatformTemplate === template.name
-                                                        ? 'border-blue-500 bg-blue-50'
-                                                        : 'hover:border-gray-300'
+                                                    ? 'border-blue-500 bg-blue-50'
+                                                    : 'hover:border-gray-300'
                                                     }`}
                                                 onClick={() => handleTemplateChange(template.name)}
                                             >

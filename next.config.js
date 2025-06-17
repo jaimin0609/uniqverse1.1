@@ -3,11 +3,11 @@ const withPWA = require('next-pwa');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Temporarily disable TypeScript checking during build
+  // Enable TypeScript checking for production builds
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  // Enable CSS optimization now that we've fixed dependencies
+  // Enable CSS optimization
   experimental: {
     optimizeCss: true,
   },images: {

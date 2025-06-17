@@ -6,9 +6,10 @@ import { db } from "@/lib/db";
 // GET single vendor order
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has vendor role
@@ -17,7 +18,7 @@ export async function GET(
         }
 
         const vendorId = session.user.id;
-        const orderId = params.id;
+        const orderId = resolvedParams.id;
 
         // Find order with vendor's products
         const order = await db.order.findFirst({

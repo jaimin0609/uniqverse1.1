@@ -23,9 +23,10 @@ const productUpdateSchema = z.object({
 // Get a specific product
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -33,7 +34,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id: productId } = await params; const product = await db.product.findUnique({
+        const { id: productId } = resolvedParams; const product = await db.product.findUnique({
             where: { id: productId },
             include: {
                 category: true,
@@ -98,9 +99,10 @@ export async function GET(
 // Update a product
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -108,7 +110,7 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id: productId } = await params;
+        const { id: productId } = resolvedParams;
         const data = await request.json();
 
         console.log("Updating product data:", data);
@@ -284,9 +286,10 @@ export async function PUT(
 // Delete a product
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -294,7 +297,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const productId = params.id;
+        const productId = resolvedParams.id;
 
         // Check if product exists
         const existingProduct = await db.product.findUnique({

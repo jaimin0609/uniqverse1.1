@@ -8,9 +8,10 @@ import { cacheInvalidation } from "@/lib/redis";
 // GET a specific supplier order
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -18,7 +19,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierOrderId = params.id;
+        const supplierOrderId = resolvedParams.id;
 
         // Get supplier order details
         const supplierOrder = await db.supplierOrder.findUnique({
@@ -88,9 +89,10 @@ export async function GET(
 // PATCH - Update supplier order status and tracking info
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -98,7 +100,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierOrderId = params.id;
+        const supplierOrderId = resolvedParams.id;
         const data = await request.json();
 
         // Get existing supplier order to log changes and update related items
@@ -270,9 +272,10 @@ export async function PATCH(
 // DELETE - Cancel a supplier order
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -280,7 +283,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const supplierOrderId = params.id;
+        const supplierOrderId = resolvedParams.id;
 
         // Get existing supplier order for logging and updating related items
         const existingOrder = await db.supplierOrder.findUnique({

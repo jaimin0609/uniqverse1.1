@@ -7,9 +7,10 @@ import { cacheInvalidation } from "@/lib/redis";
 // Get a specific user
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -17,7 +18,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = params.id;
+        const userId = resolvedParams.id;
 
         const user = await db.user.findUnique({
             where: { id: userId },
@@ -69,9 +70,10 @@ export async function GET(
 // Update a user
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -79,7 +81,7 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = params.id;
+        const userId = resolvedParams.id;
         const data = await request.json();
 
         // Validate the data
@@ -165,9 +167,10 @@ export async function PUT(
 // Delete a user
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -175,7 +178,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = params.id;
+        const userId = resolvedParams.id;
 
         // Prevent admin from deleting themselves
         if (session.user.id === userId) {

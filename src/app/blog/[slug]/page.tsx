@@ -41,10 +41,10 @@ interface BlogPost {
     }[];
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } | Promise<{ slug: string }> }) {
+export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const router = useRouter();
     // Unwrap params using React.use()
-    const resolvedParams = params instanceof Promise ? use(params) : params;
+    const resolvedParams = use(params);
     const [post, setPost] = useState<BlogPost | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

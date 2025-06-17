@@ -12,8 +12,9 @@ export const metadata = {
 export default async function AdminTicketDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
+    const resolvedParams = await params;
     const session = await getServerSession(authOptions);
 
     // Security check: redirect if not admin
@@ -24,7 +25,7 @@ export default async function AdminTicketDetailPage({
     // Check if ticket exists (for security)
     const ticket = await db.supportTicket.findUnique({
         where: {
-            id: params.id,
+            id: resolvedParams.id,
         },
         select: { id: true },
     });
@@ -32,11 +33,9 @@ export default async function AdminTicketDetailPage({
     // Redirect if ticket not found
     if (!ticket) {
         redirect("/admin/support-management/tickets");
-    }
-
-    return (
+    } return (
         <div className="container py-6">
-            <AdminTicketDetail ticketId={params.id} />
+            <AdminTicketDetail ticketId={resolvedParams.id} />
         </div>
     );
 }

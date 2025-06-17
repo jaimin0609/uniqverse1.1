@@ -8,16 +8,17 @@ import { cacheInvalidation } from "@/lib/redis";
 // GET /api/admin/blog-posts/[id] - Get a specific blog post
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const blogPost = await db.blogPost.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 User: {
                     select: {
@@ -52,16 +53,17 @@ export async function GET(
 // PUT /api/admin/blog-posts/[id] - Update a specific blog post
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const blogPost = await db.blogPost.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!blogPost) {
@@ -99,18 +101,16 @@ export async function PUT(
                 where: { slug },
             });
 
-            if (existingPost && existingPost.id !== params.id) {
+            if (existingPost && existingPost.id !== resolvedParams.id) {
                 return NextResponse.json(
                     { error: "Slug is already in use" },
                     { status: 400 }
                 );
             }
-        }
-
-        // Update categories if provided
+        }        // Update categories if provided
         if (categories) {
             await db.blogPost.update({
-                where: { id: params.id },
+                where: { id: resolvedParams.id },
                 data: {
                     BlogCategory: {
                         set: [], // First remove all existing connections
@@ -122,7 +122,7 @@ export async function PUT(
 
         // Update the blog post
         const updatedBlogPost = await db.blogPost.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 title,
                 slug,
@@ -161,25 +161,24 @@ export async function PUT(
 // DELETE /api/admin/blog-posts/[id] - Delete a specific blog post
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const blogPost = await db.blogPost.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!blogPost) {
             return NextResponse.json({ error: "Blog post not found" }, { status: 404 });
-        }
-
-        // Delete the blog post
+        }        // Delete the blog post
         await db.blogPost.delete({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         // Invalidate relevant caches

@@ -25,14 +25,26 @@ interface BlogPost {
     };
 }
 
-export default function TagPage({ params }: { params: { tag: string } }) {
+export default function TagPage({ params }: { params: Promise<{ tag: string }> }) {
     const router = useRouter();
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const tag = decodeURIComponent(params.tag);
+    const [resolvedParams, setResolvedParams] = useState<{ tag: string } | null>(null);
 
     useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (!resolvedParams) return;
+
+        const tag = decodeURIComponent(resolvedParams.tag);
+
         async function fetchPostsByTag() {
             setIsLoading(true);
             try {
@@ -48,8 +60,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
                     .map((post: any) => ({
                         ...post,
                         tags: post.tags ? post.tags.split(',').map((t: string) => t.trim()) : [],
-                    }))
-                    .filter((post: any) =>
+                    })).filter((post: any) =>
                         post.tags.some((t: string) =>
                             t.toLowerCase() === tag.toLowerCase()
                         )
@@ -65,7 +76,9 @@ export default function TagPage({ params }: { params: { tag: string } }) {
         }
 
         fetchPostsByTag();
-    }, [tag]);
+    }, [resolvedParams]);
+
+    const tag = resolvedParams ? decodeURIComponent(resolvedParams.tag) : '';
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -76,7 +89,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
         }).format(date);
     };
 
-    if (isLoading) {
+    if (!resolvedParams || isLoading) {
         return (
             <div className="container mx-auto px-4 py-20 flex justify-center items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

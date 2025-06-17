@@ -44,7 +44,7 @@ interface Order {
     createdAt: string;
 }
 
-export default function UserDetailPage({ params }: { params: { id: string } }) {
+export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [user, setUser] = useState<UserData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +52,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
     // Form state
     const [name, setName] = useState("");
@@ -60,10 +61,19 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const [image, setImage] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchUser();
-    }, [params.id]);
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
 
-    const fetchUser = async () => {
+    useEffect(() => {
+        if (!resolvedParams) return;
+        fetchUser();
+    }, [resolvedParams]); const fetchUser = async () => {
+        if (!resolvedParams) return;
+
         setIsLoading(true);
         setError(null);
 
@@ -72,7 +82,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             await new Promise((resolve) => setTimeout(resolve, 500));
 
             // Mock data - in production, this would be fetched from the API
-            if (params.id === "new") {
+            if (resolvedParams.id === "new") {
                 setUser(null);
                 setName("");
                 setEmail("");
@@ -80,11 +90,11 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 setImage(null);
             } else {
                 const mockUser: UserData = {
-                    id: params.id,
+                    id: resolvedParams.id,
                     name: "John Smith",
                     email: "john@example.com",
-                    role: params.id === "user_1" ? "ADMIN" : "USER",
-                    image: params.id === "user_1" ? "https://randomuser.me/api/portraits/men/1.jpg" : null,
+                    role: resolvedParams.id === "user_1" ? "ADMIN" : "USER",
+                    image: resolvedParams.id === "user_1" ? "https://randomuser.me/api/portraits/men/1.jpg" : null,
                     createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
                     updatedAt: new Date().toISOString(),
                     orders: [
@@ -142,7 +152,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             // Simulate API call with timeout
             await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            if (params.id === "new") {
+            if (resolvedParams?.id === "new") {
                 // This would be a POST request in production
                 console.log("Creating new user:", { name, email, role, image });
 
@@ -167,7 +177,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
             // Show success message
             // In production you would use a toast notification
-            alert(params.id === "new" ? "User created successfully!" : "User updated successfully!");
+            alert(resolvedParams?.id === "new" ? "User created successfully!" : "User updated successfully!");
         } catch (err) {
             console.error("Error saving user:", err);
             setFormError("Failed to save user data. Please try again.");
@@ -241,7 +251,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                     </Link>
                 </Button>
                 <h1 className="text-2xl font-bold text-gray-900">
-                    {params.id === "new" ? "Create New User" : "Edit User"}
+                    {resolvedParams?.id === "new" ? "Create New User" : "Edit User"}
                 </h1>
             </div>
 
@@ -331,7 +341,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
                                 <div className="flex justify-between pt-4">
                                     <div>
-                                        {params.id !== "new" && (
+                                        {resolvedParams?.id !== "new" && (
                                             <Button
                                                 type="button"
                                                 variant="outline"
@@ -354,7 +364,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                         ) : (
                                             <Save className="h-4 w-4 mr-2" />
                                         )}
-                                        {params.id === "new" ? "Create User" : "Save Changes"}
+                                        {resolvedParams?.id === "new" ? "Create User" : "Save Changes"}
                                     </Button>
                                 </div>
                             </div>
@@ -363,7 +373,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 </div>
 
                 <div>
-                    {params.id !== "new" && user && (
+                    {resolvedParams?.id !== "new" && user && (
                         <>
                             {/* User profile card */}
                             <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
@@ -390,8 +400,8 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                     <p className="text-gray-500 mb-2">{user.email}</p>
                                     <span
                                         className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full ${user.role === "ADMIN"
-                                                ? "bg-purple-100 text-purple-800"
-                                                : "bg-blue-100 text-blue-800"
+                                            ? "bg-purple-100 text-purple-800"
+                                            : "bg-blue-100 text-blue-800"
                                             }`}
                                     >
                                         {user.role}
@@ -432,10 +442,10 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                                 <div className="mt-1">
                                                     <span
                                                         className={`px-2 py-0.5 text-xs rounded-full ${order.status === "DELIVERED"
-                                                                ? "bg-green-100 text-green-800"
-                                                                : order.status === "PROCESSING"
-                                                                    ? "bg-yellow-100 text-yellow-800"
-                                                                    : "bg-gray-100 text-gray-800"
+                                                            ? "bg-green-100 text-green-800"
+                                                            : order.status === "PROCESSING"
+                                                                ? "bg-yellow-100 text-yellow-800"
+                                                                : "bg-gray-100 text-gray-800"
                                                             }`}
                                                     >
                                                         {order.status}

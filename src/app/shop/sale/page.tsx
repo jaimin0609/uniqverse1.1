@@ -17,8 +17,12 @@ export const metadata: Metadata = {
 export default async function SaleItemsPage({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined };
-}) {    // Fetch all categories for filter sidebar
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+    // Resolve the searchParams promise
+    const resolvedSearchParams = await searchParams;
+
+    // Fetch all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: {
             name: 'asc'
@@ -26,10 +30,8 @@ export default async function SaleItemsPage({
         select: { id: true, name: true, slug: true, parentId: true },
     });    // Add parameters to filter for sale items
     // Create a serializable copy of the search params
-    const serializedSearchParams: Record<string, string | string[]> = {};
-
-    // Only copy over the values that exist
-    for (const [key, value] of Object.entries(searchParams)) {
+    const serializedSearchParams: Record<string, string | string[]> = {};    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
         if (value !== undefined) {
             serializedSearchParams[key] = value;
         }

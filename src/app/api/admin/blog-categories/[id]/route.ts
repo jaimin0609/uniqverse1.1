@@ -7,16 +7,17 @@ import { cacheInvalidation } from "@/lib/redis";
 // GET /api/admin/blog-categories/[id] - Get a specific blog category
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const category = await db.blogCategory.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!category) {
@@ -39,9 +40,10 @@ export async function GET(
 // PUT /api/admin/blog-categories/[id] - Update a blog category
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -60,7 +62,7 @@ export async function PUT(
 
         // Check if the category exists
         const existingCategory = await db.blogCategory.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!existingCategory) {
@@ -82,11 +84,9 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }
-
-        // Update the blog category
+        }        // Update the blog category
         const updatedCategory = await db.blogCategory.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 name,
                 slug,
@@ -96,7 +96,7 @@ export async function PUT(
         });
 
         // Invalidate relevant caches
-        await cacheInvalidation.onCategoryChange(params.id);
+        await cacheInvalidation.onCategoryChange(resolvedParams.id);
 
         return NextResponse.json(updatedCategory);
     } catch (error) {
@@ -111,9 +111,10 @@ export async function PUT(
 // DELETE /api/admin/blog-categories/[id] - Delete a blog category
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "ADMIN") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -121,7 +122,7 @@ export async function DELETE(
 
         // Check if the category exists
         const existingCategory = await db.blogCategory.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!existingCategory) {
@@ -136,7 +137,7 @@ export async function DELETE(
             where: {
                 BlogCategory: {
                     some: {
-                        id: params.id,
+                        id: resolvedParams.id,
                     },
                 },
             },
@@ -152,15 +153,13 @@ export async function DELETE(
                 },
                 { status: 400 }
             );
-        }
-
-        // Delete the blog category
+        }        // Delete the blog category
         await db.blogCategory.delete({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         // Invalidate relevant caches
-        await cacheInvalidation.onCategoryChange(params.id);
+        await cacheInvalidation.onCategoryChange(resolvedParams.id);
 
         return NextResponse.json({ success: true });
     } catch (error) {

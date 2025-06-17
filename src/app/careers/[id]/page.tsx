@@ -5,11 +5,12 @@ import { db } from "@/lib/db";
 import { MapPin, Clock, Briefcase, DollarSign, Calendar } from "lucide-react";
 
 interface JobDetailPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: JobDetailPageProps): Promise<Metadata> {
-    const job = await getJob(params.id);
+    const resolvedParams = await params;
+    const job = await getJob(resolvedParams.id);
 
     if (!job) {
         return {
@@ -56,7 +57,8 @@ function formatSalary(min?: number | null, max?: number | null) {
 }
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
-    const job = await getJob(params.id);
+    const resolvedParams = await params;
+    const job = await getJob(resolvedParams.id);
 
     if (!job) {
         notFound();

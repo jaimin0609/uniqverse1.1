@@ -8,17 +8,28 @@ import { format } from "date-fns";
 import { cn } from "@/utils/cn";
 import Link from "next/link";
 
-export default function ViewEventPage({ params }: { params: { id: string } }) {
+export default function ViewEventPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [event, setEvent] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
     useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchEvent = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`/api/events/${params.id}`);
+                const response = await fetch(`/api/events/${resolvedParams.id}`);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch event: ${response.status}`);
@@ -36,7 +47,7 @@ export default function ViewEventPage({ params }: { params: { id: string } }) {
         };
 
         fetchEvent();
-    }, [params.id]);
+    }, [resolvedParams]);
 
     // Helper function to determine if an event is currently active
     const isCurrentlyActive = (event: any) => {
@@ -111,17 +122,16 @@ export default function ViewEventPage({ params }: { params: { id: string } }) {
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Events
                     </Button>
-                    <h1 className="text-2xl font-bold">{event.title}</h1>
-                </div>
+                    <h1 className="text-2xl font-bold">{event.title}</h1>                </div>
                 <div className="flex space-x-3">
                     <Button asChild variant="outline">
-                        <Link href={`/admin/events/${params.id}/edit`}>
+                        <Link href={`/admin/events/${resolvedParams?.id}/edit`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                         </Link>
                     </Button>
                     <Button asChild variant="destructive">
-                        <Link href={`/admin/events/${params.id}/delete`}>
+                        <Link href={`/admin/events/${resolvedParams?.id}/delete`}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                         </Link>
@@ -362,8 +372,8 @@ export default function ViewEventPage({ params }: { params: { id: string } }) {
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-gray-700 font-medium">Active Status</span>
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${event.isActive
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-gray-100 text-gray-800'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-gray-100 text-gray-800'
                                         }`}>
                                         {event.isActive ? 'Active' : 'Inactive'}
                                     </span>
@@ -372,8 +382,8 @@ export default function ViewEventPage({ params }: { params: { id: string } }) {
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-700 font-medium">Current Display</span>
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${isCurrentlyActive(event)
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-gray-100 text-gray-800'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-gray-100 text-gray-800'
                                         }`}>
                                         {isCurrentlyActive(event) ? 'Visible' : 'Hidden'}
                                     </span>
@@ -394,18 +404,16 @@ export default function ViewEventPage({ params }: { params: { id: string } }) {
                                     <div>Created: {format(new Date(event.createdAt), "MMM d, yyyy 'at' h:mm a")}</div>
                                     <div>Last Updated: {format(new Date(event.updatedAt), "MMM d, yyyy 'at' h:mm a")}</div>
                                 </div>
-                            </div>
-
-                            <div className="pt-4 space-y-3">
+                            </div>                            <div className="pt-4 space-y-3">
                                 <Button asChild className="w-full">
-                                    <Link href={`/admin/events/${params.id}/edit`}>
+                                    <Link href={`/admin/events/${resolvedParams?.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
                                         Edit Event
                                     </Link>
                                 </Button>
 
                                 <Button asChild variant="destructive" className="w-full">
-                                    <Link href={`/admin/events/${params.id}/delete`}>
+                                    <Link href={`/admin/events/${resolvedParams?.id}/delete`}>
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         Delete Event
                                     </Link>

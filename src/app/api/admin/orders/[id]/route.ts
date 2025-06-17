@@ -55,9 +55,10 @@ const parseOptions = (optionsString) => {
 // Get a specific order
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -65,7 +66,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orderId = params.id;
+        const orderId = resolvedParams.id;
 
         // Find the order with related data
         const order = await db.order.findUnique({
@@ -166,9 +167,10 @@ export async function GET(
 // Update an order
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -176,7 +178,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orderId = params.id;
+        const orderId = resolvedParams.id;
         const data = await request.json();
 
         // Validate update data
@@ -400,7 +402,7 @@ export async function PATCH(
 // Add support for PUT method by delegating to the PATCH handler
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     // Simply delegate to the PATCH handler for compatibility with frontend forms
     return PATCH(request, { params });

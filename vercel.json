@@ -1,0 +1,24 @@
+{
+    "version": 2,
+    "name": "uniqverse",
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/next"
+        }
+    ],
+    "env": {
+        "NEXTAUTH_URL": "$VERCEL_URL"
+    },
+    "functions": {
+        "app/api/**/*.js": {
+            "maxDuration": 30
+        }
+    },
+    "regions": [
+        "iad1"
+    ],
+    "github": {
+        "silent": true
+    }
+}

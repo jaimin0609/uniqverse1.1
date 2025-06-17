@@ -4,10 +4,11 @@ import { cache, cacheKeys } from "@/lib/redis";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { slug: string } }
+    { params }: { params: Promise<{ slug: string }> }
 ) {
     try {
-        const slug = params.slug;
+        const resolvedParams = await params;
+        const slug = resolvedParams.slug;
 
         // Create cache key for the blog post
         const cacheKey = cacheKeys.blog(slug);

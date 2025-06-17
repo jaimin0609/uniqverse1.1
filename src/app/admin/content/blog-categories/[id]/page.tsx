@@ -41,13 +41,23 @@ const blogCategorySchema = z.object({
 
 type BlogCategoryFormValues = z.infer<typeof blogCategorySchema>;
 
-export default function EditBlogCategoryPage({ params }: { params: { id: string } }) {
+export default function EditBlogCategoryPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
+
+    // Initialize params
+    useEffect(() => {
+        const initializeParams = async () => {
+            const resolved = await params;
+            setResolvedParams(resolved);
+        };
+        initializeParams();
+    }, [params]);
 
     const form = useForm<BlogCategoryFormValues>({
         resolver: zodResolver(blogCategorySchema),
@@ -56,16 +66,16 @@ export default function EditBlogCategoryPage({ params }: { params: { id: string 
             slug: "",
             description: "",
         },
-    });
-
-    // Fetch category data
+    });    // Fetch category data
     useEffect(() => {
+        if (!resolvedParams) return;
+
         const fetchCategory = async () => {
             setIsLoading(true);
             setError(null);
 
             try {
-                const response = await fetch(`/api/admin/blog-categories/${params.id}`);
+                const response = await fetch(`/api/admin/blog-categories/${resolvedParams.id}`);
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch category");
@@ -87,13 +97,13 @@ export default function EditBlogCategoryPage({ params }: { params: { id: string 
         };
 
         fetchCategory();
-    }, [params.id, form]);
+    }, [resolvedParams, form]); const onSubmit = async (values: BlogCategoryFormValues) => {
+        if (!resolvedParams) return;
 
-    const onSubmit = async (values: BlogCategoryFormValues) => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`/api/admin/blog-categories/${params.id}`, {
+            const response = await fetch(`/api/admin/blog-categories/${resolvedParams.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -114,13 +124,13 @@ export default function EditBlogCategoryPage({ params }: { params: { id: string 
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }; const deleteCategory = async () => {
+        if (!resolvedParams) return;
 
-    const deleteCategory = async () => {
         setIsDeleting(true);
 
         try {
-            const response = await fetch(`/api/admin/blog-categories/${params.id}`, {
+            const response = await fetch(`/api/admin/blog-categories/${resolvedParams.id}`, {
                 method: "DELETE",
             });
 

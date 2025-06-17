@@ -8,9 +8,10 @@ import { cacheInvalidation } from "@/lib/redis";
 // Get a single category by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -19,7 +20,7 @@ export async function GET(
         }
 
         const category = await db.category.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 parent: {
                     select: {
@@ -62,9 +63,10 @@ export async function GET(
 // Update a category
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -79,11 +81,9 @@ export async function PUT(
                 { error: "Category name is required" },
                 { status: 400 }
             );
-        }
-
-        // Check if the category exists
+        }        // Check if the category exists
         const existingCategory = await db.category.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         if (!existingCategory) {
@@ -109,7 +109,7 @@ export async function PUT(
         // Check if the parent would create a circular reference
         if (data.parentId) {
             // Can't set parent to itself
-            if (data.parentId === params.id) {
+            if (data.parentId === resolvedParams.id) {
                 return NextResponse.json(
                     { error: "Cannot set a category as its own parent" },
                     { status: 400 }
@@ -127,11 +127,9 @@ export async function PUT(
                     { status: 400 }
                 );
             }
-        }
-
-        // Update the category
+        }        // Update the category
         const updatedCategory = await db.category.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 name: data.name.trim(),
                 slug: data.slug,
@@ -144,7 +142,7 @@ export async function PUT(
         // Log admin action
         await logAdminAction(
             "category_update",
-            `Admin updated category "${data.name}" (ID: ${params.id})`,
+            `Admin updated category "${data.name}" (ID: ${resolvedParams.id})`,
             session.user.id
         );
 
@@ -164,9 +162,10 @@ export async function PUT(
 // Delete a category
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         // Check if user is authenticated and has admin role
@@ -176,7 +175,7 @@ export async function DELETE(
 
         // Check if the category exists
         const category = await db.category.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 products: true,
             },
@@ -198,11 +197,9 @@ export async function DELETE(
                 },
                 { status: 400 }
             );
-        }
-
-        // Check if the category has children
+        }        // Check if the category has children
         const childCategories = await db.category.findMany({
-            where: { parentId: params.id },
+            where: { parentId: resolvedParams.id },
         });
 
         if (childCategories.length > 0) {
@@ -213,17 +210,15 @@ export async function DELETE(
                 },
                 { status: 400 }
             );
-        }
-
-        // Delete the category
+        }        // Delete the category
         await db.category.delete({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         // Log admin action
         await logAdminAction(
             "category_delete",
-            `Admin deleted category "${category.name}" (ID: ${params.id})`,
+            `Admin deleted category "${category.name}" (ID: ${resolvedParams.id})`,
             session.user.id
         );
 

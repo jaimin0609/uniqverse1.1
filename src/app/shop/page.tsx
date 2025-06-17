@@ -27,7 +27,7 @@ export interface ProductSearchParams {
 export default async function ShopPage({
     searchParams,
 }: {
-    searchParams: ProductSearchParams;
+    searchParams: Promise<ProductSearchParams>;
 }) {    // Get all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: { name: "asc" },

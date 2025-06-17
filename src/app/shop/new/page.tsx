@@ -17,8 +17,11 @@ import { db } from "@/lib/db";
 export default async function NewProductsPage({
     searchParams,
 }: {
-    searchParams: ProductSearchParams;
+    searchParams: Promise<ProductSearchParams>;
 }) {
+    // Resolve the searchParams promise
+    const resolvedSearchParams = await searchParams;
+
     // Fetch all categories for filter sidebar
     const categories = await db.category.findMany({
         orderBy: {
@@ -27,10 +30,8 @@ export default async function NewProductsPage({
         select: { id: true, name: true, slug: true, parentId: true },
     });    // Add parameters to filter for new products
     // Create a serializable copy of the search params
-    const serializedSearchParams: Record<string, string | string[]> = {};
-
-    // Only copy over the values that exist
-    for (const [key, value] of Object.entries(searchParams)) {
+    const serializedSearchParams: Record<string, string | string[]> = {};    // Only copy over the values that exist
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
         if (value !== undefined) {
             serializedSearchParams[key] = value;
         }
@@ -77,12 +78,11 @@ export default async function NewProductsPage({
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             <Filter className="h-5 w-5" />
                             Filters
-                        </h2>
-                        <ProductFilters
+                        </h2>                        <ProductFilters
                             categories={categories}
-                            selectedCategory={typeof searchParams.category === 'string' ? searchParams.category : undefined}
-                            minPrice={typeof searchParams.minPrice === 'string' ? searchParams.minPrice : undefined}
-                            maxPrice={typeof searchParams.maxPrice === 'string' ? searchParams.maxPrice : undefined}
+                            selectedCategory={typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined}
+                            minPrice={typeof resolvedSearchParams.minPrice === 'string' ? resolvedSearchParams.minPrice : undefined}
+                            maxPrice={typeof resolvedSearchParams.maxPrice === 'string' ? resolvedSearchParams.maxPrice : undefined}
                         />
                     </div>
                 </div>
