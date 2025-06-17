@@ -361,11 +361,10 @@ class PerformanceOptimizer {
                 data: { inventory: { increment: update.quantity } }
               });
               results.push(result);
-            }
-
-            // Log inventory history
+            }            // Log inventory history
             await tx.inventoryHistory.create({
               data: {
+                id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 productId: update.productId,
                 variantId: update.variantId,
                 previousValue: 0, // Would need to fetch current value first

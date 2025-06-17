@@ -34,10 +34,9 @@ export async function GET(
                 images: {
                     orderBy: { position: 'asc' }
                 },
-                variants: true,
-                _count: {
+                variants: true, _count: {
                     select: {
-                        OrderItem: true,
+                        orderItems: true,
                         reviews: true
                     }
                 }

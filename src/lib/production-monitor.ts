@@ -373,9 +373,7 @@ class ProductionMonitor {
      * Send alert notification
      */
     private async sendAlert(message: string, context: any) {
-        console.warn(`🚨 ALERT: ${message}`, context);
-
-        // In production, this would integrate with services like:
+        console.warn(`🚨 ALERT: ${message}`, context);        // In production, this would integrate with services like:
         // - Slack webhooks
         // - Email notifications
         // - PagerDuty
@@ -385,6 +383,7 @@ class ProductionMonitor {
             // Store alert in database
             await db.adminAuditLog.create({
                 data: {
+                    id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                     action: 'SYSTEM_ALERT',
                     details: JSON.stringify({ message, context }),
                     createdAt: new Date()
@@ -393,9 +392,7 @@ class ProductionMonitor {
         } catch (error) {
             console.error('Failed to store alert:', error);
         }
-    }
-
-    /**
+    }    /**
      * Check database health
      */
     private async checkDatabaseHealth(): Promise<{ connected: boolean; responseTime: number; activeConnections?: number }> {
@@ -415,9 +412,7 @@ class ProductionMonitor {
                 responseTime: Date.now() - start
             };
         }
-    }
-
-    /**
+    }    /**
      * Check cache health
      */
     private async checkCacheHealth(): Promise<{ connected: boolean; responseTime: number }> {
@@ -438,9 +433,7 @@ class ProductionMonitor {
                 responseTime: Date.now() - start
             };
         }
-    }
-
-    /**
+    }    /**
      * Calculate average response time
      */
     private calculateAverageResponseTime(): number {
@@ -453,9 +446,7 @@ class ProductionMonitor {
 
         const total = recentMetrics.reduce((sum, m) => sum + m.value, 0);
         return Math.round(total / recentMetrics.length);
-    }
-
-    /**
+    }    /**
      * Group errors by level
      */
     private groupErrorsByLevel(errors: ErrorReport[]): Record<string, number> {
@@ -463,9 +454,7 @@ class ProductionMonitor {
             acc[error.severity] = (acc[error.severity] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
-    }
-
-    /**
+    }    /**
      * Aggregate metrics by time
      */
     private aggregateMetricsByTime(
@@ -492,9 +481,7 @@ class ProductionMonitor {
                 timestamp: new Date(timestamp).toISOString(),
                 value: Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
             }));
-    }
-
-    /**
+    }    /**
      * Aggregate errors by time
      */
     private aggregateErrorsByTime(
@@ -518,9 +505,7 @@ class ProductionMonitor {
                 timestamp: new Date(timestamp).toISOString(),
                 value: count
             }));
-    }
-
-    /**
+    }    /**
      * Aggregate throughput by time
      */
     private aggregateThroughputByTime(
@@ -532,9 +517,7 @@ class ProductionMonitor {
             requestLogs.map(l => ({ ...l, timestamp: l.timestamp, severity: 'low' as const, error: '', context: {} })),
             timeRange
         );
-    }
-
-    /**
+    }    /**
      * Get top errors
      */
     private getTopErrors(errors: ErrorReport[]): Array<{ error: string; count: number }> {
@@ -549,15 +532,14 @@ class ProductionMonitor {
             .sort(([, a], [, b]) => b - a)
             .slice(0, 10)
             .map(([error, count]) => ({ error, count }));
-    }
-
-    /**
+    }    /**
      * Persist error to database
      */
     private async persistError(entry: LogEntry) {
         try {
             await db.adminAuditLog.create({
                 data: {
+                    id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                     action: 'ERROR',
                     details: JSON.stringify({
                         message: entry.message,
@@ -571,9 +553,7 @@ class ProductionMonitor {
         } catch (error) {
             console.error('Failed to persist error:', error);
         }
-    }
-
-    /**
+    }    /**
      * Persist metric to database
      */
     private async persistMetric(metric: PerformanceMetric) {
@@ -592,9 +572,7 @@ class ProductionMonitor {
         } catch (error) {
             // Silently fail for metrics to avoid performance impact
         }
-    }
-
-    /**
+    }    /**
      * Get caller information
      */
     private getCallerInfo(): string {
@@ -612,9 +590,7 @@ class ProductionMonitor {
             }
         }
         return 'unknown';
-    }
-
-    /**
+    }    /**
      * Trim logs to prevent memory issues
      */
     private trimLogs() {
@@ -639,11 +615,12 @@ class ProductionMonitor {
         if (this.errors.length > this.maxErrorSize) {
             this.errors = this.errors.slice(-this.maxErrorSize);
         }
-    } private cleanupInterval: NodeJS.Timeout | null = null;
+    }
 
-    /**
+    private cleanupInterval: NodeJS.Timeout | null = null;    /**
      * Setup cleanup job
-     */    private setupCleanupJob() {
+     */
+    private setupCleanupJob() {
         // Only setup cleanup in server environment to prevent memory leaks
         if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
             // Clean up old data every hour

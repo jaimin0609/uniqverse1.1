@@ -107,11 +107,9 @@ export async function POST(request: NextRequest) {
         let lastRequestTime = 0;
 
         for (let i = 0; i < validProductIds.length; i++) {
-            const productId = validProductIds[i];
-
-            // Implement rate limiting
-            const now = Date.now();
-            const timeSinceLastRequest = now - lastRequestTime;
+            const productId = validProductIds[i];            // Implement rate limiting
+            const nowTimestamp = Date.now();
+            const timeSinceLastRequest = nowTimestamp - lastRequestTime;
             if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
                 const delayNeeded = RATE_LIMIT_DELAY - timeSinceLastRequest;
                 console.log(`Rate limiting: waiting ${delayNeeded}ms before next request`);

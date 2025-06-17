@@ -161,15 +161,13 @@ export async function GET(req: NextRequest) {
         const productsWithStats = products.map(product => {
             const avgRating = product.reviews.length > 0
                 ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
-                : 0;
-
-            return {
-                ...product,
-                averageRating: Math.round(avgRating * 10) / 10,
-                reviewCount: product._count.reviews.reviews,
-                reviews: undefined, // Remove the reviews array from the response
-                _count: undefined // Remove the _count object
-            };
+                : 0; return {
+                    ...product,
+                    averageRating: Math.round(avgRating * 10) / 10,
+                    reviewCount: product._count.reviews,
+                    reviews: undefined, // Remove the reviews array from the response
+                    _count: undefined // Remove the _count object
+                };
         });
 
         const result = {
