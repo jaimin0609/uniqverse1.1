@@ -40,7 +40,7 @@ const requiredDeps = [
   '@prisma/client',
   'next',
   'react',
-  'nextauth'
+  'next-auth'
 ];
 
 requiredDeps.forEach(dep => {
