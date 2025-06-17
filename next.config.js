@@ -34,7 +34,12 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
-          }
+          },
+          // CORS headers
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
         ]
       },
       {
@@ -51,7 +56,18 @@ const nextConfig = {
         ]
       }
     ];
-  },images: {
+  },
+  // Add redirects to fix routing
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin',
+        permanent: false,
+      },
+    ];
+  },
+  images: {
     domains: [
       'localhost',
       'placehold.co',
@@ -109,14 +125,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.googleusercontent.com',
       },
-    ],
-    // Set a reasonable image size limit for performance
+    ],    // Set a reasonable image size limit for performance
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Allow connections from any host
+  // Webpack configuration for development
   webpack: (config) => {
     // Adding the watchOptions directly in webpack config instead of webpackDevMiddleware
     if (process.env.NODE_ENV === 'development') {
@@ -127,20 +142,6 @@ const nextConfig = {
       };
     }
     return config;
-  },
-  // Adding headers for CORS
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
-        ],
-      },
-    ];
   },
 };
 
