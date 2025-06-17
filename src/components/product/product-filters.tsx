@@ -36,11 +36,9 @@ export default function ProductFilters({
     const [showFiltersMobile, setShowFiltersMobile] = useState(false);
     const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
     const [showPriceDropdown, setShowPriceDropdown] = useState(false);
-    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
-    // Handler for applying filters
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);    // Handler for applying filters
     const applyFilters = () => {
-        const current = new URLSearchParams(searchParams.toString());
+        const current = new URLSearchParams(searchParams?.toString() || "");
 
         // Reset to first page when filters change
         current.set("page", "1");
@@ -65,11 +63,9 @@ export default function ProductFilters({
 
         // Close mobile filters
         setShowFiltersMobile(false);
-    };
-
-    // Handler for selecting a category
+    };    // Handler for selecting a category
     const selectCategory = (slug: string | null) => {
-        const current = new URLSearchParams(searchParams.toString());
+        const current = new URLSearchParams(searchParams?.toString() || "");
 
         // Reset to first page when category changes
         current.set("page", "1");
@@ -84,11 +80,9 @@ export default function ProductFilters({
         const search = current.toString();
         const query = search ? `?${search}` : "";
         router.push(`/shop${query}`);
-    };
-
-    // Handler for clearing all filters
+    };    // Handler for clearing all filters
     const clearAllFilters = () => {
-        const current = new URLSearchParams(searchParams.toString());
+        const current = new URLSearchParams(searchParams?.toString() || "");
 
         // Remove filter parameters but keep sort and pagination
         current.delete("category");
@@ -170,8 +164,8 @@ export default function ProductFilters({
                                     <div className="flex items-center justify-between hover:bg-gray-50 rounded p-1"><button
                                         onClick={() => selectCategory(category.slug)}
                                         className={`hover:text-blue-600 flex-1 text-left ${selectedCategory === category.slug
-                                                ? "font-medium text-blue-600"
-                                                : "text-gray-700"
+                                            ? "font-medium text-blue-600"
+                                            : "text-gray-700"
                                             }`}
                                     >
                                         {category.name}
@@ -200,8 +194,8 @@ export default function ProductFilters({
                                                 <button
                                                     onClick={() => selectCategory(subcat.slug)}
                                                     className={`hover:text-blue-600 block w-full text-left py-1 px-1 text-sm rounded hover:bg-gray-50 ${selectedCategory === subcat.slug
-                                                            ? "font-medium text-blue-600"
-                                                            : "text-gray-700"
+                                                        ? "font-medium text-blue-600"
+                                                        : "text-gray-700"
                                                         }`}
                                                 >
                                                     {subcat.name}

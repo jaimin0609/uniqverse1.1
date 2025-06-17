@@ -30,7 +30,9 @@ interface Category {
 export default function EditProductPage() {
     const router = useRouter();
     const params = useParams();
-    const productId = params.id as string; const [isSaving, setIsSaving] = useState(false);
+    const productId = params?.id as string;
+
+    const [isSaving, setIsSaving] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [variantTypes, setVariantTypes] = useState<string[]>([]);
@@ -70,6 +72,8 @@ export default function EditProductPage() {
     // Fetch product data and categories
     useEffect(() => {
         async function fetchProductAndCategories() {
+            if (!productId) return;
+
             try {
                 // Fetch product data
                 const productResponse = await fetch(`/api/admin/products/${productId}`);
@@ -158,10 +162,27 @@ export default function EditProductPage() {
             }
         }
 
-        fetchProductAndCategories();
+        if (productId) {
+            fetchProductAndCategories();
+        }
     }, [productId, reset, setValue]);
 
+    // Early return if no productId is available (after hooks)
+    if (!productId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Product</h3>
+                <p className="text-yellow-600 mb-4">No product ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/products">Back to Products</Link>
+                </Button>
+            </div>
+        );
+    }
+
     const onSubmit = async (data: ProductFormValues) => {
+        if (!productId) return;
+
         try {
             setIsSaving(true);
 

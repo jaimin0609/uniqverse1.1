@@ -129,7 +129,8 @@ interface AddressData {
 }
 
 export default function OrderDetailPage() {
-    const { id: orderId } = useParams<{ id: string }>();
+    const params = useParams<{ id: string }>();
+    const orderId = params?.id;
     const router = useRouter();
     const [order, setOrder] = useState<OrderData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -170,11 +171,11 @@ export default function OrderDetailPage() {
         email: "support@uniqverse.com",
         phone: "+61 3 1234 5678",
         website: "www.uniqverse.com"
-    };
-
-    // Fetch order data
+    };    // Fetch order data
     useEffect(() => {
         const fetchOrderData = async () => {
+            if (!orderId) return;
+
             setIsLoading(true);
             setError(null);
             try {
@@ -207,9 +208,20 @@ export default function OrderDetailPage() {
         }
     }, [orderId]);
 
-    // Update order status
+    // Early return if no orderId is available
+    if (!orderId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Order</h3>
+                <p className="text-yellow-600 mb-4">No order ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/orders">Back to Orders</Link>
+                </Button>
+            </div>
+        );
+    }    // Update order status
     const updateOrderStatus = async (status: string) => {
-        if (!order) return;
+        if (!order || !orderId) return;
 
         setIsUpdating(true);
         try {

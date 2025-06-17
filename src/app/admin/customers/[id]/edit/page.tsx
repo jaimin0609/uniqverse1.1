@@ -38,7 +38,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function EditCustomerPage() {
     const params = useParams();
     const router = useRouter();
-    const customerId = params.id as string;
+    const customerId = params?.id as string;
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -52,11 +52,11 @@ export default function EditCustomerPage() {
             email: "",
             role: "CUSTOMER",
         },
-    });
-
-    // Fetch customer data
+    });    // Fetch customer data
     useEffect(() => {
         const fetchCustomerData = async () => {
+            if (!customerId) return;
+
             setIsLoading(true);
             setError(null);
             try {
@@ -82,11 +82,15 @@ export default function EditCustomerPage() {
             }
         };
 
-        fetchCustomerData();
+        if (customerId) {
+            fetchCustomerData();
+        }
     }, [customerId, form]);
 
     // Form submission handler
     const onSubmit = async (values: FormValues) => {
+        if (!customerId) return;
+
         setIsSaving(true);
         try {
             const response = await fetch(`/api/admin/customers/${customerId}`, {
@@ -110,6 +114,19 @@ export default function EditCustomerPage() {
             setIsSaving(false);
         }
     };
+
+    // Early return if no customerId is available
+    if (!customerId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Customer</h3>
+                <p className="text-yellow-600 mb-4">No customer ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/customers">Back to Customers</Link>
+                </Button>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return (

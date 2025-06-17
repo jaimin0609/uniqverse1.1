@@ -116,7 +116,8 @@ interface AddressData {
 }
 
 export default function EditOrderPage() {
-    const { id: orderId } = useParams<{ id: string }>();
+    const params = useParams<{ id: string }>();
+    const orderId = params?.id;
     const router = useRouter();
     const [order, setOrder] = useState<OrderData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -153,11 +154,11 @@ export default function EditOrderPage() {
             country: "",
             phone: "",
         },
-    });
-
-    // Fetch order data
+    });    // Fetch order data
     useEffect(() => {
         const fetchOrderData = async () => {
+            if (!orderId) return;
+
             setIsLoading(true);
             setError(null);
             try {
@@ -234,6 +235,19 @@ export default function EditOrderPage() {
         }
     }, [orderId]);
 
+    // Early return if no orderId is available
+    if (!orderId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Order</h3>
+                <p className="text-yellow-600 mb-4">No order ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/orders">Back to Orders</Link>
+                </Button>
+            </div>
+        );
+    }
+
     // Handle form changes
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -243,7 +257,7 @@ export default function EditOrderPage() {
             const [parent, child] = name.split('.');
             const parentKey = parent as keyof typeof formData;
             const parentValue = formData[parentKey];
-            
+
             // Ensure parentValue is an object before spreading
             if (parentValue && typeof parentValue === 'object') {
                 setFormData({
@@ -268,12 +282,10 @@ export default function EditOrderPage() {
             ...formData,
             [name]: value
         });
-    };
-
-    // Save order changes
+    };    // Save order changes
     const handleSaveOrder = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!order) return;
+        if (!order || !orderId) return;
 
         setIsSaving(true);
         try {
@@ -297,11 +309,9 @@ export default function EditOrderPage() {
         } finally {
             setIsSaving(false);
         }
-    };
-
-    // Delete order
+    };    // Delete order
     const handleDeleteOrder = async () => {
-        if (!order) return;
+        if (!order || !orderId) return;
 
         setIsSaving(true);
         try {

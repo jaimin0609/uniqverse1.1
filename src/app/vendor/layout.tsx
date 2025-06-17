@@ -100,12 +100,10 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
             console.error("Error signing out:", error);
             toast.error("Failed to sign out");
         }
-    };
-
-    // Update current navigation item
+    };    // Update current navigation item
     const updatedNavigation = navigation.map(item => ({
         ...item,
-        current: pathname === item.href || (item.href !== "/vendor" && pathname.startsWith(item.href))
+        current: pathname === item.href || (item.href !== "/vendor" && pathname?.startsWith(item.href))
     }));
 
     return (

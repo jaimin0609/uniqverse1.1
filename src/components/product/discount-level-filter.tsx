@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button";
 
 export default function DiscountLevelFilter() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-
-    const handleDiscountFilter = (minDiscount?: string, maxDiscount?: string) => {
+    const searchParams = useSearchParams(); const handleDiscountFilter = (minDiscount?: string, maxDiscount?: string) => {
         // Create a new URLSearchParams instance
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
 
         // Update or remove the discount parameters
         if (minDiscount) {
@@ -29,8 +27,8 @@ export default function DiscountLevelFilter() {
     };
 
     // Get current discount filter values
-    const currentMinDiscount = searchParams.get('minDiscount');
-    const currentMaxDiscount = searchParams.get('maxDiscount');
+    const currentMinDiscount = searchParams?.get('minDiscount');
+    const currentMaxDiscount = searchParams?.get('maxDiscount');
 
     return (
         <div className="flex flex-wrap items-center gap-2 mb-6">

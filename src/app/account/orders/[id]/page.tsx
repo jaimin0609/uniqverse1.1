@@ -90,17 +90,16 @@ export default function OrderDetailPage() {
     const { data: session } = useSession();
     const params = useParams();
     const router = useRouter();
-    const orderId = params.id as string;
+    const orderId = params?.id as string;
 
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [showCancelDialog, setShowCancelDialog] = useState(false);
+    const [error, setError] = useState<string | null>(null); const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
 
     useEffect(() => {
         const fetchOrderDetails = async () => {
-            if (!session) return;
+            if (!session || !orderId) return;
 
             setIsLoading(true);
             try {
@@ -123,20 +122,32 @@ export default function OrderDetailPage() {
             }
         };
 
-        if (session) {
+        if (session && orderId) {
             fetchOrderDetails();
         }
     }, [session, orderId]);
+
+    // Early return if no orderId is available (after hooks)
+    if (!orderId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <Package className="h-10 w-10 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Order</h3>
+                <p className="text-yellow-600 mb-4">No order ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/account/orders">Back to Orders</Link>
+                </Button>
+            </div>
+        );
+    }
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
         }).format(amount);
-    };
-
-    const cancelOrder = async () => {
-        if (!order) return;
+    }; const cancelOrder = async () => {
+        if (!order || !orderId) return;
 
         setIsCancelling(true);
         try {

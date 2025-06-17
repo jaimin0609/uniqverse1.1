@@ -66,7 +66,7 @@ const APPLICATION_STATUSES = [
 
 export function JobApplicationsManagement() {
     const searchParams = useSearchParams();
-    const jobIdFilter = searchParams.get('jobId');
+    const jobIdFilter = searchParams?.get('jobId');
 
     const [applications, setApplications] = useState<JobApplication[]>([]);
     const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>([]);

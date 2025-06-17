@@ -26,8 +26,8 @@ const resetPasswordConfirmSchema = z
 export default function ResetPasswordPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const token = searchParams.get("token");
-    const email = searchParams.get("email");
+    const token = searchParams?.get("token");
+    const email = searchParams?.get("email");
 
     const [isLoading, setIsLoading] = useState(false);
     const [isTokenValid, setIsTokenValid] = useState(false);

@@ -88,12 +88,10 @@ export default function CustomersPage() {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<CustomerData | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const router = useRouter();
+    const [isDeleting, setIsDeleting] = useState(false); const router = useRouter();
     const searchParams = useSearchParams();
-    const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const currentRole = searchParams.get("role") || "all";
+    const currentPage = parseInt(searchParams?.get("page") || "1", 10);
+    const currentRole = searchParams?.get("role") || "all";
 
     // Debounce search term
     useEffect(() => {
@@ -134,19 +132,17 @@ export default function CustomersPage() {
         };
 
         fetchCustomers();
-    }, [currentPage, currentRole, debouncedSearchTerm]);
-
-    const handlePageChange = (page: number) => {
+    }, [currentPage, currentRole, debouncedSearchTerm]); const handlePageChange = (page: number) => {
         if (page < 1 || page > pagination.totalPages) return;
 
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("page", page.toString());
 
         router.push(`/admin/customers?${params.toString()}`);
     };
 
     const handleRoleFilter = (role: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("role", role);
         params.delete("page"); // Reset to first page when changing filters
 

@@ -92,7 +92,8 @@ interface AddressData {
 }
 
 export default function CustomerDetailPage() {
-    const { id: customerId } = useParams<{ id: string }>();
+    const params = useParams<{ id: string }>();
+    const customerId = params?.id;
     const router = useRouter();
     const [customer, setCustomer] = useState<CustomerData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -128,10 +129,10 @@ export default function CustomerDetailPage() {
         if (customerId) {
             fetchCustomerData();
         }
-    }, [customerId]);
-
-    // Handle customer deletion
+    }, [customerId]);    // Handle customer deletion
     const deleteCustomer = async () => {
+        if (!customerId) return;
+
         setIsDeleting(true);
         try {
             const response = await fetch(`/api/admin/customers/${customerId}`, {
@@ -152,6 +153,19 @@ export default function CustomerDetailPage() {
             setDeleteDialogOpen(false);
         }
     };
+
+    // Early return if no customerId is available
+    if (!customerId) {
+        return (
+            <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">Invalid Customer</h3>
+                <p className="text-yellow-600 mb-4">No customer ID was provided.</p>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/customers">Back to Customers</Link>
+                </Button>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return (

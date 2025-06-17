@@ -27,11 +27,9 @@ export default function ProductSort({ sort, defaultSort }: ProductSortProps) {
     const currentSort = sort || defaultSort;
 
     // Get the label for the current sort option
-    const currentSortLabel = sortOptions.find((option) => option.value === currentSort)?.label || "Sort by";
-
-    // Handler for changing sort order
+    const currentSortLabel = sortOptions.find((option) => option.value === currentSort)?.label || "Sort by";    // Handler for changing sort order
     const handleSortChange = (value: string) => {
-        const current = new URLSearchParams(searchParams.toString());
+        const current = new URLSearchParams(searchParams?.toString() || "");
 
         // Set the sort parameter
         current.set("sort", value);
@@ -80,8 +78,8 @@ export default function ProductSort({ sort, defaultSort }: ProductSortProps) {
                             <button
                                 key={option.value}
                                 className={`text-left w-full px-4 py-2 text-sm ${currentSort === option.value
-                                        ? "bg-gray-100 text-gray-900 font-medium"
-                                        : "text-gray-700 hover:bg-gray-50"
+                                    ? "bg-gray-100 text-gray-900 font-medium"
+                                    : "text-gray-700 hover:bg-gray-50"
                                     }`}
                                 role="menuitem"
                                 onClick={() => handleSortChange(option.value)}

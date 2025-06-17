@@ -88,20 +88,21 @@ export default function VendorOrderDetailPage() {
     const { data: session } = useSession();
     const router = useRouter();
     const params = useParams();
-    const orderId = params.id as string;
-
     const [order, setOrder] = useState<VendorOrderDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Move useEffect before early return to fix React Hooks warning
     useEffect(() => {
         if (!session?.user || session.user.role !== "VENDOR") {
             router.push("/");
             return;
         }
 
+        if (!params?.id) return;
+
         const fetchOrder = async () => {
             try {
-                const response = await fetch(`/api/vendor/orders/${orderId}`);
+                const response = await fetch(`/api/vendor/orders/${params.id}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch order");
                 }
@@ -116,10 +117,14 @@ export default function VendorOrderDetailPage() {
             }
         };
 
-        if (orderId) {
-            fetchOrder();
-        }
-    }, [orderId, session, router]);
+        fetchOrder();
+    }, [params?.id, session, router]);
+
+    if (!params?.id) {
+        return null; // or redirect to vendor orders page
+    }
+
+    const orderId = params.id as string;
 
     const getStatusBadge = (status: string) => {
         const statusConfig = {

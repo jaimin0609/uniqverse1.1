@@ -73,16 +73,14 @@ export function AdminTicketDashboard() {
     const [stats, setStats] = useState<any>({});
     const [pagination, setPagination] = useState<any>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const router = useRouter();
+    const [error, setError] = useState<string | null>(null); const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
     // Get current filter values from URL
-    const currentStatus = searchParams.get('status') || '';
-    const currentPriority = searchParams.get('priority') || '';
-    const currentPage = parseInt(searchParams.get('page') || '1');
+    const currentStatus = searchParams?.get('status') || '';
+    const currentPriority = searchParams?.get('priority') || '';
+    const currentPage = parseInt(searchParams?.get('page') || '1');
 
     // Status icon component
     const StatusIcon = ({ status }: { status: string }) => {
@@ -124,7 +122,7 @@ export function AdminTicketDashboard() {
         priority: string | null = null,
         page: number | null = null
     ) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
 
         if (status !== null) {
             if (status) {
@@ -188,7 +186,7 @@ export function AdminTicketDashboard() {
 
     // Clear all filters
     const clearFilters = () => {
-        router.push(pathname);
+        router.push(pathname || '/admin/support-management/tickets');
     };
 
     // Render loading state

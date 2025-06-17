@@ -119,8 +119,6 @@ export default function EditProductPage() {
     const { data: session } = useSession();
     const router = useRouter();
     const params = useParams();
-    const productId = params.id as string;
-
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -152,9 +150,11 @@ export default function EditProductPage() {
         },
     });
 
-    // Load product data and categories
+    // Load product data and categories - moved before early return to fix React Hooks warning
     useEffect(() => {
         const fetchData = async () => {
+            if (!params?.id) return;
+
             setIsLoading(true);
             try {
                 // Fetch categories
@@ -165,7 +165,7 @@ export default function EditProductPage() {
                 }
 
                 // Fetch product
-                const productResponse = await fetch(`/api/vendor/products/${productId}`);
+                const productResponse = await fetch(`/api/vendor/products/${params.id}`);
                 if (!productResponse.ok) {
                     throw new Error("Failed to fetch product");
                 }
@@ -205,12 +205,14 @@ export default function EditProductPage() {
             }
         };
 
-        if (productId) {
-            fetchData();
-        }
-    }, [productId, form, router]);
+        fetchData();
+    }, [params?.id, form, router]);
 
-    // Handle new image upload
+    if (!params?.id) {
+        return null; // or redirect to vendor products page
+    }
+
+    const productId = params.id as string;    // Handle new image upload
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || []);
         const totalImages = existingImages.length + newImages.length + files.length;

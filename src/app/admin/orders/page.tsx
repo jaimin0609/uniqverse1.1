@@ -93,15 +93,13 @@ export default function OrdersPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-
-    const router = useRouter();
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); const router = useRouter();
     const searchParams = useSearchParams();
-    const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const currentStatus = searchParams.get("status") || "all";
-    const currentPaymentStatus = searchParams.get("paymentStatus") || "all";
-    const currentCustomer = searchParams.get("customer") || "";
-    const currentSort = searchParams.get("sort") || "date-desc";
+    const currentPage = parseInt(searchParams?.get("page") || "1", 10);
+    const currentStatus = searchParams?.get("status") || "all";
+    const currentPaymentStatus = searchParams?.get("paymentStatus") || "all";
+    const currentCustomer = searchParams?.get("customer") || "";
+    const currentSort = searchParams?.get("sort") || "date-desc";
 
     // Metrics for the dashboard
     const [metrics, setMetrics] = useState({
@@ -162,19 +160,17 @@ export default function OrdersPage() {
         };
 
         fetchOrders();
-    }, [currentPage, currentStatus, currentPaymentStatus, currentCustomer, currentSort, debouncedSearchTerm]);
-
-    const handlePageChange = (page: number) => {
+    }, [currentPage, currentStatus, currentPaymentStatus, currentCustomer, currentSort, debouncedSearchTerm]); const handlePageChange = (page: number) => {
         if (page < 1 || page > pagination.totalPages) return;
 
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("page", page.toString());
 
         router.push(`/admin/orders?${params.toString()}`);
     };
 
     const handleStatusFilter = (status: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("status", status);
         params.delete("page"); // Reset to first page when changing filters
 
@@ -182,7 +178,7 @@ export default function OrdersPage() {
     };
 
     const handlePaymentStatusFilter = (paymentStatus: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("paymentStatus", paymentStatus);
         params.delete("page"); // Reset to first page when changing filters
 
@@ -190,7 +186,7 @@ export default function OrdersPage() {
     };
 
     const handleSort = (sort: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         params.set("sort", sort);
 
         router.push(`/admin/orders?${params.toString()}`);

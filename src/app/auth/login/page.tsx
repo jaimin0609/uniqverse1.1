@@ -17,11 +17,9 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Check for reset password success message or registration success
-    const resetSuccess = searchParams.get("reset") === "success";
-    const registeredSuccess = searchParams.get("registered") === "true";
+    const [isLoading, setIsLoading] = useState(false);    // Check for reset password success message or registration success
+    const resetSuccess = searchParams?.get("reset") === "success";
+    const registeredSuccess = searchParams?.get("registered") === "true";
 
     const {
         register,
