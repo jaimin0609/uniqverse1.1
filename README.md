@@ -1,4 +1,6 @@
-# Uniqverse E-Commerce Platform
+# Uniqverse E-commerce Platform
+
+<!-- Deployment trigger: 2025-06-17 - Database tables created and build scripts fixed --> Uniqverse E-Commerce Platform
 
 A modern, full-featured e-commerce platform built with Next.js 14+, TypeScript, Tailwind CSS, and Prisma. Designed to provide a seamless shopping experience with support for product customization, variants, and integration with popular payment gateways.
 
