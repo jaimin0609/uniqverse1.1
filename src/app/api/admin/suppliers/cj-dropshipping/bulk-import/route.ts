@@ -47,11 +47,9 @@ export async function POST(request: NextRequest) {
 
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
             return NextResponse.json({ error: "Product IDs are required" }, { status: 400 });
-        }
-
-        // Check if rate limit is active using the token store
+        }        // Check if rate limit is active using the token store
         const tokenStore = CJTokenStore.getInstance();
-        const timeUntilAuth = tokenStore.getTimeUntilNextAuth(supplierId);
+        const timeUntilAuth = await tokenStore.getTimeUntilNextAuth(supplierId);
         if (timeUntilAuth > 0) {
             return NextResponse.json({
                 success: false,

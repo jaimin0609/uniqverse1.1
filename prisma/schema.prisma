@@ -196,6 +196,10 @@ model Supplier {
   contactPhone         String?
   averageShipping      Int?
   status               SupplierStatus         @default(ACTIVE)
+  type                 String?                // e.g., "CJ_DROPSHIPPING", "ALIBABA"
+  accessToken          String?                // For OAuth tokens
+  refreshToken         String?               // For OAuth refresh tokens
+  tokenExpiresAt       DateTime?             // When the access token expires
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   DropshippingSettings DropshippingSettings[]

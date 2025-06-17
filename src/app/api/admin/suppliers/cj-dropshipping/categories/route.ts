@@ -24,11 +24,9 @@ export async function GET(request: NextRequest) {
         // Make sure supplier ID is provided
         if (!supplierId) {
             return NextResponse.json({ error: "Supplier ID is required" }, { status: 400 });
-        }
-
-        // Check if rate limit is active using the token store
+        }        // Check if rate limit is active using the token store
         const tokenStore = CJTokenStore.getInstance();
-        const timeUntilAuth = tokenStore.getTimeUntilNextAuth(supplierId);
+        const timeUntilAuth = await tokenStore.getTimeUntilNextAuth(supplierId);
         if (timeUntilAuth > 0) {
             return NextResponse.json({
                 success: false,

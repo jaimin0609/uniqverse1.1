@@ -99,28 +99,24 @@ export class CJDropshippingApiClient {
         const formattedId = `pid:${numericPart}:null`;
         console.log(`Formatted product ID: ${formattedId}`);
         return formattedId;
-    }
-
-    /**
+    }    /**
      * Get time remaining until next auth attempt is allowed
      */
-    public getTimeUntilNextAuthAllowed(): number {
-        return this.tokenStore.getTimeUntilNextAuth(this.supplierId);
-    }
-
-    /**
+    public async getTimeUntilNextAuthAllowed(): Promise<number> {
+        return await this.tokenStore.getTimeUntilNextAuth(this.supplierId);
+    }/**
      * Get a valid access token, refreshing if necessary
      */
     private async getAccessToken(): Promise<string> {
         // Check if we have a valid cached token
-        const cachedToken = this.tokenStore.getAccessToken(this.supplierId);
+        const cachedToken = await this.tokenStore.getAccessToken(this.supplierId);
         if (cachedToken) {
             console.log('Using cached CJ Dropshipping access token');
             return cachedToken;
         }
 
         // Check if we can use refresh token
-        const refreshToken = this.tokenStore.getRefreshToken(this.supplierId);
+        const refreshToken = await this.tokenStore.getRefreshToken(this.supplierId);
         if (refreshToken) {
             try {
                 console.log('Attempting to refresh CJ Dropshipping token');
@@ -133,8 +129,8 @@ export class CJDropshippingApiClient {
         }
 
         // Check if we're within the rate limit window
-        if (!this.tokenStore.canAuthenticate(this.supplierId)) {
-            const waitTime = this.tokenStore.getTimeUntilNextAuth(this.supplierId);
+        if (!(await this.tokenStore.canAuthenticate(this.supplierId))) {
+            const waitTime = await this.tokenStore.getTimeUntilNextAuth(this.supplierId);
             throw new Error(
                 `CJ_RATE_LIMIT:${waitTime}: ` +
                 `CJ Dropshipping rate limit in effect.Please wait ${waitTime} seconds before trying again.` +
@@ -143,7 +139,7 @@ export class CJDropshippingApiClient {
         }
 
         // Update the auth timestamp
-        this.tokenStore.updateAuthTimestamp(this.supplierId);
+        await this.tokenStore.updateAuthTimestamp(this.supplierId);
 
         // Otherwise, get a new token with full authentication
         try {
@@ -199,10 +195,8 @@ export class CJDropshippingApiClient {
             } else {
                 // Default to 180 days if no expiry provided
                 refreshTokenExpires = Date.now() + (180 * 24 * 60 * 60 * 1000);
-            }
-
-            // Store tokens in the token store
-            this.tokenStore.storeTokens(
+            }            // Store tokens in the token store
+            await this.tokenStore.storeTokens(
                 this.supplierId,
                 accessToken,
                 newRefreshToken,
@@ -267,10 +261,8 @@ export class CJDropshippingApiClient {
             } else {
                 // Default to 180 days if no expiry provided
                 refreshTokenExpires = Date.now() + (180 * 24 * 60 * 60 * 1000);
-            }
-
-            // Store tokens in the token store
-            this.tokenStore.storeTokens(
+            }            // Store tokens in the token store
+            await this.tokenStore.storeTokens(
                 this.supplierId,
                 accessToken,
                 newRefreshToken,

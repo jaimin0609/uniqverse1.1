@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { db } from '@/lib/db';
 
 type TokenData = {
     accessToken: string;
@@ -13,11 +12,9 @@ type TokenCache = {
     [key: string]: TokenData;
 };
 
-const TOKEN_FILE_PATH = path.join(process.cwd(), '.cj-tokens.json');
-
 /**
- * Utility to manage CJ Dropshipping tokens with filesystem persistence
- * This allows tokens to survive server restarts
+ * Utility to manage CJ Dropshipping tokens with database persistence
+ * This allows tokens to survive server restarts and works in Vercel's read-only filesystem
  */
 export class CJTokenStore {
     private static instance: CJTokenStore;
@@ -39,18 +36,41 @@ export class CJTokenStore {
     }
 
     /**
-     * Load tokens from file system
+     * Load tokens from database
      */
-    private loadTokens(): void {
+    private async loadTokens(): Promise<void> {
         try {
-            if (fs.existsSync(TOKEN_FILE_PATH)) {
-                const data = fs.readFileSync(TOKEN_FILE_PATH, 'utf-8');
-                this.tokenCache = JSON.parse(data);
-                console.log('CJ Dropshipping tokens loaded from file');
-            } else {
-                this.tokenCache = {};
-                console.log('No CJ Dropshipping token file found, creating new cache');
+            // Load tokens from database instead of filesystem
+            const suppliers = await db.supplier.findMany({
+                where: {
+                    type: 'CJ_DROPSHIPPING',
+                    NOT: {
+                        accessToken: null
+                    }
+                },
+                select: {
+                    id: true,
+                    accessToken: true,
+                    refreshToken: true,
+                    tokenExpiresAt: true
+                }
+            });
+
+            this.tokenCache = {};
+
+            for (const supplier of suppliers) {
+                if (supplier.accessToken && supplier.refreshToken && supplier.tokenExpiresAt) {
+                    this.tokenCache[supplier.id] = {
+                        accessToken: supplier.accessToken,
+                        refreshToken: supplier.refreshToken,
+                        accessTokenExpires: supplier.tokenExpiresAt.getTime(),
+                        refreshTokenExpires: supplier.tokenExpiresAt.getTime() + (7 * 24 * 60 * 60 * 1000), // 7 days
+                        lastUpdated: Date.now()
+                    };
+                }
             }
+
+            console.log('CJ Dropshipping tokens loaded from database');
             this.initialized = true;
         } catch (error) {
             console.error('Error loading CJ Dropshipping tokens:', error);
@@ -60,23 +80,31 @@ export class CJTokenStore {
     }
 
     /**
-     * Save tokens to file system
+     * Save tokens to database
      */
-    private saveTokens(): void {
+    private async saveTokens(): Promise<void> {
         try {
-            fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(this.tokenCache, null, 2));
+            // Save tokens to database instead of filesystem
+            for (const [supplierId, tokenData] of Object.entries(this.tokenCache)) {
+                await db.supplier.update({
+                    where: { id: supplierId },
+                    data: {
+                        accessToken: tokenData.accessToken,
+                        refreshToken: tokenData.refreshToken,
+                        tokenExpiresAt: new Date(tokenData.accessTokenExpires)
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error saving CJ Dropshipping tokens:', error);
         }
-    }
-
-    /**
+    }    /**
      * Get access token for a supplier
      */
-    public getAccessToken(supplierId: string): string | null {
+    public async getAccessToken(supplierId: string): Promise<string | null> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         const tokenData = this.tokenCache[supplierId];
@@ -98,10 +126,10 @@ export class CJTokenStore {
     /**
      * Get refresh token for a supplier
      */
-    public getRefreshToken(supplierId: string): string | null {
+    public async getRefreshToken(supplierId: string): Promise<string | null> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         const tokenData = this.tokenCache[supplierId];
@@ -123,16 +151,16 @@ export class CJTokenStore {
     /**
      * Store tokens for a supplier
      */
-    public storeTokens(
+    public async storeTokens(
         supplierId: string,
         accessToken: string,
         refreshToken: string,
         accessTokenExpires: number,
         refreshTokenExpires: number
-    ): void {
+    ): Promise<void> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         this.tokenCache[supplierId] = {
@@ -143,16 +171,16 @@ export class CJTokenStore {
             lastUpdated: Date.now(),
         };
 
-        this.saveTokens();
+        await this.saveTokens();
     }
 
     /**
      * Check if authentication is allowed (respecting rate limits)
      */
-    public canAuthenticate(supplierId: string): boolean {
+    public async canAuthenticate(supplierId: string): Promise<boolean> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         const tokenData = this.tokenCache[supplierId];
@@ -171,25 +199,25 @@ export class CJTokenStore {
     /**
      * Update last authentication timestamp for rate limiting
      */
-    public updateAuthTimestamp(supplierId: string): void {
+    public async updateAuthTimestamp(supplierId: string): Promise<void> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         if (this.tokenCache[supplierId]) {
             this.tokenCache[supplierId].lastUpdated = Date.now();
-            this.saveTokens();
+            await this.saveTokens();
         }
     }
 
     /**
      * Get wait time until next authentication is allowed
      */
-    public getTimeUntilNextAuth(supplierId: string): number {
+    public async getTimeUntilNextAuth(supplierId: string): Promise<number> {
         // Ensure tokens are loaded
         if (!this.initialized) {
-            this.loadTokens();
+            await this.loadTokens();
         }
 
         const tokenData = this.tokenCache[supplierId];
