@@ -21,16 +21,31 @@ export function Header() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [suggestions, setSuggestions] = useState<any[]>([]); const [isLoading, setIsLoading] = useState(false);
+    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Debug session information
     console.log("Header session data:", session);    // Normalize role check to match Prisma UserRole enum (ADMIN not admin)
     const isAdmin = session?.user?.role === 'ADMIN';
     const isVendor = session?.user?.role === 'VENDOR'; const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
-    };    // Add keyboard listener for search shortcuts
+    };
+
+    // Dropdown hover functions
+    const handleDropdownEnter = (dropdownName: string) => {
+        if (dropdownTimeoutRef.current) {
+            clearTimeout(dropdownTimeoutRef.current);
+        }
+        setActiveDropdown(dropdownName);
+    };
+
+    const handleDropdownLeave = () => {
+        dropdownTimeoutRef.current = setTimeout(() => {
+            setActiveDropdown(null);
+        }, 150); // Small delay to allow moving to dropdown content
+    };// Add keyboard listener for search shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             // If Escape key is pressed and search overlay is open, close it
@@ -223,36 +238,40 @@ export function Header() {
                             </span>
                         </Link>
                     </div>                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex space-x-6" role="navigation">
-                        {navLinks.map((link) => (
-                            link.children ? (
-                                <div key={link.name} className="relative group">
-                                    <button className={`flex items-center text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}>
-                                        {link.name}
-                                        <ChevronDown className="ml-1 h-4 w-4" />
-                                    </button>
-                                    <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 hidden group-hover:block border border-slate-200 dark:border-slate-700">
-                                        {link.children.map((childLink) => (
-                                            <Link
-                                                key={childLink.name}
-                                                href={childLink.href}
-                                                className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                            >
-                                                {childLink.name}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    className={`text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}
-                                >
+                    <nav className="hidden md:flex space-x-6" role="navigation">                        {navLinks.map((link) => (
+                        link.children ? (
+                            <div
+                                key={link.name}
+                                className="relative"
+                                onMouseEnter={() => handleDropdownEnter(link.name)}
+                                onMouseLeave={handleDropdownLeave}
+                            >
+                                <button className={`flex items-center text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}>
                                     {link.name}
-                                </Link>
-                            )
-                        ))}
+                                    <ChevronDown className="ml-1 h-4 w-4" />
+                                </button>
+                                <div className={`absolute left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 border border-slate-200 dark:border-slate-700 ${activeDropdown === link.name ? 'block' : 'hidden'}`}>
+                                    {link.children.map((childLink) => (
+                                        <Link
+                                            key={childLink.name}
+                                            href={childLink.href}
+                                            className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        >
+                                            {childLink.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                className={`text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}
+                            >
+                                {link.name}
+                            </Link>
+                        )
+                    ))}
                     </nav>
 
                     {/* Right side - Search, Settings (Theme + Currency), User actions (Wishlist + Account) */}
@@ -302,11 +321,13 @@ export function Header() {
                         </div>
 
                         {/* Cart Button */}
-                        <CartButton />
-
-                        {/* User Actions (Account/Wishlist) */}
+                        <CartButton />                        {/* User Actions (Account/Wishlist) */}
                         {session ? (
-                            <div className="relative group">
+                            <div
+                                className="relative"
+                                onMouseEnter={() => handleDropdownEnter('user')}
+                                onMouseLeave={handleDropdownLeave}
+                            >
                                 <button className="flex items-center space-x-1 p-2 text-slate-600 dark:text-slate-300 hover:text-primary focus:outline-none">
                                     <User className="h-5 w-5" />
                                     <span className="hidden lg:inline-block text-sm font-medium">
@@ -314,7 +335,7 @@ export function Header() {
                                     </span>
                                     <ChevronDown className="h-4 w-4" />
                                 </button>
-                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 hidden group-hover:block border border-slate-200 dark:border-slate-700">
+                                <div className={`absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 border border-slate-200 dark:border-slate-700 ${activeDropdown === 'user' ? 'block' : 'hidden'}`}>
                                     <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-700">
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Signed in as</p>
                                         <p className="font-medium truncate">{session.user?.email}</p>
