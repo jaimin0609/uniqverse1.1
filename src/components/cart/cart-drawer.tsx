@@ -105,7 +105,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             await syncCartWithServer();
         } catch (error) {
             console.error('Error syncing cart before checkout:', error);
-            // Continue with checkout even if sync fails        } finally {
+            // Continue with checkout even if sync fails
+        } finally {
             setIsLoading(false);
         }
 
