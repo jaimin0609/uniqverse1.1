@@ -206,6 +206,13 @@ model Supplier {
   PricingRule          PricingRule[]
   products             Product[]
   SupplierOrder        SupplierOrder[]
+
+  @@index([type])
+  @@index([status])
+  @@index([name])
+  @@index([accessToken])
+  @@index([tokenExpiresAt])
+  @@index([createdAt])
 }
 
 model Order {

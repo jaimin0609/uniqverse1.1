@@ -118,9 +118,7 @@ export async function PUT(
                 { error: "Supplier not found" },
                 { status: 404 }
             );
-        }
-
-        // Update supplier
+        }        // Update supplier
         const updatedSupplier = await db.supplier.update({
             where: { id: supplierId },
             data: {
@@ -133,6 +131,10 @@ export async function PUT(
                 contactPhone: data.contactPhone || null,
                 averageShipping: data.averageShipping || null,
                 status: data.status || existingSupplier.status,
+                type: data.type || existingSupplier.type,
+                accessToken: data.accessToken !== undefined ? data.accessToken : existingSupplier.accessToken,
+                refreshToken: data.refreshToken !== undefined ? data.refreshToken : existingSupplier.refreshToken,
+                tokenExpiresAt: data.tokenExpiresAt ? new Date(data.tokenExpiresAt) : existingSupplier.tokenExpiresAt,
             },
         });
 
