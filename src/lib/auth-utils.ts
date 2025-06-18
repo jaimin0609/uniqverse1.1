@@ -54,8 +54,30 @@ export const authOptions: NextAuthOptions = {
                 return user;
             },
         }),
-    ],
-    callbacks: {
+    ], callbacks: {
+        async signIn({ user, account, profile }) {
+            // Allow all sign-ins, but ensure user has proper role
+            if (account?.provider === "google" && user?.email) {
+                // For Google OAuth, ensure the user has a role
+                try {
+                    const existingUser = await db.user.findUnique({
+                        where: { email: user.email },
+                        select: { id: true, role: true }
+                    });
+
+                    if (existingUser && !existingUser.role) {
+                        // Update user with default role if it's missing
+                        await db.user.update({
+                            where: { id: existingUser.id },
+                            data: { role: "CUSTOMER" }
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error ensuring user role:", error);
+                }
+            }
+            return true;
+        },
         async session({ session, token }) {
             if (token) {
                 session.user = {
@@ -69,9 +91,12 @@ export const authOptions: NextAuthOptions = {
             }
             return session;
         }, async jwt({ token, user }) {
+            console.log("JWT Callback - User:", user ? { id: user.id, email: user.email, role: user.role } : null);
+            console.log("JWT Callback - Token before:", { id: token.id, email: token.email, role: token.role });
+
             if (user) {
                 token.id = user.id;
-                token.role = user.role as UserRole;
+                token.role = user.role as UserRole || "CUSTOMER"; // Default to CUSTOMER if role is undefined
             } else if (token.email) {
                 const existingUser = await db.user.findUnique({
                     where: {
@@ -88,6 +113,8 @@ export const authOptions: NextAuthOptions = {
                     token.role = existingUser.role as UserRole;
                 }
             }
+
+            console.log("JWT Callback - Token after:", { id: token.id, email: token.email, role: token.role });
             return token;
         },
     }, pages: {
@@ -114,8 +141,7 @@ export const authOptions: NextAuthOptions = {
                 secure: process.env.NODE_ENV === "production",
             },
         },
-    },
-    // Add debug for production to help troubleshoot
-    debug: process.env.NODE_ENV === "development",
+    },    // Add debug for production to help troubleshoot
+    debug: process.env.NODE_ENV === "development" || process.env.NEXTAUTH_DEBUG === "true",
     secret: process.env.NEXTAUTH_SECRET,
 };
