@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next"
 import { headers } from "next/headers";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -80,6 +81,7 @@ export default async function RootLayout({
                 <PromotionBanner className="sticky top-0 z-10" />
                 <main className="flex-grow">
                   {children}
+                  <Analytics />
                 </main>
                 <FooterWithConditional />
                 <Toaster position="top-center" closeButton richColors toastOptions={{
