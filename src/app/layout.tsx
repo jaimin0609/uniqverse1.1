@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -82,6 +83,7 @@ export default async function RootLayout({
                 <main className="flex-grow">
                   {children}
                   <Analytics />
+                  <SpeedInsights />
                 </main>
                 <FooterWithConditional />
                 <Toaster position="top-center" closeButton richColors toastOptions={{
