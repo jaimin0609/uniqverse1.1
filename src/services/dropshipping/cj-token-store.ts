@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { cache } from '@/lib/cache-manager';
 
 type TokenData = {
     accessToken: string;
@@ -13,8 +13,8 @@ type TokenCache = {
 };
 
 /**
- * Utility to manage CJ Dropshipping tokens with database persistence
- * This allows tokens to survive server restarts and works in Vercel's read-only filesystem
+ * Utility to manage CJ Dropshipping tokens with Redis cache persistence
+ * This works with Vercel's read-only filesystem by using Redis cache
  */
 export class CJTokenStore {
     private static instance: CJTokenStore;
@@ -33,72 +33,40 @@ export class CJTokenStore {
             CJTokenStore.instance = new CJTokenStore();
         }
         return CJTokenStore.instance;
-    }
-
-    /**
-     * Load tokens from database
+    }    /**
+     * Load tokens from Redis cache
      */
     private async loadTokens(): Promise<void> {
         try {
-            // Load tokens from database instead of filesystem
-            const suppliers = await db.supplier.findMany({
-                where: {
-                    type: 'CJ_DROPSHIPPING',
-                    NOT: {
-                        accessToken: null
-                    }
-                },
-                select: {
-                    id: true,
-                    accessToken: true,
-                    refreshToken: true,
-                    tokenExpiresAt: true
-                }
-            });
+            // Load tokens from Redis cache
+            const cachedTokens = await cache.get('cj_dropshipping_tokens');
 
-            this.tokenCache = {};
-
-            for (const supplier of suppliers) {
-                if (supplier.accessToken && supplier.refreshToken && supplier.tokenExpiresAt) {
-                    this.tokenCache[supplier.id] = {
-                        accessToken: supplier.accessToken,
-                        refreshToken: supplier.refreshToken,
-                        accessTokenExpires: supplier.tokenExpiresAt.getTime(),
-                        refreshTokenExpires: supplier.tokenExpiresAt.getTime() + (7 * 24 * 60 * 60 * 1000), // 7 days
-                        lastUpdated: Date.now()
-                    };
-                }
+            if (cachedTokens) {
+                this.tokenCache = JSON.parse(cachedTokens as string);
+                console.log('CJ Dropshipping tokens loaded from cache');
+            } else {
+                this.tokenCache = {};
+                console.log('No cached CJ Dropshipping tokens found');
             }
 
-            console.log('CJ Dropshipping tokens loaded from database');
             this.initialized = true;
         } catch (error) {
-            console.error('Error loading CJ Dropshipping tokens:', error);
+            console.error('Error loading CJ Dropshipping tokens from cache:', error);
             this.tokenCache = {};
             this.initialized = true;
         }
-    }
-
-    /**
-     * Save tokens to database
+    }    /**
+     * Save tokens to Redis cache
      */
     private async saveTokens(): Promise<void> {
         try {
-            // Save tokens to database instead of filesystem
-            for (const [supplierId, tokenData] of Object.entries(this.tokenCache)) {
-                await db.supplier.update({
-                    where: { id: supplierId },
-                    data: {
-                        accessToken: tokenData.accessToken,
-                        refreshToken: tokenData.refreshToken,
-                        tokenExpiresAt: new Date(tokenData.accessTokenExpires)
-                    }
-                });
-            }
+            // Save tokens to Redis cache with 7 day expiry
+            await cache.set('cj_dropshipping_tokens', JSON.stringify(this.tokenCache), 60 * 60 * 24 * 7);
+            console.log('Tokens saved to Redis cache');
         } catch (error) {
-            console.error('Error saving CJ Dropshipping tokens:', error);
+            console.error('Error saving CJ Dropshipping tokens to cache:', error);
         }
-    }    /**
+    }/**
      * Get access token for a supplier
      */
     public async getAccessToken(supplierId: string): Promise<string | null> {

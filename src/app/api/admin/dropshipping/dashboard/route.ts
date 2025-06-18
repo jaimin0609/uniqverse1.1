@@ -36,19 +36,16 @@ export async function GET(req: NextRequest) {
                     status: 'PENDING'
                 }
             })
-        ]);
-
-        // Get recent supplier orders
+        ]);        // Get recent supplier orders
         const recentOrders = await db.supplierOrder.findMany({
             take: 10,
             orderBy: {
                 createdAt: 'desc'
             },
             include: {
-                supplier: {
+                Supplier: {
                     select: {
-                        name: true,
-                        type: true
+                        name: true
                     }
                 }
             }
@@ -60,7 +57,7 @@ export async function GET(req: NextRequest) {
                 _count: {
                     select: {
                         products: true,
-                        supplierOrders: true
+                        SupplierOrder: true
                     }
                 }
             }
