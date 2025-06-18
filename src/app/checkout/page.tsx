@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useCartStore } from "@/store/cart";
+import { useServerSyncedCart } from "@/hooks/use-server-synced-cart";
 import { Button } from "@/components/ui/button";
 import CartSummary from "@/components/checkout/cart-summary";
 import ShippingForm from "@/components/checkout/shipping-form";
@@ -20,7 +20,7 @@ type CheckoutStep = "cart" | "shipping" | "payment" | "complete";
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { items, totalItems, clearCart } = useCartStore();
+    const { items, itemCount, subtotal: cartSubtotal, clearCart } = useServerSyncedCart();
     const { currency, exchangeRates, convertPrice } = useCurrency();
     const [currentStep, setCurrentStep] = useState<CheckoutStep>("cart");
     const [shippingData, setShippingData] = useState<any>({});
@@ -44,7 +44,7 @@ export default function CheckoutPage() {
 
         return () => clearTimeout(timer);
     }, [items, currentStep, router]);    // Calculate subtotal, shipping, tax and total
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = cartSubtotal;
     const subtotalInCurrentCurrency = convertPrice(subtotal);
 
     const getShippingCost = () => {
