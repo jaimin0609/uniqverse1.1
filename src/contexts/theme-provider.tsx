@@ -20,7 +20,7 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-    theme: "system",
+    theme: "light",
     setTheme: () => null,
 };
 
@@ -28,7 +28,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
     children,
-    defaultTheme = "system",
+    defaultTheme = "light",
     storageKey = "uniqverse-theme",
     attribute = "class",
     enableSystem = true,
@@ -43,10 +43,11 @@ export function ThemeProvider({
 
         if (savedTheme) {
             setTheme(savedTheme);
-        } else if (enableSystem) {
-            setTheme("system");
+        } else {
+            // Default to light theme instead of system
+            setTheme(defaultTheme);
         }
-    }, [enableSystem, storageKey]);
+    }, [enableSystem, storageKey, defaultTheme]);
 
     useEffect(() => {
         const root = window.document.documentElement;

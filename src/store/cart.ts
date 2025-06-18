@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clearCartData } from '@/utils/cart-utils';
 
 export type CartItem = {
     id: string;
@@ -139,26 +140,27 @@ export const useCartStore = create<CartStore>()(
                         itemCount,
                     };
                 });
-            },
-
-            clearCart: () => {
+            }, clearCart: () => {
                 set({ items: [], subtotal: 0, itemCount: 0 });
+                // Clear all cart-related localStorage data
+                clearCartData();
             },
+        }), {
+        name: 'uniqverse-cart',
+        // Use this to merge the persisted state with the initial state and ensure synchronization
+        partialize: (state) => ({
+            items: state.items,
         }),
-        {
-            name: 'uniqverse-cart',
-            // Use this to merge the persisted state with the initial state and ensure synchronization
-            partialize: (state) => ({
-                items: state.items,
-            }),
-            // Add onRehydrateStorage to update subtotal and itemCount when state is rehydrated
-            onRehydrateStorage: () => (state) => {
-                if (state) {
-                    const { subtotal, itemCount } = state.calculateCartValues();
-                    state.subtotal = subtotal;
-                    state.itemCount = itemCount;
-                }
-            },
-        }
+        // Add onRehydrateStorage to update subtotal and itemCount when state is rehydrated
+        onRehydrateStorage: () => (state) => {
+            if (state) {
+                const { subtotal, itemCount } = state.calculateCartValues();
+                state.subtotal = subtotal;
+                state.itemCount = itemCount;
+            }
+        },
+        // Add version to force clear old cart data when needed
+        version: 1,
+    }
     )
 );

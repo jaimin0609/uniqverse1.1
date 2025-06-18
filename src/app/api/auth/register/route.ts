@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { registerSchema } from "@/lib/validations/auth";
-import { sendWelcomeEmail } from "@/lib/email-utils";
+import { sendEmailVerificationEmail } from "@/lib/email-utils";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
     try {
@@ -47,18 +48,32 @@ export async function POST(req: Request) {
                 { message: "Email already registered. Please sign in instead." },
                 { status: 409 }
             );
-        }
-
-        // Hash password
+        }        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new user
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationExpires = new Date();
+        verificationExpires.setHours(verificationExpires.getHours() + 24); // Expires in 24 hours
+
+        // Create new user (emailVerified will be null until verified)
         const user = await db.user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
                 role: "CUSTOMER", // Default role
+                emailVerified: null, // User needs to verify their email
+            },
+        });
+
+        // Create verification token
+        await db.verificationToken.create({
+            data: {
+                identifier: email,
+                token: verificationToken,
+                expires: verificationExpires,
+                userId: user.id,
             },
         });        // Create empty cart for the user
         await db.cart.create({
@@ -67,9 +82,11 @@ export async function POST(req: Request) {
                 userId: user.id,
                 updatedAt: new Date(),
             },
-        });        // Send welcome email (don't await to avoid blocking the response)
-        sendWelcomeEmail(user.email, user.name || 'there').catch(error => {
-            console.error('Failed to send welcome email:', error);
+        });
+
+        // Send email verification email (don't await to avoid blocking the response)
+        sendEmailVerificationEmail(user.email, verificationToken, user.name || undefined).catch(error => {
+            console.error('Failed to send email verification email:', error);
         });
 
         // Return success response (omit password from response)
@@ -78,7 +95,7 @@ export async function POST(req: Request) {
 
         const response = NextResponse.json(
             {
-                message: "Account created successfully!",
+                message: "Account created successfully! Please check your email to verify your account.",
                 user: userWithoutPassword
             },
             { status: 201 }

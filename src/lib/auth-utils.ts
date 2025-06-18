@@ -20,8 +20,7 @@ export const authOptions: NextAuthOptions = {
                     response_type: "code",
                 }
             }
-        }),
-        CredentialsProvider({
+        }), CredentialsProvider({
             name: "credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
@@ -51,6 +50,11 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
+                }
+
                 return user;
             },
         }),
@@ -59,30 +63,64 @@ export const authOptions: NextAuthOptions = {
             console.log("SignIn Callback - Provider:", account?.provider);
             console.log("SignIn Callback - User:", user ? { id: user.id, email: user.email, role: user.role } : null);
 
-            // Allow all sign-ins, but ensure user has proper role
+            // Handle Google OAuth account linking
             if (account?.provider === "google" && user?.email) {
-                // For Google OAuth, ensure the user has a role
                 try {
+                    // Check if there's an existing user with this email
                     const existingUser = await db.user.findUnique({
                         where: { email: user.email },
-                        select: { id: true, role: true }
+                        include: {
+                            accounts: true
+                        }
                     });
 
                     console.log("SignIn Callback - Existing User:", existingUser);
 
-                    if (existingUser && !existingUser.role) {
-                        // Update user with default role if it's missing
-                        await db.user.update({
-                            where: { id: existingUser.id },
-                            data: { role: "CUSTOMER" }
-                        });
-                        console.log("SignIn Callback - Updated user role to CUSTOMER");
+                    if (existingUser) {
+                        // Check if this Google account is already linked
+                        const googleAccount = existingUser.accounts.find(
+                            acc => acc.provider === "google" && acc.providerAccountId === account.providerAccountId
+                        );
+
+                        if (!googleAccount) {
+                            // Link the Google account to the existing user
+                            await db.account.create({
+                                data: {
+                                    userId: existingUser.id,
+                                    type: account.type,
+                                    provider: account.provider,
+                                    providerAccountId: account.providerAccountId,
+                                    refresh_token: account.refresh_token,
+                                    access_token: account.access_token,
+                                    expires_at: account.expires_at,
+                                    token_type: account.token_type,
+                                    scope: account.scope,
+                                    id_token: account.id_token,
+                                    session_state: account.session_state,
+                                }
+                            });
+                            console.log("SignIn Callback - Linked Google account to existing user");
+                        }
+
+                        // Ensure user has proper role
+                        if (!existingUser.role) {
+                            await db.user.update({
+                                where: { id: existingUser.id },
+                                data: { role: "CUSTOMER" }
+                            });
+                            console.log("SignIn Callback - Updated user role to CUSTOMER");
+                        }
+
+                        // Update the user object to use the existing user's ID
+                        user.id = existingUser.id;
+                        user.role = existingUser.role || "CUSTOMER";
                     }
                 } catch (error) {
-                    console.error("SignIn Callback - Error ensuring user role:", error);
-                    return false; // Block sign-in if there's a database error
+                    console.error("SignIn Callback - Error with account linking:", error);
+                    // Allow sign-in to continue even if linking fails
                 }
             }
+
             console.log("SignIn Callback - Success");
             return true;
         },
@@ -141,13 +179,12 @@ export const authOptions: NextAuthOptions = {
         async linkAccount({ user, account, profile }) {
             console.log("Event - LinkAccount:", { userId: user.id, provider: account.provider });
         }
-    },
-    pages: {
+    }, pages: {
         signIn: "/auth/login",
         error: "/auth/error",
         verifyRequest: "/auth/verify",
-        newUser: "/auth/register",
-        // Remove signOut to prevent redirect loops
+        // Remove newUser redirect to prevent Google OAuth users from being sent to register
+        // newUser: "/auth/register",
     },
     session: {
         strategy: "jwt",

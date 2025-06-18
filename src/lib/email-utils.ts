@@ -2,6 +2,24 @@ import nodemailer from 'nodemailer';
 import { db } from '@/lib/db';
 
 /**
+ * Get the correct base URL for the current environment
+ */
+function getBaseUrl(): string {
+  // Check for explicit environment variable first
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+
+  // If in production (Vercel), use the production URL
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return 'https://uniqverse-v1.vercel.app';
+  }
+
+  // Default to localhost for development
+  return 'http://localhost:3000';
+}
+
+/**
  * Configure the email transport
  */
 export function getEmailTransporter() {
@@ -35,11 +53,9 @@ export function getEmailTransporter() {
  */
 export async function sendPasswordResetEmail(email: string, token: string) {
   try {
-    const transporter = getEmailTransporter();
-
-    // Create the reset URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;    // If no email config, log the reset URL to console
+    const transporter = getEmailTransporter();    // Create the reset URL
+    const baseUrl = getBaseUrl();
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;// If no email config, log the reset URL to console
     if (!transporter) {
       console.log(`[DEV MODE] Password reset link for ${email}:`);
       console.log(resetUrl);
@@ -159,7 +175,7 @@ export async function sendOrderConfirmationEmail(orderId: string) {
       return `• ${item.product.name}${variantInfo} - Qty: ${item.quantity} - $${item.price.toFixed(2)}`;
     }).join('\n');
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const orderUrl = `${baseUrl}/account/orders/${order.id}`;
 
     // Send the email
@@ -269,7 +285,7 @@ export async function sendPaymentFailureEmail(orderId: string, errorMessage?: st
       return;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const orderUrl = `${baseUrl}/account/orders/${order.id}`;
 
     await transporter.sendMail({
@@ -416,7 +432,7 @@ export async function sendPaymentCancellationEmail(orderId: string) {
               <p>Any inventory that was reserved for this order has been restored.</p>
               
               <p style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}" class="button">Shop Again</a>
+                <a href="${getBaseUrl()}" class="button">Shop Again</a>
               </p>
               
               <p>If you'd like to place a new order, you can visit our website anytime.</p>
@@ -554,7 +570,7 @@ export async function sendActionRequiredEmail(orderId: string, actionType?: stri
       return;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const orderUrl = `${baseUrl}/account/orders/${order.id}`;
 
     await transporter.sendMail({
@@ -637,7 +653,7 @@ export async function sendNewsletterWelcomeEmail(email: string, unsubscribeToken
     const transporter = getEmailTransporter();
 
     // Create the unsubscribe URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${unsubscribeToken}&email=${encodeURIComponent(email)}`;    // If no email config, log to console
     if (!transporter) {
       console.log(`[DEV MODE] Newsletter welcome email for ${email}:`);
@@ -753,7 +769,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
   try {
     const transporter = getEmailTransporter();
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';    // If no email config, log to console
+    const baseUrl = getBaseUrl();    // If no email config, log to console
     if (!transporter) {
       console.log(`[DEV MODE] Welcome email for ${email} (${name}):`);
       console.log(`Welcome to Uniqverse!`);
@@ -846,7 +862,7 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
   try {
     const transporter = getEmailTransporter();
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const subscribeUrl = `${baseUrl}/api/newsletter/subscribe`;    // If no email config, log to console
     if (!transporter) {
       console.log(`[DEV MODE] Unsubscribe confirmation email for ${email}:`);
@@ -924,5 +940,109 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
   } catch (error) {
     console.error('Error sending unsubscribe confirmation email:', error);
     // Don't throw error to prevent unsubscribe failure
+  }
+}
+
+/**
+ * Send an email verification email to new users
+ */
+export async function sendEmailVerificationEmail(email: string, token: string, name?: string) {
+  try {
+    const transporter = getEmailTransporter();
+
+    // Create the verification URL
+    const baseUrl = getBaseUrl();
+    const verificationUrl = `${baseUrl}/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
+
+    // If no email config, log the verification URL to console
+    if (!transporter) {
+      console.log(`[DEV MODE] Email verification link for ${email}:`);
+      console.log(verificationUrl);
+      return;
+    }
+
+    // Send the verification email
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@uniqverse.com',
+      to: email,
+      subject: 'Verify Your UniQVerse Account',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verify Your Email - UniQVerse</title>
+          <style>
+            .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; background-color: #ffffff; }
+            .button { 
+              display: inline-block; 
+              padding: 15px 30px; 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+              color: white; 
+              text-decoration: none; 
+              border-radius: 5px; 
+              margin: 20px 0;
+              font-weight: bold;
+            }
+            .footer { padding: 20px; text-align: center; color: #666; font-size: 14px; }
+            .divider { height: 1px; background-color: #eee; margin: 30px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Welcome to UniQVerse!</h1>
+            </div>
+            
+            <div class="content">
+              <h2>Hi ${name || 'there'}!</h2>
+              
+              <p>Thank you for joining UniQVerse! We're excited to have you as part of our community of unique individuals.</p>
+              
+              <p>To complete your registration and start exploring our exclusive products, please verify your email address by clicking the button below:</p>
+              
+              <div style="text-align: center;">
+                <a href="${verificationUrl}" class="button">Verify Email Address</a>
+              </div>
+              
+              <div class="divider"></div>
+              
+              <p><strong>Why verify your email?</strong></p>
+              <ul>
+                <li>✅ Secure your account</li>
+                <li>✅ Receive order confirmations</li>
+                <li>✅ Get exclusive offers and updates</li>
+                <li>✅ Enable password recovery</li>
+              </ul>
+              
+              <div class="divider"></div>
+              
+              <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; color: #667eea;">${verificationUrl}</p>
+              
+              <p style="color: #999; font-size: 14px;">
+                <strong>Note:</strong> This verification link will expire in 24 hours for security reasons. 
+                If you didn't create an account with us, you can safely ignore this email.
+              </p>
+            </div>
+            
+            <div class="footer">
+              <p>© 2025 UniQVerse. All rights reserved.</p>
+              <p>Need help? Contact us at support@uniqverse.com</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    console.log(`Email verification sent to ${email}`);
+  } catch (error) {
+    console.error('Error sending email verification:', error);
+    throw error; // Re-throw to handle in calling function
   }
 }

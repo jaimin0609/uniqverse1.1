@@ -1,6 +1,11 @@
+import { clearCartData } from './cart-utils';
+
 // Utility functions for handling logout across different devices and browsers
 export const handleLogout = () => {
     try {
+        // Clear cart data first
+        clearCartData();
+
         // Clear all local storage and session storage
         if (typeof window !== 'undefined') {
             localStorage.clear();
@@ -18,6 +23,9 @@ export const handleLogout = () => {
 // Alternative: Force the logout page for all devices (more consistent)
 export const handleLogoutConsistent = () => {
     try {
+        // Clear cart data first
+        clearCartData();
+
         // Clear all local storage and session storage
         if (typeof window !== 'undefined') {
             localStorage.clear();
@@ -34,6 +42,9 @@ export const handleLogoutConsistent = () => {
 // Mobile-specific logout handler with better compatibility
 export const handleMobileLogout = () => {
     try {
+        // Clear cart data first
+        clearCartData();
+
         // Clear all local storage and session storage
         if (typeof window !== 'undefined') {
             localStorage.clear();

@@ -70,7 +70,7 @@ export default async function RootLayout({
       <body className={`${inter.className} h-full flex flex-col`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

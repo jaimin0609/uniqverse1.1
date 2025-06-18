@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { loginSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
 
@@ -17,9 +18,22 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isLoading, setIsLoading] = useState(false);    // Check for reset password success message or registration success
+    const [isLoading, setIsLoading] = useState(false);
+    const [showResendVerification, setShowResendVerification] = useState(false);
+    const [resendEmail, setResendEmail] = useState("");
+    const [isResending, setIsResending] = useState(false);    // Check for reset password success message or registration success
     const resetSuccess = searchParams?.get("reset") === "success";
     const registeredSuccess = searchParams?.get("registered") === "true";
+    const verifyMessage = searchParams?.get("message") === "verify";
+
+    // Show verification message if coming from registration
+    if (verifyMessage && typeof window !== 'undefined') {
+        setTimeout(() => {
+            toast.info("Please check your email and verify your account before signing in.", {
+                duration: 6000,
+            });
+        }, 100);
+    }
 
     const {
         register,
@@ -42,7 +56,14 @@ export default function LoginPage() {
             });
 
             if (result?.error) {
-                toast.error("Invalid credentials. Please try again.");
+                // Check if the error is about email verification
+                if (result.error.includes("verify your email")) {
+                    setResendEmail(data.email);
+                    setShowResendVerification(true);
+                    toast.error("Please verify your email address before signing in.");
+                } else {
+                    toast.error("Invalid credentials. Please try again.");
+                }
                 setIsLoading(false);
                 return;
             }
@@ -56,6 +77,32 @@ export default function LoginPage() {
             setIsLoading(false);
         }
     }
+
+    const handleResendVerification = async () => {
+        setIsResending(true);
+
+        try {
+            const response = await fetch("/api/auth/resend-verification", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: resendEmail }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to resend verification email.");
+            }
+
+            toast.success("Verification email resent! Please check your inbox.");
+            setShowResendVerification(false);
+            setResendEmail("");
+        } catch (error) {
+            toast.error("Failed to resend verification email. Please try again.");
+        } finally {
+            setIsResending(false);
+        }
+    };
 
     return (
         <div className="flex min-h-screen">
@@ -140,11 +187,9 @@ export default function LoginPage() {
                                             className="block text-sm font-medium text-gray-700"
                                         >
                                             Password
-                                        </label>
-                                        <div className="mt-1">
-                                            <input
+                                        </label>                                        <div className="mt-1">
+                                            <PasswordInput
                                                 id="password"
-                                                type="password"
                                                 autoComplete="current-password"
                                                 className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                                                 {...register("password")}
@@ -171,15 +216,23 @@ export default function LoginPage() {
                                             >
                                                 Remember me
                                             </label>
-                                        </div>
-
-                                        <div className="text-sm">
+                                        </div>                                        <div className="text-sm">
                                             <Link
                                                 href="/auth/forgot-password"
                                                 className="font-medium text-blue-600 hover:text-blue-500"
                                             >
                                                 Forgot your password?
                                             </Link>
+                                        </div>
+
+                                        <div className="text-sm">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowResendVerification(true)}
+                                                className="font-medium text-blue-600 hover:text-blue-500"
+                                            >
+                                                Resend email verification
+                                            </button>
                                         </div>
                                     </div>
 
@@ -240,7 +293,51 @@ export default function LoginPage() {
                                         </svg>
                                         Sign in with Google
                                     </Button>
-                                </div>
+                                </div>                                {/* Resend Verification Email Modal */}
+                                {showResendVerification && (
+                                    <div className="mt-6 rounded-md bg-blue-50 p-4 border border-blue-200">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <h3 className="text-sm font-medium text-blue-800 mb-2">
+                                                    Resend Email Verification
+                                                </h3>
+                                                <p className="text-sm text-blue-600 mb-3">
+                                                    Enter your email address to receive a new verification link.
+                                                </p>
+                                                <div className="space-y-3">
+                                                    <input
+                                                        type="email"
+                                                        placeholder="Enter your email address"
+                                                        value={resendEmail}
+                                                        onChange={(e) => setResendEmail(e.target.value)}
+                                                        className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                                                    />
+                                                    <div className="flex space-x-2">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={handleResendVerification}
+                                                            disabled={isResending || !resendEmail}
+                                                        >
+                                                            {isResending ? "Sending..." : "Send Verification Email"}
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setShowResendVerification(false);
+                                                                setResendEmail("");
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

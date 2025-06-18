@@ -3,22 +3,42 @@
 import { useEffect, useState } from 'react';
 import { useCartStore, type CartItem } from '@/store/cart';
 import { useSession } from 'next-auth/react';
+import { clearCartData } from '@/utils/cart-utils';
 
 /**
  * Hook to synchronize the local cart (Zustand) with the server database
  * This enables cart persistence across different devices and sessions
  */
 export function useCartSync() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const { items, addItem, clearCart } = useCartStore();
     const [cartId, setCartId] = useState<string | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-
-    // On mount or session changes, load the cart from the server
+    const [lastUserId, setLastUserId] = useState<string | null>(null);    // Handle user session changes (login/logout)
     useEffect(() => {
+        const currentUserId = session?.user?.id || null;
+
+        // If user has changed (logout or different user login), clear the cart
+        if (lastUserId !== currentUserId) {
+            clearCart();
+            clearCartData(); // Clear localStorage data too
+            setCartId(null);
+            setIsInitialized(false);
+
+            setLastUserId(currentUserId);
+        }
+    }, [session?.user?.id, lastUserId, clearCart]);// On mount or session changes, load the cart from the server
+    useEffect(() => {
+        // Don't load cart until session status is determined
+        if (status === 'loading') {
+            return;
+        }
+
         const loadServerCart = async () => {
             try {
+                setIsLoading(true);
+
                 // If we already have a cart ID in localStorage, use it for guest users
                 const storedCartId = localStorage.getItem('uniqverse-cart-id');
 
@@ -61,7 +81,7 @@ export function useCartSync() {
         };
 
         loadServerCart();
-    }, [session, addItem, clearCart, isInitialized]);
+    }, [session, status, addItem, clearCart, isInitialized]);
 
     // Whenever the local cart changes after initialization, update the server cart
     useEffect(() => {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -86,9 +87,7 @@ export default function RegisterPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
-            });
-
-            const responseData = await response.json();
+            }); const responseData = await response.json();
 
             if (!response.ok) {
                 toast.error(responseData.message || "Something went wrong. Please try again.");
@@ -100,21 +99,10 @@ export default function RegisterPage() {
                 return;
             }
 
-            toast.success("Account created successfully!");
+            toast.success("Account created successfully! Please check your email to verify your account before signing in.");
 
-            // Sign in the user after successful registration
-            const result = await signIn("credentials", {
-                email: formData.email,
-                password: formData.password,
-                redirect: false,
-            }); if (result?.error) {
-                toast.error("Failed to sign in after registration. Please try logging in.");
-                window.location.href = "/auth/login";
-                return;
-            }
-
-            // Use window.location.href for more reliable navigation in tests
-            window.location.href = "/";
+            // Redirect to login page with a message
+            router.push("/auth/login?message=verify");
         } catch (error) {
             toast.error("Failed to create account. Please try again.");
             setIsLoading(false);
@@ -206,12 +194,10 @@ export default function RegisterPage() {
                                             className="block text-sm font-medium text-gray-700"
                                         >
                                             Password
-                                        </label>
-                                        <div className="mt-1">
-                                            <input
+                                        </label>                                        <div className="mt-1">
+                                            <PasswordInput
                                                 id="password"
                                                 name="password"
-                                                type="password"
                                                 autoComplete="new-password"
                                                 value={formData.password}
                                                 onChange={handleChange}
@@ -231,12 +217,10 @@ export default function RegisterPage() {
                                             className="block text-sm font-medium text-gray-700"
                                         >
                                             Confirm Password
-                                        </label>
-                                        <div className="mt-1">
-                                            <input
+                                        </label>                                        <div className="mt-1">
+                                            <PasswordInput
                                                 id="confirmPassword"
                                                 name="confirmPassword"
-                                                type="password"
                                                 autoComplete="new-password"
                                                 value={formData.confirmPassword}
                                                 onChange={handleChange}

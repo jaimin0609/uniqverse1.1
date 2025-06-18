@@ -93,34 +93,32 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 setIsLoading(false);
             }
         }
-    };    // Improved function to proceed to checkout with server sync
+    };    // Simplified checkout function with better error handling
     const handleCheckout = async () => {
-        if (isNavigating) return; // Prevent multiple clicks
+        if (isNavigating || items.length === 0) return; // Prevent multiple clicks or empty cart
 
+        console.log("Checkout button clicked, items in cart:", items.length);
         setIsNavigating(true);
-        setIsLoading(true);
 
         try {
-            // Sync cart with server before checkout
-            await syncCartWithServer();
+            console.log("Closing cart drawer...");
+            onClose();
+
+            // Small delay to let the drawer close
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+            console.log("Navigating to /checkout...");
+            await router.push("/checkout");
+            console.log("Navigation completed successfully");
+
         } catch (error) {
-            console.error('Error syncing cart before checkout:', error);
-            // Continue with checkout even if sync fails
+            console.error("Error during checkout navigation:", error);
         } finally {
-            setIsLoading(false);
-        }
-
-        onClose();
-
-        // Short delay to ensure the drawer closes cleanly before navigation
-        checkoutTimeoutRef.current = setTimeout(() => {
-            router.push("/checkout");
-
-            // Safety timeout to reset navigation state if something goes wrong
-            navigationTimeoutRef.current = setTimeout(() => {
+            // Reset navigation state after a delay
+            setTimeout(() => {
                 setIsNavigating(false);
-            }, 5000);
-        }, 100);
+            }, 1000);
+        }
     };
 
     // We can use the clearCart function directly from useServerSyncedCart
@@ -258,16 +256,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             <p><ClientPrice amount={subtotal} /></p>                        </div>
                         <p className="text-sm text-gray-500 mb-4">
                             Shipping and taxes calculated at checkout.
-                        </p><div className="space-y-3">                        <Button
-                            className="w-full hover:bg-blue-200"
-                            onClick={handleCheckout}
-                            disabled={isNavigating || isLoading}
-                        >
-                            {isNavigating ? "Navigating..." : isLoading ? "Syncing cart..." : "Checkout"}
-                        </Button>
+                        </p>                <div className="space-y-3">
+                            <Button
+                                className="w-full hover:bg-blue-200"
+                                onClick={handleCheckout}
+                                disabled={isNavigating || isLoading || items.length === 0}
+                            >                            {isNavigating ? "Navigating to Checkout..." : isLoading ? "Loading..." : "Proceed to Checkout"}
+                            </Button>
+
                             <Button variant="outline" className="w-full" onClick={onClose}>
                                 Continue Shopping
-                            </Button>                            <button
+                            </Button><button
                                 type="button"
                                 onClick={handleClearCart}
                                 className="text-sm text-red-600 hover:text-red-800 flex items-center justify-center w-full"
