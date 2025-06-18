@@ -56,6 +56,9 @@ export const authOptions: NextAuthOptions = {
         }),
     ], callbacks: {
         async signIn({ user, account, profile }) {
+            console.log("SignIn Callback - Provider:", account?.provider);
+            console.log("SignIn Callback - User:", user ? { id: user.id, email: user.email, role: user.role } : null);
+
             // Allow all sign-ins, but ensure user has proper role
             if (account?.provider === "google" && user?.email) {
                 // For Google OAuth, ensure the user has a role
@@ -65,17 +68,22 @@ export const authOptions: NextAuthOptions = {
                         select: { id: true, role: true }
                     });
 
+                    console.log("SignIn Callback - Existing User:", existingUser);
+
                     if (existingUser && !existingUser.role) {
                         // Update user with default role if it's missing
                         await db.user.update({
                             where: { id: existingUser.id },
                             data: { role: "CUSTOMER" }
                         });
+                        console.log("SignIn Callback - Updated user role to CUSTOMER");
                     }
                 } catch (error) {
-                    console.error("Error ensuring user role:", error);
+                    console.error("SignIn Callback - Error ensuring user role:", error);
+                    return false; // Block sign-in if there's a database error
                 }
             }
+            console.log("SignIn Callback - Success");
             return true;
         },
         async session({ session, token }) {
@@ -117,7 +125,24 @@ export const authOptions: NextAuthOptions = {
             console.log("JWT Callback - Token after:", { id: token.id, email: token.email, role: token.role });
             return token;
         },
-    }, pages: {
+    },
+    events: {
+        async signIn({ user, account, profile, isNewUser }) {
+            console.log("Event - SignIn:", {
+                userId: user.id,
+                email: user.email,
+                provider: account?.provider,
+                isNewUser
+            });
+        },
+        async createUser({ user }) {
+            console.log("Event - CreateUser:", { userId: user.id, email: user.email, role: user.role });
+        },
+        async linkAccount({ user, account, profile }) {
+            console.log("Event - LinkAccount:", { userId: user.id, provider: account.provider });
+        }
+    },
+    pages: {
         signIn: "/auth/login",
         error: "/auth/error",
         verifyRequest: "/auth/verify",
