@@ -95,6 +95,34 @@ export default function ImportCJProductsPage() {
     // Add confirmation state
     const [showConfirm, setShowConfirm] = useState(false);
 
+    // API Status checking
+    const [apiStatus, setApiStatus] = useState<'unknown' | 'ready' | 'rate_limited' | 'error'>('unknown');
+    const [statusMessage, setStatusMessage] = useState<string>('');
+
+    // Request debouncing to prevent rapid API calls
+    const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set());
+
+    const debounceApiCall = (key: string, callback: () => Promise<void>, delay: number = 1000) => {
+        if (pendingRequests.has(key)) {
+            console.log(`Request ${key} already pending, skipping`);
+            return;
+        }
+
+        setPendingRequests(prev => new Set(prev).add(key));
+
+        setTimeout(async () => {
+            try {
+                await callback();
+            } finally {
+                setPendingRequests(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(key);
+                    return newSet;
+                });
+            }
+        }, delay);
+    };
+
     // Get suppliers on initial load
     useEffect(() => {
         fetchSuppliers();
@@ -124,11 +152,8 @@ export default function ImportCJProductsPage() {
                 const cjSuppliers = data.suppliers.filter(
                     (s: any) => s.apiEndpoint && s.apiEndpoint.includes('cjdropshipping')
                 );
-                setSuppliers(cjSuppliers);
-
-                if (cjSuppliers.length > 0) {
-                    setSupplierId(cjSuppliers[0].id);
-                }
+                setSuppliers(cjSuppliers);                // Don't automatically select supplier to avoid automatic API calls
+                // User should manually select supplier to prevent rate limiting
             }
         } catch (error) {
             console.error("Error fetching suppliers:", error);
@@ -187,12 +212,48 @@ export default function ImportCJProductsPage() {
         } finally {
             setIsLoading(false);
         }
+    };    // Effect to fetch categories when supplier changes (but only if manually triggered)
+    useEffect(() => {
+        // Reset categories when supplier changes to ensure clean state
+        if (supplierId) {
+            setCategories([]);
+            setSelectedCategory("all");
+        }
+    }, [supplierId]);
+
+    // Check API status
+    const checkApiStatus = async () => {
+        if (!supplierId) return;
+
+        try {
+            const response = await fetch(`/api/admin/suppliers/cj-dropshipping/status?supplierId=${supplierId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                setApiStatus(data.status);
+                if (data.status === 'rate_limited') {
+                    setStatusMessage(`Rate limited: ${data.reason}. Wait ${data.waitTime} seconds.`);
+                } else {
+                    setStatusMessage('API ready for requests');
+                }
+            } else {
+                setApiStatus('error');
+                setStatusMessage(data.error || 'Failed to check API status');
+            }
+        } catch (error) {
+            console.error("Error checking API status:", error);
+            setApiStatus('error');
+            setStatusMessage('Failed to check API status');
+        }
     };
 
-    // Effect to fetch categories when supplier changes
+    // Auto-check status when supplier changes
     useEffect(() => {
         if (supplierId) {
-            fetchSupplierCategories();
+            checkApiStatus();
+            // Check status every 30 seconds
+            const interval = setInterval(checkApiStatus, 30000);
+            return () => clearInterval(interval);
         }
     }, [supplierId]);
 
@@ -429,6 +490,20 @@ export default function ImportCJProductsPage() {
                 description="Search and import products from CJ Dropshipping"
             />
 
+            {/* API Rate Limit Information */}
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+                <div className="flex items-center">
+                    <svg className="h-5 w-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 className="font-medium">CJ Dropshipping API Information</h3>
+                </div>
+                <p className="mt-2 text-sm">
+                    CJ Dropshipping has strict rate limits: authentication only once every 5 minutes, and 1-6 requests/second based on your account level.
+                    Manually select supplier and load categories to avoid automatic API calls.
+                </p>
+            </div>
+
             {isRateLimited && (
                 <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
                     <div className="flex items-center">
@@ -439,6 +514,44 @@ export default function ImportCJProductsPage() {
                     <div className="mt-3 flex items-center text-sm font-mono bg-amber-100 text-amber-900 px-3 py-1 rounded-md inline-block">
                         <span>Time remaining: {formatCountdown(countdown)}</span>
                     </div>
+                </div>)}
+
+            {/* API Status Indicator */}
+            {supplierId && apiStatus !== 'unknown' && (
+                <div className={`mb-4 p-3 rounded-md border ${apiStatus === 'ready'
+                        ? 'bg-green-50 border-green-200 text-green-800'
+                        : apiStatus === 'rate_limited'
+                            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                            : 'bg-red-50 border-red-200 text-red-800'
+                    }`}>
+                    <div className="flex items-center">
+                        {apiStatus === 'ready' ? (
+                            <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        ) : apiStatus === 'rate_limited' ? (
+                            <Clock className="h-4 w-4 mr-2" />
+                        ) : (
+                            <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                        )}
+                        <span className="text-sm font-medium">
+                            API Status: {apiStatus === 'ready' ? 'Ready' : apiStatus === 'rate_limited' ? 'Rate Limited' : 'Error'}
+                        </span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-auto h-6 px-2"
+                            onClick={checkApiStatus}
+                            title="Refresh Status"
+                        >
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </Button>
+                    </div>
+                    <p className="mt-1 text-xs">{statusMessage}</p>
                 </div>
             )}
 
@@ -476,12 +589,10 @@ export default function ImportCJProductsPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </div>
-
-                            <div>
+                            </div>                            <div>
                                 <Button
                                     type="submit"
-                                    disabled={isLoading || !supplierId || isRateLimited}
+                                    disabled={isLoading || !supplierId || isRateLimited || apiStatus === 'rate_limited'}
                                     className="w-full"
                                 >
                                     {isLoading ? (
@@ -492,55 +603,65 @@ export default function ImportCJProductsPage() {
                                         <>
                                             <Clock className="mr-2 h-4 w-4" /> Rate Limited ({formatCountdown(countdown)})
                                         </>
+                                    ) : apiStatus === 'rate_limited' ? (
+                                        <>
+                                            <Clock className="mr-2 h-4 w-4" /> API Rate Limited
+                                        </>
                                     ) : (
                                         <>
-                                            <Search className="mr-2 h-4 w-4" /> Search
+                                            <Search className="mr-2 h-4 w-4" /> Search Products (API Call)
                                         </>
                                     )}
                                 </Button>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>                                <div className="flex justify-between items-center mb-2">
-                                <p className="text-sm font-medium">CJ Product Category</p>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 px-2"
-                                    onClick={fetchSupplierCategories}
-                                    disabled={isLoading || isRateLimited || !supplierId}
-                                    title="Refresh Categories"
-                                >
-                                    <svg className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M21 2v6h-6"></path>
-                                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-                                        <path d="M3 22v-6h6"></path>
-                                        <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
-                                    </svg>
-                                </Button>
-                            </div>
-                                <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoading}>
-                                    <SelectTrigger>
-                                        {isLoading && categories.length === 0 ? (
-                                            <div className="flex items-center">
-                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                <span>Loading categories...</span>
-                                            </div>
-                                        ) : (
-                                            <SelectValue placeholder="All Categories" />
-                                        )}
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Categories</SelectItem>
-                                        {categories.map((category) => (
-                                            <SelectItem key={category.id} value={category.id}>
-                                                {category.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                            <div>                                <div className="flex justify-between items-center mb-2">
+                            <p className="text-sm font-medium">CJ Product Category</p>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={fetchSupplierCategories}
+                                disabled={isLoading || isRateLimited || !supplierId || apiStatus === 'rate_limited'}
+                                title="Load Categories (makes API call)"
+                            >
+                                <svg className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 2v6h-6"></path>
+                                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                                    <path d="M3 22v-6h6"></path>
+                                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                                </svg>
+                            </Button>
+                        </div>
+                            {categories.length === 0 && !isLoading && supplierId ? (
+                                <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs">
+                                    Click the refresh button above to load CJ categories (requires API call)
+                                </div>
+                            ) : null}
+                            <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isLoading || categories.length === 0}>
+                                <SelectTrigger>
+                                    {isLoading && categories.length === 0 ? (
+                                        <div className="flex items-center">
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            <span>Loading categories...</span>
+                                        </div>
+                                    ) : categories.length === 0 ? (
+                                        <SelectValue placeholder="Load categories first" />
+                                    ) : (
+                                        <SelectValue placeholder="All Categories" />
+                                    )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    {categories.map((category) => (
+                                        <SelectItem key={category.id} value={category.id}>
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                             <div>
                                 <p className="mb-2 text-sm font-medium">Store Category</p>

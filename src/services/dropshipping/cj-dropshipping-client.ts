@@ -16,6 +16,10 @@ export class CJDropshippingApiClient {
     private categoryCacheTimestamp: number = 0;
     private readonly CATEGORY_CACHE_TTL = 3600000; // 1 hour in milliseconds
 
+    // Enhanced caching for search results to reduce API calls
+    private searchCache: Map<string, { data: any; timestamp: number }> = new Map();
+    private readonly SEARCH_CACHE_TTL = 300000; // 5 minutes in milliseconds
+
     constructor(apiKey: string, apiEndpoint: string, supplierId: string) {
         this.apiKey = apiKey;
         this.apiEndpoint = apiEndpoint.endsWith('/') ? apiEndpoint : apiEndpoint + '/';
@@ -238,7 +242,7 @@ export class CJDropshippingApiClient {
             console.log('CJ Dropshipping Token Refresh Response:', data);
 
             if (!data.result || !data.data?.accessToken) {
-                throw new Error(`Failed to refresh access token: ${data.message || 'Unknown error'} `);
+                throw new Error(`Failed to refresh access token: ${data.message || 'Unknown error'}`);
             }
 
             // Store the tokens and their expiration times
@@ -296,10 +300,86 @@ export class CJDropshippingApiClient {
         this.lastRequestTime = Date.now();
     }
 
-    protected async makeRequest(path: string, options: RequestInit = {}): Promise<any> {
+    // Enhanced rate limiting with adaptive delays
+    private requestCount: number = 0;
+    private lastResetTime: number = Date.now();
+    private readonly REQUEST_WINDOW = 60000; // 1 minute window
+    private readonly MAX_REQUESTS_PER_MINUTE = 30; // Conservative limit
+
+    // Adaptive rate limiting based on account level and response patterns
+    private async adaptiveRateLimit(): Promise<void> {
+        const now = Date.now();
+
+        // Reset counter if window has passed
+        if (now - this.lastResetTime > this.REQUEST_WINDOW) {
+            this.requestCount = 0;
+            this.lastResetTime = now;
+        }
+
+        // Check if we've hit the per-minute limit
+        if (this.requestCount >= this.MAX_REQUESTS_PER_MINUTE) {
+            const waitTime = this.REQUEST_WINDOW - (now - this.lastResetTime);
+            console.log(`Per-minute rate limit reached. Waiting ${waitTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+
+            // Reset after waiting
+            this.requestCount = 0;
+            this.lastResetTime = Date.now();
+        }
+
+        // Standard per-request delay
+        await this.respectRateLimit();
+
+        // Increment request counter
+        this.requestCount++;
+    }
+
+    // Check if we can make requests without hitting rate limits
+    public async canMakeRequest(): Promise<{ canProceed: boolean; waitTime: number; reason?: string }> {
+        const now = Date.now();
+
+        // Check authentication rate limit first
+        const authWaitTime = await this.getTimeUntilNextAuthAllowed();
+        if (authWaitTime > 0) {
+            return {
+                canProceed: false,
+                waitTime: authWaitTime,
+                reason: 'Authentication rate limit active'
+            };
+        }
+
+        // Check per-request rate limit
+        const timeSinceLastRequest = now - this.lastRequestTime;
+        const minTimeBetweenRequests = 1100; // 1.1 seconds
+
+        if (this.lastRequestTime > 0 && timeSinceLastRequest < minTimeBetweenRequests) {
+            return {
+                canProceed: false,
+                waitTime: Math.ceil((minTimeBetweenRequests - timeSinceLastRequest) / 1000),
+                reason: 'Per-request rate limit'
+            };
+        }
+
+        // Check per-minute rate limit
+        if (now - this.lastResetTime > this.REQUEST_WINDOW) {
+            this.requestCount = 0;
+            this.lastResetTime = now;
+        }
+
+        if (this.requestCount >= this.MAX_REQUESTS_PER_MINUTE) {
+            const waitTime = Math.ceil((this.REQUEST_WINDOW - (now - this.lastResetTime)) / 1000);
+            return {
+                canProceed: false,
+                waitTime,
+                reason: 'Per-minute rate limit'
+            };
+        }
+
+        return { canProceed: true, waitTime: 0 };
+    } protected async makeRequest(path: string, options: RequestInit = {}): Promise<any> {
         try {
-            // Respect rate limits before making a request
-            await this.respectRateLimit();
+            // Use enhanced adaptive rate limiting
+            await this.adaptiveRateLimit();
 
             const token = await this.getAccessToken();
 
@@ -502,8 +582,8 @@ export class CJDropshippingApiClient {
                 if (value !== undefined && value !== null && value !== '') {
                     queryParams.append(key, String(value));
                 }
-            });
-            const endpoint = `v1/product/list?${queryParams.toString()}`;
+            }); const endpoint = `v1/product/list?${queryParams.toString()}`;
+
             const response = await this.makeRequest(endpoint, {
                 method: 'GET'
             });
