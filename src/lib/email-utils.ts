@@ -28,8 +28,17 @@ export function getEmailTransporter() {
   const port = process.env.EMAIL_SERVER_PORT;
   const user = process.env.EMAIL_SERVER_USER;
   const pass = process.env.EMAIL_SERVER_PASSWORD;
+
+  console.log('Email configuration check:', {
+    host: host ? '✓ Set' : '✗ Missing',
+    port: port ? '✓ Set' : '✗ Missing',
+    user: user ? '✓ Set' : '✗ Missing',
+    pass: pass ? '✓ Set' : '✗ Missing'
+  });
+
   if (!host || !port || !user || !pass) {
     console.warn('Email configuration incomplete. Emails will be logged to console.');
+    console.warn('Required environment variables: EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_USER, EMAIL_SERVER_PASSWORD');
     return null;
   }
 
@@ -947,22 +956,33 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
  * Send an email verification email to new users
  */
 export async function sendEmailVerificationEmail(email: string, token: string, name?: string) {
+  console.log(`[EMAIL] Starting email verification for: ${email}`);
+  console.log(`[EMAIL] Token provided: ${token ? 'YES' : 'NO'}`);
+  console.log(`[EMAIL] Name provided: ${name || 'NONE'}`);
+
   try {
     const transporter = getEmailTransporter();
+
+    console.log(`[EMAIL] Transporter status: ${transporter ? 'AVAILABLE' : 'NULL - MISSING CONFIG'}`);
 
     // Create the verification URL
     const baseUrl = getBaseUrl();
     const verificationUrl = `${baseUrl}/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
 
+    console.log(`[EMAIL] Verification URL: ${verificationUrl}`);
+
     // If no email config, log the verification URL to console
     if (!transporter) {
       console.log(`[DEV MODE] Email verification link for ${email}:`);
       console.log(verificationUrl);
+      console.log(`[EMAIL] Email not sent - transporter is null (missing email config)`);
       return;
     }
 
+    console.log(`[EMAIL] Attempting to send verification email to: ${email}`);
+
     // Send the verification email
-    await transporter.sendMail({
+    const result = await transporter.sendMail({
       from: process.env.EMAIL_FROM || 'noreply@uniqverse.com',
       to: email,
       subject: 'Verify Your UniQVerse Account',
@@ -1040,9 +1060,11 @@ export async function sendEmailVerificationEmail(email: string, token: string, n
       `
     });
 
-    console.log(`Email verification sent to ${email}`);
+    console.log(`[EMAIL] Email verification sent successfully to ${email}`);
+    console.log(`[EMAIL] Send result:`, result.messageId || 'No message ID');
+
   } catch (error) {
-    console.error('Error sending email verification:', error);
+    console.error(`[EMAIL] Error sending email verification to ${email}:`, error);
     throw error; // Re-throw to handle in calling function
   }
 }

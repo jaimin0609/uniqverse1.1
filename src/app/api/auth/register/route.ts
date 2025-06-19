@@ -82,11 +82,13 @@ export async function POST(req: Request) {
                 userId: user.id,
                 updatedAt: new Date(),
             },
-        });
+        });        // Send email verification email (don't await to avoid blocking the response)
+        console.log(`[REGISTER] About to send verification email to: ${user.email}`);
+        console.log(`[REGISTER] Verification token: ${verificationToken}`);
+        console.log(`[REGISTER] User name: ${user.name || 'undefined'}`);
 
-        // Send email verification email (don't await to avoid blocking the response)
         sendEmailVerificationEmail(user.email, verificationToken, user.name || undefined).catch(error => {
-            console.error('Failed to send email verification email:', error);
+            console.error('[REGISTER] Failed to send email verification email:', error);
         });
 
         // Return success response (omit password from response)
