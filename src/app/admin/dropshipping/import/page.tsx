@@ -476,6 +476,31 @@ export default function ImportCJProductsPage() {
         }
     };
 
+    // Clear CJ Dropshipping cache
+    const clearCJCache = async () => {
+        try {
+            const response = await fetch("/api/admin/suppliers/cj-dropshipping/clear-cache", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clearAll: true }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success("CJ Dropshipping cache cleared successfully");
+                // Reset rate limit state
+                setIsRateLimited(false);
+                setCountdown(0);
+            } else {
+                toast.error(data.error || "Failed to clear cache");
+            }
+        } catch (error) {
+            console.error("Error clearing cache:", error);
+            toast.error("Failed to clear cache");
+        }
+    };
+
     // Format countdown time
     const formatCountdown = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -519,10 +544,10 @@ export default function ImportCJProductsPage() {
             {/* API Status Indicator */}
             {supplierId && apiStatus !== 'unknown' && (
                 <div className={`mb-4 p-3 rounded-md border ${apiStatus === 'ready'
-                        ? 'bg-green-50 border-green-200 text-green-800'
-                        : apiStatus === 'rate_limited'
-                            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                            : 'bg-red-50 border-red-200 text-red-800'
+                    ? 'bg-green-50 border-green-200 text-green-800'
+                    : apiStatus === 'rate_limited'
+                        ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                        : 'bg-red-50 border-red-200 text-red-800'
                     }`}>
                     <div className="flex items-center">
                         {apiStatus === 'ready' ? (
@@ -968,6 +993,26 @@ export default function ImportCJProductsPage() {
                     </div>
                 </div>
             )}
+
+            {/* Troubleshooting Section */}
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-medium text-yellow-800">Troubleshooting</h3>
+                        <p className="mt-1 text-sm text-yellow-700">
+                            If you're experiencing authentication issues or cache errors, try clearing the cache.
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearCJCache}
+                        className="ml-4"
+                    >
+                        Clear Cache
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }

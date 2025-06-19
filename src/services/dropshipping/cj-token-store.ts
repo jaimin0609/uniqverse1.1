@@ -35,15 +35,30 @@ export class CJTokenStore {
         return CJTokenStore.instance;
     }    /**
      * Load tokens from Redis cache
-     */
-    private async loadTokens(): Promise<void> {
+     */    private async loadTokens(): Promise<void> {
         try {
             // Load tokens from Redis cache
             const cachedTokens = await cache.get('cj_dropshipping_tokens');
 
             if (cachedTokens) {
-                this.tokenCache = JSON.parse(cachedTokens as string);
-                console.log('CJ Dropshipping tokens loaded from cache');
+                // Ensure cachedTokens is a string before parsing
+                const tokenString = typeof cachedTokens === 'string' ? cachedTokens : JSON.stringify(cachedTokens);
+
+                // Validate it's not the problematic "[object Object]" string
+                if (tokenString === "[object Object]") {
+                    console.log('Found corrupted token cache, clearing it');
+                    await cache.delete('cj_dropshipping_tokens');
+                    this.tokenCache = {};
+                } else {
+                    try {
+                        this.tokenCache = JSON.parse(tokenString);
+                        console.log('CJ Dropshipping tokens loaded from cache');
+                    } catch (parseError) {
+                        console.error('Failed to parse cached tokens, clearing cache:', parseError);
+                        await cache.delete('cj_dropshipping_tokens');
+                        this.tokenCache = {};
+                    }
+                }
             } else {
                 this.tokenCache = {};
                 console.log('No cached CJ Dropshipping tokens found');
@@ -52,10 +67,16 @@ export class CJTokenStore {
             this.initialized = true;
         } catch (error) {
             console.error('Error loading CJ Dropshipping tokens from cache:', error);
+            // Clear potentially corrupted cache
+            try {
+                await cache.delete('cj_dropshipping_tokens');
+            } catch (deleteError) {
+                console.error('Failed to clear corrupted cache:', deleteError);
+            }
             this.tokenCache = {};
             this.initialized = true;
         }
-    }    /**
+    }/**
      * Save tokens to Redis cache
      */
     private async saveTokens(): Promise<void> {
@@ -202,5 +223,31 @@ export class CJTokenStore {
         }
 
         return Math.ceil((minTimeBetweenRequests - timeSinceLastUpdate) / 1000);
+    }
+
+    /**
+     * Clear all cached tokens and rate limit data
+     */
+    public async clearAllCache(): Promise<void> {
+        try {
+            await cache.delete('cj_dropshipping_tokens');
+            this.tokenCache = {};
+            console.log('CJ Dropshipping cache cleared successfully');
+        } catch (error) {
+            console.error('Error clearing CJ Dropshipping cache:', error);
+        }
+    }
+
+    /**
+     * Clear tokens for a specific supplier
+     */
+    public async clearSupplierTokens(supplierId: string): Promise<void> {
+        if (!this.initialized) {
+            await this.loadTokens();
+        }
+
+        delete this.tokenCache[supplierId];
+        await this.saveTokens();
+        console.log(`Cleared tokens for supplier: ${supplierId}`);
     }
 }
