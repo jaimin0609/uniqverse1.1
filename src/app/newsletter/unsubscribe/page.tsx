@@ -153,19 +153,18 @@ export default function UnsubscribePage() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     required
                                     disabled={isSubmitting}
-                                />
-                                <Button
+                                />                                <Button
                                     type="submit"
                                     disabled={isSubmitting || !email.trim()}
-                                    className="w-full"
+                                    className="w-full bg-white text-black border border-gray-300 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400"
                                 >
                                     {isSubmitting ? 'Unsubscribing...' : 'Unsubscribe'}
                                 </Button>
                             </form>
                             {message && (
                                 <div className={`mt-4 p-3 rounded-md text-sm ${message.includes('successfully') || message.includes('unsubscribed')
-                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                        : 'bg-red-100 text-red-700 border border-red-200'
+                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : 'bg-red-100 text-red-700 border border-red-200'
                                     }`}>
                                     {message}
                                 </div>

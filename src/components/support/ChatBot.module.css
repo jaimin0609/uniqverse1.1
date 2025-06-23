@@ -1,0 +1,280 @@
+/* Modern ChatBot Component Styles */
+
+/* Chat bubble animations */
+.messageEnter {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.messageEnterActive {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Floating button animations */
+.floatingButton {
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Pulse animation for notification badge */
+.notificationPulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Typing dots animation */
+.typingDots {
+    display: flex;
+    gap: 4px;
+}
+
+.typingDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    animation: typingDotPulse 1.4s infinite ease-in-out;
+}
+
+.typingDot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typingDot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typingDot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingDotPulse {
+
+    0%,
+    60%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    30% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Shimmer effect for loading states */
+.shimmer {
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Smooth slide in animation for chat window */
+.chatWindowSlideIn {
+    animation: slideInFromBottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Hover effects for interactive elements */
+.interactiveHover {
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.interactiveHover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient text animations */
+.gradientText {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Smooth focus ring for inputs */
+.focusRing:focus {
+    outline: none;
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.1),
+        0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+/* Modern scrollbar styling */
+.modernScrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.modernScrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modernScrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modernScrollbar::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+}
+
+.modernScrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+}
+
+/* Glassmorphism effect for modern UI */
+.glassmorphism {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Subtle glow effect */
+.subtleGlow {
+    box-shadow:
+        0 0 20px rgba(59, 130, 246, 0.1),
+        0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Bounce animation for feedback buttons */
+.bounceOnHover {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bounceOnHover:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Fade in up animation */
+.fadeInUp {
+    animation: fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive chat window */
+@media (max-width: 640px) {
+    .chatWindow {
+        width: calc(100vw - 24px);
+        height: calc(100vh - 24px);
+        max-height: 600px;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .chatWindow {
+        border: 2px solid #000;
+    }
+
+    .messageUser {
+        background: #000;
+        color: #fff;
+    }
+
+    .messageAssistant {
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+    .messageEnter,
+    .chatWindowSlideIn,
+    .fadeInUp,
+    .floatingButton {
+        animation: none;
+        transition: none;
+    }
+
+    .typingDot {
+        animation: none;
+    }
+}

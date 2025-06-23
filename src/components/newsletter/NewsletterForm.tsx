@@ -15,7 +15,7 @@ export default function NewsletterForm({ source = 'homepage' }: NewsletterFormPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       setMessage('Please enter your email address');
       setIsError(true);
@@ -65,12 +65,10 @@ export default function NewsletterForm({ source = 'homepage' }: NewsletterFormPr
           className="flex-grow px-4 py-2 rounded-md border text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50"
           required
           disabled={isLoading}
-        />
-        <Button 
-          variant="secondary" 
+        />        <Button
           type="submit"
           disabled={isLoading || !email.trim()}
-          className="min-w-[100px]"
+          className="min-w-[100px] bg-white text-black border border-gray-300 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-gray-100 disabled:hover:text-gray-400"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
@@ -82,13 +80,12 @@ export default function NewsletterForm({ source = 'homepage' }: NewsletterFormPr
           )}
         </Button>
       </form>
-      
+
       {message && (
-        <div className={`mt-4 p-3 rounded-md text-sm ${
-          isError 
-            ? 'bg-red-100 text-red-700 border border-red-200' 
+        <div className={`mt-4 p-3 rounded-md text-sm ${isError
+            ? 'bg-red-100 text-red-700 border border-red-200'
             : 'bg-green-100 text-green-700 border border-green-200'
-        }`}>
+          }`}>
           {message}
         </div>
       )}
