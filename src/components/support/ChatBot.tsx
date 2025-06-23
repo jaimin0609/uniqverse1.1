@@ -385,11 +385,20 @@ export default function ChatBot() {
         { label: "Track my order", icon: "📦" },
         { label: "Shipping info", icon: "🚚" },
         { label: "Return policy", icon: "↩️" },
-        { label: "Contact support", icon: "📞" }]; return (
-            <>
-                {/* Modern Floating Chat Button */}
-                {!isOpen && (
-                    <div className={`fixed bottom-6 right-6 z-50 ${styles.floatingButton}`}>
+        { label: "Contact support", icon: "📞" }    ]; return (
+        <div className="chatbot-container" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 999999 }}>
+            {/* Modern Floating Chat Button */}
+            {!isOpen && (
+                <div 
+                    className={`fixed bottom-6 right-6 ${styles.floatingButton}`}
+                    style={{ 
+                        zIndex: 999999,
+                        position: 'fixed',
+                        bottom: '24px',
+                        right: '24px',
+                        pointerEvents: 'auto'
+                    }}
+                >
                         <button
                             onClick={handleChatOpen}
                             className={`group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 transform ${styles.subtleGlow}`}
@@ -421,12 +430,20 @@ export default function ChatBot() {
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* Modern Chat Window */}
-                {isOpen && (
-                    <div className={`fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 transition-all duration-300 ${styles.chatWindowSlideIn} ${styles.subtleGlow} ${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
-                        } ${styles.chatWindow}`}>
+                )}            {/* Modern Chat Window */}
+            {isOpen && (
+                <div 
+                    className={`bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col transition-all duration-300 ${styles.chatWindowSlideIn} ${styles.subtleGlow} ${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
+                    } ${styles.chatWindow}`}
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        right: '24px',
+                        zIndex: 999999,
+                        maxHeight: 'calc(100vh - 48px)',
+                        pointerEvents: 'auto'
+                    }}
+                >
                         {/* Enhanced Chat Header */}
                         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -679,14 +696,13 @@ export default function ChatBot() {
                                         </div>
                                         <div className={`flex items-center gap-1 text-gray-400 ${styles.gradientText}`}>
                                             <Sparkles className="h-3 w-3" />
-                                            <span>Powered by AI</span>
-                                        </div>
+                                            <span>Powered by AI</span>                                        </div>
                                     </div>
                                 </div>
                             </>
                         )}
                     </div>
                 )}
-            </>
+        </div>
         );
-}
+    }

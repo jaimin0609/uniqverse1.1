@@ -284,6 +284,37 @@
     }
 }
 
+/* Ensure chatbot works on all screen sizes and devices */
+.chatbot-container {
+    position: fixed !important;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999999 !important;
+}
+
+/* Mobile responsiveness for chatbot */
+@media (max-width: 768px) {
+    .floatingButton {
+        bottom: 20px !important;
+        right: 20px !important;
+    }
+    
+    .chatWindow {
+        bottom: 20px !important;
+        right: 20px !important;
+        left: 20px !important;
+        width: calc(100vw - 40px) !important;
+        max-width: none !important;
+        max-height: calc(100vh - 100px) !important;
+    }
+}
+
+/* Ensure proper stacking context */
+.floatingButton,
+.chatWindow {
+    isolation: isolate;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .chatWindow {
@@ -316,4 +347,23 @@
     .typingDot {
         animation: none;
     }
+}
+
+/* Force chatbot to stay on top with maximum z-index */
+.floatingButton {
+    position: fixed !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+.chatWindow {
+    position: fixed !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure chatbot button is always visible */
+.floatingButton button {
+    position: relative;
+    z-index: 1000000 !important;
 }
