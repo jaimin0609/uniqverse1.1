@@ -95,6 +95,30 @@ async function trainUniQVerseBot() {
             priority: 3,
             triggers: ["artisan", "maker", "creator", "handmade", "craft story", "who made this"],
             category: "artisans"
+        },
+
+        // Personalized greeting patterns
+        {
+            response: "Hi {USER_NAME}! 👋 Welcome back to UniQVerse! How can I help you today?",
+            priority: 1,
+            triggers: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"],
+            category: "personalized_greeting"
+        },
+
+        // Order-specific patterns
+        {
+            response: "I'd be happy to help you check your order status! Could you please provide your order number? You can find it in your email confirmation or in your account under 'My Orders'.",
+            priority: 5,
+            triggers: ["my order", "order status", "where is my order", "track my order", "order tracking"],
+            category: "order_inquiry"
+        },
+
+        // Account-specific patterns
+        {
+            response: "I can help you with your account information! What would you like to know about your account - recent orders, saved addresses, or something else?",
+            priority: 4,
+            triggers: ["my account", "account info", "my profile", "account details"],
+            category: "account_inquiry"
         }
     ];
 
