@@ -7,6 +7,11 @@ const ChatBot = dynamic(() => import("./ChatBot"), {
     ssr: false,
 });
 
+const ChatBotTest = dynamic(() => import("./ChatBotTest"), {
+    ssr: false,
+});
+
 export default function ChatBotWrapper() {
+    console.log("ChatBotWrapper rendering...");
     return <ChatBot />;
 }
