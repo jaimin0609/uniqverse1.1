@@ -16,7 +16,6 @@ import { CurrencyProvider } from "@/contexts/currency-provider";
 import ChatBotWrapper from "@/components/support/ChatBotWrapper";
 import ToastListener from "@/components/ui/toast-listener";
 import { CartProvider } from "@/components/cart/cart-provider";
-import MemoryLeakMonitor from "@/components/debug/memory-leak-monitor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -95,8 +94,6 @@ export default async function RootLayout({
                 <ChatBotWrapper />
                 {/* Toast notification listener */}
                 <ToastListener />
-                {/* Memory Leak Monitor - For development debugging only */}
-                <MemoryLeakMonitor />
               </CartProvider>
             </AuthProvider>
           </CurrencyProvider>
