@@ -42,47 +42,74 @@ export async function POST(req: NextRequest) {
         }
 
         const user = session.user;
-        const userId = user.id;
-
-        // Analyze user intent and extract relevant information
+        const userId = user.id;        // Analyze user intent and extract relevant information
         const intent = await analyzeUserIntent(message, conversationHistory);
 
         let response: string;
         let actions: string[] = [];
+        let confidence: number = 0;
+        let patternMatched: string | undefined;
 
-        switch (intent.type) {
-            case 'GREETING':
-                response = await handleGreeting(user.name || user.email || "there");
-                break;
+        // First, try to match against database patterns (trained responses)
+        const patternResponse = await tryPatternMatch(message);
 
-            case 'ORDER_INQUIRY':
-                if (intent.orderNumber) {
-                    response = await handleOrderInquiry(userId, intent.orderNumber);
-                } else {
-                    response = "I'd be happy to help you check your order status! Could you please provide your order number? You can find it in your email confirmation or in your account under 'My Orders'.";
-                    actions = ['request_order_number'];
-                }
-                break; case 'ACCOUNT_INFO':
-                response = await handleAccountInquiry(userId, intent.infoType || 'general');
-                break;
+        if (patternResponse.confidence > 0.7) {
+            // Use pattern-based response if confidence is high
+            response = patternResponse.content;
+            confidence = patternResponse.confidence;
+            patternMatched = patternResponse.patternId;
+        } else {
+            // Use intent-based personalized responses
+            switch (intent.type) {
+                case 'GREETING':
+                    response = await handleGreeting(user.name || user.email || "there");
+                    break;
 
-            case 'GENERAL_SUPPORT':
-                response = await handleGeneralSupport(message, user.name);
-                break;
+                case 'ORDER_INQUIRY':
+                    if (intent.orderNumber) {
+                        response = await handleOrderInquiry(userId, intent.orderNumber);
+                    } else {
+                        response = "I'd be happy to help you check your order status! Could you please provide your order number? You can find it in your email confirmation or in your account under 'My Orders'.";
+                        actions = ['request_order_number'];
+                    }
+                    break;
 
-            default:
-                response = await handleGeneralSupport(message, user.name);
+                case 'ACCOUNT_INFO':
+                    response = await handleAccountInquiry(userId, intent.infoType || 'general');
+                    break;
+
+                case 'GENERAL_SUPPORT':
+                    // If pattern matching had some confidence, use it, otherwise use AI
+                    if (patternResponse.confidence > 0.3) {
+                        response = patternResponse.content;
+                        confidence = patternResponse.confidence;
+                        patternMatched = patternResponse.patternId;
+                    } else {
+                        response = await handleGeneralSupport(message, user.name);
+                    }
+                    break;
+
+                default:
+                    // Fallback to pattern or AI
+                    if (patternResponse.confidence > 0.3) {
+                        response = patternResponse.content;
+                        confidence = patternResponse.confidence;
+                        patternMatched = patternResponse.patternId;
+                    } else {
+                        response = await handleGeneralSupport(message, user.name);
+                    }
+            }
         }
 
         // Store conversation for learning
-        await storePersonalizedConversation(userId, sessionId, message, response, intent.type);
-
-        return NextResponse.json({
+        await storePersonalizedConversation(userId, sessionId, message, response, intent.type); return NextResponse.json({
             success: true,
             message: response,
             actions,
             userAuthenticated: true,
-            userName: user.name || user.email
+            userName: user.name || user.email,
+            confidence,
+            patternMatched
         });
 
     } catch (error) {
@@ -411,4 +438,97 @@ async function storePersonalizedConversation(
         console.error("Failed to store conversation:", error);
         // Don't throw - this is non-critical
     }
+}
+
+async function tryPatternMatch(message: string): Promise<{
+    content: string;
+    confidence: number;
+    patternId?: string;
+}> {
+    try {
+        const lowerMessage = message.toLowerCase();
+        const keywords = extractKeywords(lowerMessage);
+
+        // Get patterns from database
+        const dbPatterns = await db.chatbotPattern.findMany({
+            include: { triggers: true },
+            where: { isActive: true },
+            orderBy: { priority: 'asc' }
+        });
+
+        const patternScores: Array<{
+            pattern: any;
+            score: number;
+        }> = [];
+
+        // Score patterns
+        for (const pattern of dbPatterns) {
+            let score = 0;
+            const triggerPhrases = pattern.triggers.map(t => t.phrase.toLowerCase());
+
+            // Direct phrase matching (exact match gets highest score)
+            const exactMatch = triggerPhrases.some(phrase =>
+                lowerMessage === phrase ||
+                lowerMessage.includes(phrase)
+            );
+            if (exactMatch) score += 15;
+
+            // Partial phrase matching
+            const partialMatch = triggerPhrases.some(phrase =>
+                phrase.split(' ').some(word => lowerMessage.includes(word))
+            );
+            if (partialMatch) score += 5;
+
+            // Keyword matching
+            const patternKeywords = triggerPhrases.flatMap(phrase =>
+                extractKeywords(phrase)
+            );
+            const keywordMatches = keywords.filter(kw =>
+                patternKeywords.includes(kw)
+            ).length;
+            score += keywordMatches * 3;
+
+            if (score > 0) {
+                patternScores.push({ pattern, score });
+            }
+        }
+
+        // Sort by score (highest first)
+        patternScores.sort((a, b) => b.score - a.score);
+
+        if (patternScores.length > 0) {
+            const bestMatch = patternScores[0];
+            const confidence = Math.min(bestMatch.score / 20, 1); // Normalize to 0-1
+
+            return {
+                content: bestMatch.pattern.response,
+                confidence,
+                patternId: bestMatch.pattern.id
+            };
+        }
+
+        // No pattern match found
+        return {
+            content: "",
+            confidence: 0
+        };
+
+    } catch (error) {
+        console.error("Pattern matching error:", error);
+        return {
+            content: "",
+            confidence: 0
+        };
+    }
+}
+
+function extractKeywords(text: string): string[] {
+    // Simple keyword extraction
+    const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'cant', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'its', 'our', 'their'];
+
+    return text
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '') // Remove punctuation
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !stopWords.includes(word));
 }

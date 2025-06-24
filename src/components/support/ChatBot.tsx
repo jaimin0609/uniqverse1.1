@@ -300,15 +300,15 @@ export default function ChatBot() {
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Handle response based on API type
-            let assistantMessage: Message;
-
-            if (session?.user && data.userAuthenticated) {
+            let assistantMessage: Message; if (session?.user && data.userAuthenticated) {
                 // Personalized API response
                 assistantMessage = {
-                    id: `personalized_${Date.now()}`,
+                    id: data.patternMatched ? `pattern_${data.patternMatched}` : `personalized_${Date.now()}`,
                     role: "assistant",
                     content: data.message,
                     timestamp: new Date(),
+                    confidence: data.confidence,
+                    patternMatched: data.patternMatched
                 };
 
                 // Show login status in UI if helpful
