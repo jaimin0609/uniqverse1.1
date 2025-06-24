@@ -122,12 +122,27 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleGuestUser(message: string, sessionId: string, history: any[]) {
+    // First try pattern matching for guests
+    const patternResult = await tryPatternMatch(message);
+
+    if (patternResult.confidence > 0.5) {
+        return NextResponse.json({
+            success: true,
+            message: patternResult.content,
+            userAuthenticated: false,
+            responseType: 'pattern',
+            suggestion: "Log in to get personalized assistance with your orders and account!"
+        });
+    }
+
+    // Only use OpenAI if no good pattern match found
     const response = await generateGenericResponse(message, history);
 
     return NextResponse.json({
         success: true,
         message: response,
         userAuthenticated: false,
+        responseType: 'openai',
         suggestion: "Log in to get personalized assistance with your orders and account!"
     });
 }
@@ -280,22 +295,35 @@ async function handleAccountInquiry(userId: string, infoType: string): Promise<s
 
 async function handleGeneralSupport(message: string, userName?: string): Promise<string> {
     try {
-        // Use OpenAI to generate personalized response
-        const systemPrompt = `You are a helpful UniQVerse customer support AI assistant. ${userName ? `The customer's name is ${userName}.` : ''} 
-        
-        UniQVerse is an e-commerce platform specializing in unique, high-quality products including:
+        // Use OpenAI to generate personalized response focused on UniQVerse
+        const systemPrompt = `You are UniQVerse's dedicated customer support AI assistant. ${userName ? `The customer's name is ${userName}.` : ''} 
+
+        IMPORTANT: You ONLY help with UniQVerse-related queries. If asked about topics unrelated to UniQVerse, politely redirect to UniQVerse topics.
+
+        UniQVerse is an e-commerce platform specializing in unique, high-quality products:
         - Artisan crafts and handmade items
         - Tech innovations and gadgets  
         - Sustainable lifestyle products
         - Fashion-forward accessories
+        - Home decor and lifestyle items
         
-        Key policies:
+        You can help with:
+        - Product recommendations and information
+        - Shipping, returns, and policies
+        - Account and order assistance
+        - Website navigation help
+        - UniQVerse features and services
+        
+        Key information:
         - Free shipping on orders over $50
         - 30-day return policy
         - Customer service: support@uniqverse.com
         - Phone: 1-800-555-1234
+        - Business hours: Mon-Fri 9AM-6PM EST, Sat 10AM-4PM EST
         
-        Be friendly, helpful, and use the customer's name when appropriate. Keep responses concise but informative.`;
+        If someone asks about unrelated topics, say: "I'm specifically designed to help with UniQVerse shopping and services. How can I assist you with finding products, orders, or navigating our website?"
+        
+        Be friendly, helpful, and use the customer's name when appropriate. Keep responses focused on UniQVerse.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -303,17 +331,17 @@ async function handleGeneralSupport(message: string, userName?: string): Promise
                 { role: "system", content: systemPrompt },
                 { role: "user", content: message }
             ],
-            max_tokens: 300,
-            temperature: 0.7
+            max_tokens: 250,
+            temperature: 0.6  // Lower temperature for more consistent, focused responses
         });
 
-        return completion.choices[0]?.message?.content || "I'm here to help! What can I assist you with today?";
+        return completion.choices[0]?.message?.content || "I'm here to help with UniQVerse! What can I assist you with regarding our products or services?";
 
     } catch (error) {
         console.error("General support error:", error);
         const fallback = userName
-            ? `Hi ${userName}! I'm here to help with any questions about UniQVerse. What can I assist you with today?`
-            : "I'm here to help with any questions about UniQVerse. What can I assist you with today?";
+            ? `Hi ${userName}! I'm here to help with UniQVerse products, orders, and services. What can I assist you with today?`
+            : "I'm here to help with UniQVerse products, orders, and services. What can I assist you with today?";
         return fallback;
     }
 }
@@ -360,11 +388,29 @@ async function analyzeUserIntent(message: string, history: any[]): Promise<{
 
 async function generateGenericResponse(message: string, history: any[]): Promise<string> {
     try {
-        const systemPrompt = `You are a helpful UniQVerse customer support AI assistant for guests (not logged in users).
-        
-        UniQVerse is an e-commerce platform with unique products. Be helpful but remind them that logging in provides personalized assistance with orders and account information.
-        
-        Keep responses friendly and concise.`;
+        const systemPrompt = `You are UniQVerse's AI customer service assistant. 
+
+        CRITICAL RULES:
+        1. You ONLY help with UniQVerse shopping website questions
+        2. If asked about anything unrelated to UniQVerse, shopping, products, or e-commerce, respond: "I'm designed specifically to help with UniQVerse shopping and services. How can I assist you with our products, orders, or website today?"
+        3. Do NOT answer questions about: weather, news, general knowledge, other websites, programming, math problems, or anything not UniQVerse-related
+
+        UniQVerse is an e-commerce platform offering:
+        - Unique artisan crafts and handmade items
+        - Innovative tech gadgets and accessories  
+        - Sustainable lifestyle and eco-friendly products
+        - Fashion-forward jewelry and accessories
+        - Home decor and lifestyle items
+
+        You can help with:
+        - Product information and recommendations
+        - Shipping policies (free over $50, express $9.99, next-day $19.99)
+        - Return policy (30-day returns)
+        - Account creation and website navigation
+        - General shopping guidance
+
+        For order tracking and account issues, encourage users to log in.
+        Keep responses concise and UniQVerse-focused.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -373,13 +419,13 @@ async function generateGenericResponse(message: string, history: any[]): Promise
                 { role: "user", content: message }
             ],
             max_tokens: 200,
-            temperature: 0.7
+            temperature: 0.6
         });
 
-        return completion.choices[0]?.message?.content || "I'm here to help! For personalized assistance with orders and account information, please log in to your account.";
+        return completion.choices[0]?.message?.content || "I'm here to help with UniQVerse! For personalized assistance with orders and account information, please log in to your account.";
 
     } catch (error) {
-        return "I'm here to help! For personalized assistance with orders and account information, please log in to your account.";
+        return "I'm here to help with UniQVerse products and services! For personalized assistance with orders and account information, please log in to your account.";
     }
 }
 
@@ -447,6 +493,44 @@ async function tryPatternMatch(message: string): Promise<{
 }> {
     try {
         const lowerMessage = message.toLowerCase();
+
+        // Check for blacklisted words that should never trigger patterns
+        const blacklistWords = [
+            "homework", "math", "school", "cooking", "recipe", "weather", "news",
+            "politics", "sports", "movie", "book", "music", "restaurant",
+            "directions", "map", "translate", "calculate", "define"
+        ];
+
+        const hasBlacklistedWord = blacklistWords.some(word =>
+            lowerMessage.includes(word)
+        );
+
+        if (hasBlacklistedWord) {
+            // Return low confidence to force OpenAI redirect
+            return {
+                content: "",
+                confidence: 0
+            };
+        }        // Check for complex product queries that should use AI instead of patterns
+        const complexQueryIndicators = [
+            "recommend", "suggestion", "help me find",
+            "what do you have", "show me", "searching for", "in stock", "available",
+            "who loves", "for my", "birthday gift", "anniversary", "special occasion"
+        ];
+
+        const isComplexQuery = complexQueryIndicators.some(indicator =>
+            lowerMessage.includes(indicator)
+        );
+
+        // Only bypass patterns for very complex queries (more than 8 words)
+        // and allow simple "looking for" queries to use patterns
+        if (isComplexQuery && lowerMessage.split(' ').length > 8) {
+            return {
+                content: "",
+                confidence: 0
+            };
+        }
+
         const keywords = extractKeywords(lowerMessage);
 
         // Get patterns from database
@@ -459,34 +543,55 @@ async function tryPatternMatch(message: string): Promise<{
         const patternScores: Array<{
             pattern: any;
             score: number;
-        }> = [];
-
-        // Score patterns
+        }> = [];        // Score patterns with improved matching
         for (const pattern of dbPatterns) {
             let score = 0;
             const triggerPhrases = pattern.triggers.map(t => t.phrase.toLowerCase());
 
-            // Direct phrase matching (exact match gets highest score)
-            const exactMatch = triggerPhrases.some(phrase =>
-                lowerMessage === phrase ||
-                lowerMessage.includes(phrase)
+            // Exact phrase matching (highest priority)
+            const exactPhrase = triggerPhrases.find(phrase =>
+                lowerMessage === phrase
             );
-            if (exactMatch) score += 15;
+            if (exactPhrase) {
+                score += 25;
+            } else {
+                // Contains phrase matching (high priority)
+                const containsPhrase = triggerPhrases.find(phrase =>
+                    lowerMessage.includes(phrase) && phrase.length > 3
+                );
+                if (containsPhrase) {
+                    score += 20;
+                } else {
+                    // Word boundary matching (medium priority) - prevent "homework" matching "home"
+                    const wordBoundaryMatch = triggerPhrases.find(phrase => {
+                        const regex = new RegExp(`\\b${phrase}\\b`, 'i');
+                        return regex.test(lowerMessage);
+                    });
+                    if (wordBoundaryMatch) {
+                        score += 15;
+                    } else {
+                        // Keyword matching (lower priority) - require multiple matches
+                        const patternKeywords = triggerPhrases.flatMap(phrase =>
+                            extractKeywords(phrase)
+                        );
+                        const keywordMatches = keywords.filter(kw =>
+                            patternKeywords.includes(kw)
+                        ).length;
 
-            // Partial phrase matching
-            const partialMatch = triggerPhrases.some(phrase =>
-                phrase.split(' ').some(word => lowerMessage.includes(word))
-            );
-            if (partialMatch) score += 5;
-
-            // Keyword matching
-            const patternKeywords = triggerPhrases.flatMap(phrase =>
-                extractKeywords(phrase)
-            );
-            const keywordMatches = keywords.filter(kw =>
-                patternKeywords.includes(kw)
-            ).length;
-            score += keywordMatches * 3;
+                        // Only add points if we have multiple keyword matches or very relevant single match
+                        if (keywordMatches >= 2) {
+                            score += keywordMatches * 3;
+                        } else if (keywordMatches === 1) {
+                            // Single keyword match only gets points for very specific terms
+                            const relevantSingleKeywords = ['shipping', 'return', 'payment', 'order', 'uniqverse'];
+                            const matchedKeyword = keywords.find(kw => patternKeywords.includes(kw));
+                            if (matchedKeyword && relevantSingleKeywords.includes(matchedKeyword)) {
+                                score += 8;
+                            }
+                        }
+                    }
+                }
+            }
 
             if (score > 0) {
                 patternScores.push({ pattern, score });
@@ -494,17 +599,19 @@ async function tryPatternMatch(message: string): Promise<{
         }
 
         // Sort by score (highest first)
-        patternScores.sort((a, b) => b.score - a.score);
-
-        if (patternScores.length > 0) {
+        patternScores.sort((a, b) => b.score - a.score); if (patternScores.length > 0) {
             const bestMatch = patternScores[0];
-            const confidence = Math.min(bestMatch.score / 20, 1); // Normalize to 0-1
+            // Require higher confidence threshold to prevent false matches
+            const confidence = Math.min(bestMatch.score / 25, 1); // Normalize to 0-1, requires score of 25 for 100%
 
-            return {
-                content: bestMatch.pattern.response,
-                confidence,
-                patternId: bestMatch.pattern.id
-            };
+            // Only return pattern match if confidence is high enough
+            if (confidence >= 0.6) { // Require at least 60% confidence
+                return {
+                    content: bestMatch.pattern.response,
+                    confidence,
+                    patternId: bestMatch.pattern.id
+                };
+            }
         }
 
         // No pattern match found

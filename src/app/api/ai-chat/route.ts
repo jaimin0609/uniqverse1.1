@@ -283,7 +283,46 @@ async function tryRuleBasedResponse(
 }> {
     try {
         const lowerMessage = message.toLowerCase();
-        const keywords = extractKeywords(lowerMessage);        // Check if this is a product search query FIRST
+
+        // Check for blacklisted words that should never trigger patterns
+        const blacklistWords = [
+            "homework", "math", "school", "cooking", "recipe", "weather", "news",
+            "politics", "sports", "movie", "book", "music", "restaurant",
+            "directions", "map", "translate", "calculate", "define"
+        ];
+
+        const hasBlacklistedWord = blacklistWords.some(word =>
+            lowerMessage.includes(word)
+        );
+
+        if (hasBlacklistedWord) {
+            // Return fallback response to trigger OpenAI redirect
+            return {
+                content: "I'm designed specifically to help with UniQVerse shopping and services. How can I assist you with our products, orders, or website today?",
+                confidence: 0.8,
+                suggestions: generateSuggestions(context.topics)
+            };
+        }        // Check for complex product queries that should use AI instead of patterns
+        const complexQueryIndicators = [
+            "recommend", "suggestion", "help me find",
+            "what do you have", "show me", "searching for", "in stock", "available",
+            "who loves", "for my", "birthday gift", "anniversary", "special occasion"
+        ];
+
+        const isComplexQuery = complexQueryIndicators.some(indicator =>
+            lowerMessage.includes(indicator)
+        );
+
+        // Only bypass patterns for very complex queries (more than 8 words)
+        if (isComplexQuery && lowerMessage.split(' ').length > 8) {
+            return {
+                content: "",
+                confidence: 0,
+                suggestions: generateSuggestions(context.topics)
+            };
+        }
+
+        const keywords = extractKeywords(lowerMessage);// Check if this is a product search query FIRST
         const productSearchResponse = await tryProductSearch(message, lowerMessage, keywords, currency);
         if (productSearchResponse.confidence > 0.5) { // Lowered threshold
             return productSearchResponse;
@@ -299,27 +338,55 @@ async function tryRuleBasedResponse(
         const patternScores: Array<{
             pattern: any;
             score: number;
-        }> = [];
-
-        // Score patterns
+        }> = [];        // Score patterns with improved matching
         for (const pattern of dbPatterns) {
             let score = 0;
             const triggerPhrases = pattern.triggers.map(t => t.phrase.toLowerCase());
 
-            // Direct phrase matching
-            const directMatch = triggerPhrases.some(phrase =>
-                lowerMessage.includes(phrase)
+            // Exact phrase matching (highest priority)
+            const exactPhrase = triggerPhrases.find(phrase =>
+                lowerMessage === phrase
             );
-            if (directMatch) score += 10;
+            if (exactPhrase) {
+                score += 25;
+            } else {
+                // Contains phrase matching (high priority)
+                const containsPhrase = triggerPhrases.find(phrase =>
+                    lowerMessage.includes(phrase) && phrase.length > 3
+                );
+                if (containsPhrase) {
+                    score += 20;
+                } else {
+                    // Word boundary matching (medium priority) - prevent "homework" matching "home"
+                    const wordBoundaryMatch = triggerPhrases.find(phrase => {
+                        const regex = new RegExp(`\\b${phrase}\\b`, 'i');
+                        return regex.test(lowerMessage);
+                    });
+                    if (wordBoundaryMatch) {
+                        score += 15;
+                    } else {
+                        // Keyword matching (lower priority) - require multiple matches
+                        const patternKeywords = triggerPhrases.flatMap(phrase =>
+                            extractKeywords(phrase)
+                        );
+                        const keywordMatches = keywords.filter(kw =>
+                            patternKeywords.includes(kw)
+                        ).length;
 
-            // Keyword matching
-            const patternKeywords = triggerPhrases.flatMap(phrase =>
-                extractKeywords(phrase)
-            );
-            const keywordMatches = keywords.filter(kw =>
-                patternKeywords.includes(kw)
-            ).length;
-            score += keywordMatches * 2;
+                        // Only add points if we have multiple keyword matches or very relevant single match
+                        if (keywordMatches >= 2) {
+                            score += keywordMatches * 3;
+                        } else if (keywordMatches === 1) {
+                            // Single keyword match only gets points for very specific terms
+                            const relevantSingleKeywords = ['shipping', 'return', 'payment', 'order', 'uniqverse'];
+                            const matchedKeyword = keywords.find(kw => patternKeywords.includes(kw));
+                            if (matchedKeyword && relevantSingleKeywords.includes(matchedKeyword)) {
+                                score += 8;
+                            }
+                        }
+                    }
+                }
+            }
 
             // Context bonus (if pattern relates to current conversation topics)
             if (context.topics.some(topic =>
@@ -335,18 +402,20 @@ async function tryRuleBasedResponse(
         }
 
         // Sort by score
-        patternScores.sort((a, b) => b.score - a.score);
-
-        if (patternScores.length > 0) {
+        patternScores.sort((a, b) => b.score - a.score); if (patternScores.length > 0) {
             const bestMatch = patternScores[0];
-            const confidence = Math.min(bestMatch.score / 15, 1); // Normalize to 0-1
+            // Require higher confidence threshold to prevent false matches
+            const confidence = Math.min(bestMatch.score / 25, 1); // Normalize to 0-1, requires score of 25 for 100%
 
-            return {
-                content: bestMatch.pattern.response,
-                confidence,
-                patternMatched: bestMatch.pattern.id,
-                suggestions: generateSuggestions(context.topics)
-            };
+            // Only return pattern match if confidence is high enough
+            if (confidence >= 0.6) { // Require at least 60% confidence
+                return {
+                    content: bestMatch.pattern.response,
+                    confidence,
+                    patternMatched: bestMatch.pattern.id,
+                    suggestions: generateSuggestions(context.topics)
+                };
+            }
         }
 
         // Fallback response
