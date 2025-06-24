@@ -120,15 +120,26 @@ export const useCartStore = create<CartStore>()(
                         itemCount,
                     };
                 });
-            },
-
-            // Update removeItem to handle variantId
+            },            // Update removeItem to handle variantId more precisely
             removeItem: (id: string, variantId?: string) => {
                 set((state) => {
-                    // Remove item from cart, considering both id and variantId
-                    const updatedItems = state.items.filter((item) =>
-                        !(item.id === id && (!variantId || item.variantId === variantId))
-                    );
+                    console.log(`Removing item from cart - id: ${id}, variantId: ${variantId}`);
+                    console.log('Current cart items:', state.items);
+
+                    // Remove item from cart with precise matching
+                    const updatedItems = state.items.filter((item) => {
+                        const idMatch = item.id === id;
+                        const variantMatch = variantId ? item.variantId === variantId : true;
+                        const shouldRemove = idMatch && variantMatch;
+
+                        if (shouldRemove) {
+                            console.log(`Removing item:`, item);
+                        }
+
+                        return !shouldRemove;
+                    });
+
+                    console.log('Updated cart items after removal:', updatedItems);
 
                     // Calculate directly from updatedItems
                     const subtotal = updatedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);

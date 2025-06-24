@@ -368,12 +368,12 @@ export async function POST(req: Request) {
                     updatedAt: new Date()
                 }
             });
-        }
-
-        // Delete existing cart items
+        }        // Delete existing cart items
         await db.cartItem.deleteMany({
             where: { cartId }
         });
+
+        console.log(`Deleted existing cart items for cart ${cartId}`);
 
         // Validate that all products exist before adding them
         for (const item of items) {
@@ -404,10 +404,9 @@ export async function POST(req: Request) {
                     );
                 }
             }
-        }
-
-        // Add new cart items
+        }        // Add new cart items
         if (items.length > 0) {
+            console.log(`Adding ${items.length} items to cart ${cartId}`);
             await Promise.all(items.map(async (item) => {
                 await db.cartItem.create({
                     data: {
@@ -420,6 +419,8 @@ export async function POST(req: Request) {
                     }
                 });
             }));
+        } else {
+            console.log(`Cart ${cartId} has been cleared (no items to add)`);
         }
 
         // Fetch updated cart with product details
@@ -458,19 +459,26 @@ export async function POST(req: Request) {
                 variantName: item.ProductVariant?.name,
                 variantOptions: item.ProductVariant?.options,
             };
-        });
-
-        // Invalidate cache for authenticated users
+        });        // Invalidate cache for authenticated users - do this before and after the update
         if (session?.user?.id) {
             const cacheKey = cacheKeys.user(`cart:${session.user.id}`);
             await cache.del(cacheKey);
+            console.log(`Invalidated cart cache for user ${session.user.id}`);
         }
 
-        return NextResponse.json({
+        const response = {
             message: "Cart updated successfully",
             cartId,
-            items: formattedCartItems
+            items: formattedCartItems,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log(`Cart update completed for ${cartId}:`, {
+            itemCount: formattedCartItems.length,
+            cartId
         });
+
+        return NextResponse.json(response);
 
     } catch (error) {
         console.error("Error updating cart:", error);

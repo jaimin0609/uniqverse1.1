@@ -18,18 +18,36 @@ interface CartDrawerProps {
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     const router = useRouter();
     // Use the server-synced cart hook instead of the store directly
-    const { items, subtotal, itemCount, updateQuantity, removeItem, clearCart, syncCartWithServer } = useServerSyncedCart();
+    const { items, subtotal, itemCount, updateQuantity, removeItem, clearCart, syncCartWithServer, forceReloadFromServer } = useServerSyncedCart();
     const [isNavigating, setIsNavigating] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [lastSyncTime, setLastSyncTime] = useState<number>(0);
 
     // Refs to track timeouts for cleanup
     const checkoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);    // Reset navigation state when drawer is opened
+    const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);    // Reset navigation state when drawer is opened and verify cart sync
     useEffect(() => {
         if (isOpen) {
             setIsNavigating(false);
+
+            // Verify cart sync when drawer opens (but not too frequently)
+            const now = Date.now();
+            const timeSinceLastSync = now - lastSyncTime;
+
+            // Only sync if it's been more than 5 seconds since last sync
+            if (timeSinceLastSync > 5000) {
+                setLastSyncTime(now);
+                console.log('Cart drawer opened, syncing with server...');
+
+                // Verify cart is in sync with server
+                syncCartWithServer().catch(error => {
+                    console.error('Error syncing cart when drawer opened:', error);
+                });
+            } else {
+                console.log('Cart drawer opened, skipping sync (too recent)');
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, syncCartWithServer, lastSyncTime]);
 
     // Cleanup timeouts when component unmounts or when drawer closes
     useEffect(() => {
@@ -230,15 +248,35 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                                 onClick={async () => {
                                                     try {
                                                         setIsLoading(true);
+                                                        console.log(`Removing item ${item.id} with variant ${item.variantId} from cart`);
+
                                                         await removeItem(item.id, item.variantId);
+
+                                                        console.log('Item removed successfully');
+
+                                                        // Small delay to ensure server sync completes
+                                                        await new Promise(resolve => setTimeout(resolve, 200));
+
                                                     } catch (error) {
                                                         console.error('Error removing item:', error);
+
+                                                        // Show user-friendly error message
+                                                        // You might want to import and use a toast library here
+                                                        alert('Failed to remove item from cart. Please try again.');
+
+                                                        // Optionally reload the cart from server to ensure consistency
+                                                        try {
+                                                            await syncCartWithServer();
+                                                        } catch (syncError) {
+                                                            console.error('Error syncing cart after failed removal:', syncError);
+                                                        }
                                                     } finally {
                                                         setIsLoading(false);
                                                     }
                                                 }}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="text-red-500 hover:text-red-700 disabled:opacity-50"
                                                 aria-label="Remove item"
+                                                disabled={isLoading}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

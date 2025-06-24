@@ -21,6 +21,7 @@ export function useCartSync() {
 
         // If user has changed (logout or different user login), clear the cart
         if (lastUserId !== currentUserId) {
+            console.log('User session changed, clearing cart data');
             clearCart();
             clearCartData(); // Clear localStorage data too
             setCartId(null);
@@ -40,55 +41,74 @@ export function useCartSync() {
                 setIsLoading(true);
 
                 // If we already have a cart ID in localStorage, use it for guest users
-                const storedCartId = localStorage.getItem('uniqverse-cart-id');
-
-                // Construct the API URL based on whether we have a stored cart ID
+                const storedCartId = localStorage.getItem('uniqverse-cart-id');                // Construct the API URL with cache busting to ensure fresh data
+                const timestamp = Date.now();
                 const url = storedCartId && !session?.user
-                    ? `/api/cart?cartId=${storedCartId}`
-                    : '/api/cart';
+                    ? `/api/cart?cartId=${storedCartId}&_t=${timestamp}`
+                    : `/api/cart?_t=${timestamp}`;
 
-                const response = await fetch(url);
+                console.log('Loading cart from server:', url);
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch cart from server');
                 }
 
                 const data = await response.json();
+                console.log('Server cart data received:', data);
 
                 // Store the cart ID for future use (useful for guest users)
                 if (data.cartId) {
                     localStorage.setItem('uniqverse-cart-id', data.cartId);
                     setCartId(data.cartId);
-                }
+                }                // Always load from server on initialization to ensure sync
+                // This prevents deleted items from reappearing when user revisits
+                const currentLocalItems = useCartStore.getState().items;
 
-                // Only replace local cart if server cart has items and local hasn't been modified
-                if (data.items?.length > 0 && !isInitialized) {
-                    // First clear current cart to prevent duplicates
+                if (!isInitialized) {
+                    console.log('Initial cart load from server:', data.items?.length || 0, 'items');
+                    // On first load, always use the server state as the source of truth
                     clearCart();
 
-                    // Add all items from server to local cart
+                    if (data.items?.length > 0) {
+                        data.items.forEach((item: CartItem) => {
+                            addItem(item);
+                        });
+                    }
+                } else if (currentLocalItems.length === 0 && data.items?.length > 0) {
+                    // Local cart is empty but server has items - load from server
+                    console.log('Loading cart from server (local empty):', data.items.length, 'items');
                     data.items.forEach((item: CartItem) => {
                         addItem(item);
                     });
-                }
-
-                setIsInitialized(true);
+                } setIsInitialized(true);
             } catch (error) {
                 console.error('Error syncing cart with server:', error);
+                setIsInitialized(true); // Still mark as initialized to avoid infinite loops
             } finally {
                 setIsLoading(false);
             }
         };
 
         loadServerCart();
-    }, [session, status, addItem, clearCart, isInitialized]);
-
-    // Whenever the local cart changes after initialization, update the server cart
+    }, [session, status, addItem, clearCart, isInitialized]);    // Whenever the local cart changes after initialization, update the server cart
     useEffect(() => {
         const syncCartToServer = async () => {
-            if (!isInitialized) return;
+            if (!isInitialized) {
+                console.log('Skipping sync to server - not initialized yet');
+                return;
+            }
 
             try {
+                console.log('Syncing cart to server:', items.length, 'items');
+
                 // Prepare the request payload
                 const payload = {
                     cartId: cartId,
@@ -104,6 +124,8 @@ export function useCartSync() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
                     },
                     body: JSON.stringify(payload),
                 });
@@ -119,6 +141,8 @@ export function useCartSync() {
                     localStorage.setItem('uniqverse-cart-id', data.cartId);
                     setCartId(data.cartId);
                 }
+
+                console.log('Cart synced to server successfully');
             } catch (error) {
                 console.error('Error syncing cart with server:', error);
             }
