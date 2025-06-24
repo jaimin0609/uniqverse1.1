@@ -91,6 +91,6 @@ jobs:
           echo "Performing health check..."
           echo "Waiting for deployment to be ready..."
           sleep 10
-          # TODO: Replace with your actual Vercel domain from your Vercel dashboard
+          # Health check against production endpoint
           curl -f https://uniqverse-v1.vercel.app/api/health || exit 1
           echo "✅ Health check passed - deployment successful!"
