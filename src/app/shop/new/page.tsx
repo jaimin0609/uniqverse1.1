@@ -7,6 +7,9 @@ import ProductFilters from "@/components/product/product-filters";
 import ProductSort from "@/components/product/product-sort";
 import type { ProductSearchParams } from "@/app/shop/page";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: "New Arrivals | UniQVerse",
     description: "Stay ahead of the curve with our latest collection of new arrivals. Discover fresh styles, innovative products, and the newest trends first.",

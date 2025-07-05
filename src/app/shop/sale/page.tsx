@@ -9,6 +9,9 @@ import ProductSort from "@/components/product/product-sort";
 import type { ProductSearchParams } from "@/app/shop/page";
 import DiscountLevelFilter from "@/components/product/discount-level-filter";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: "Sale Items | UniQVerse",
     description: "Save big on our limited-time sale items. Discover great deals and discounts across our collection of quality products.",

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Clock, Award, Users, Heart } from "lucide-react";
 import { db } from "@/lib/db";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: "Careers | Uniqverse",
     description: "Join our team at Uniqverse and help bring unique products to customers worldwide. Explore current job openings and opportunities.",

@@ -11,6 +11,9 @@ import { ClientPrice } from '@/components/ui/client-price';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-utils';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Define params type - using 'any' to bypass strict type checking
 type Params = { params: any }
 

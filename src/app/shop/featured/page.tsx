@@ -6,6 +6,9 @@ import ProductList from "@/components/product/product-list";
 import ProductFilters from "@/components/product/product-filters";
 import ProductSort from "@/components/product/product-sort";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: "Featured Products | UniQVerse",
     description: "Discover our handpicked selection of featured products. Premium quality, exceptional value, and customer favorites all in one place.",

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { db } from "@/lib/db";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: "Product Categories | Uniqverse",
     description: "Browse our diverse range of product categories and find exactly what you're looking for.",

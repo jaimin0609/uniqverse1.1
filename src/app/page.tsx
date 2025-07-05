@@ -8,6 +8,9 @@ import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
 import NewsletterForm from "@/components/newsletter/NewsletterForm";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Fetch initial featured products for the homepage
 async function getInitialFeaturedProducts() {
   const products = await db.product.findMany({

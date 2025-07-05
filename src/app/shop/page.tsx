@@ -7,6 +7,9 @@ import ProductFilters from "@/components/product/product-filters";
 import ProductSort from "@/components/product/product-sort";
 import { Loader2 } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Default values for pagination and filtering
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 12;
