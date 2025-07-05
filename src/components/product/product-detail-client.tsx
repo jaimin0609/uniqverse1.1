@@ -36,6 +36,8 @@ interface ProductDetailClientProps {
     variants: ProductVariant[]; averageRating: number;
     reviewCount: number;
     description?: string | null;
+    isOwnProduct?: boolean;
+    vendorName?: string | null;
 }
 
 export function ProductDetailClient({
@@ -48,7 +50,9 @@ export function ProductDetailClient({
     images,
     variants,
     averageRating, reviewCount,
-    description
+    description,
+    isOwnProduct = false,
+    vendorName
 }: ProductDetailClientProps) {
     const { currency, exchangeRates } = useCurrency();
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -188,6 +192,8 @@ export function ProductDetailClient({
                         }))}
                         onVariantChange={handleVariantChange}
                         finalPrice={finalPrice}
+                        isOwnProduct={isOwnProduct}
+                        vendorName={vendorName}
                     />
                     </div>
 

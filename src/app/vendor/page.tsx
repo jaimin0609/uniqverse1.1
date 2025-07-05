@@ -16,7 +16,8 @@ import {
     BarChart3,
     Calendar,
     AlertCircle,
-    CheckCircle
+    CheckCircle,
+    Loader2
 } from "lucide-react";
 import {
     Card,
@@ -37,6 +38,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatPrice, type Currency } from "@/lib/currency-utils";
+// Removed heavy imports - will load them lazily
+// import VendorCommissionDashboard from "@/components/vendor/VendorCommissionDashboard";
+// import VendorNotifications from "@/components/vendor/VendorNotifications";
 
 interface VendorStats {
     totalProducts: number;
@@ -84,7 +89,9 @@ export default function VendorDashboard() {
     });
     const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
     const [topProducts, setTopProducts] = useState<VendorProduct[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMain, setIsLoadingMain] = useState(true);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    const [currency] = useState<Currency>("USD");
 
     // Redirect if not vendor
     useEffect(() => {
@@ -96,16 +103,23 @@ export default function VendorDashboard() {
         }
     }, [session, status, router]);
 
-    // Fetch vendor dashboard data
+    // Fetch essential dashboard data first (fast)
     useEffect(() => {
         if (session?.user?.role === "VENDOR") {
-            fetchDashboardData();
+            fetchQuickDashboardData();
         }
     }, [session]);
 
-    const fetchDashboardData = async () => {
+    // Fetch heavy data separately (slower, non-blocking)
+    useEffect(() => {
+        if (session?.user?.role === "VENDOR") {
+            fetchTopProducts();
+        }
+    }, [session]);
+
+    const fetchQuickDashboardData = async () => {
         try {
-            const response = await fetch("/api/vendor/dashboard");
+            const response = await fetch(`/api/vendor/dashboard/quick?currency=${currency}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch dashboard data");
             }
@@ -113,16 +127,32 @@ export default function VendorDashboard() {
 
             setStats(data.stats);
             setRecentOrders(data.recentOrders || []);
-            setTopProducts(data.topProducts || []);
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
             toast.error("Failed to load dashboard data");
         } finally {
-            setIsLoading(false);
+            setIsLoadingMain(false);
         }
     };
 
-    if (status === "loading" || isLoading) {
+    const fetchTopProducts = async () => {
+        try {
+            const response = await fetch(`/api/vendor/dashboard/products?currency=${currency}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch products data");
+            }
+            const data = await response.json();
+
+            setTopProducts(data.topProducts || []);
+        } catch (error) {
+            console.error("Error fetching products data:", error);
+            // Don't show error for secondary data
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    };
+
+    if (status === "loading" || isLoadingMain) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -214,10 +244,11 @@ export default function VendorDashboard() {
 
                     <Card>
                         <CardContent className="p-6">
-                            <div className="flex items-center justify-between">                                <div>
-                                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                <p className="text-2xl font-bold">${(stats.totalRevenue || 0).toFixed(2)}</p>
-                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                                    <p className="text-2xl font-bold">{formatPrice(stats.totalRevenue || 0, currency)}</p>
+                                </div>
                                 <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
                                     <DollarSign className="h-6 w-6 text-purple-600" />
                                 </div>
@@ -239,171 +270,174 @@ export default function VendorDashboard() {
                     </Card>
                 </div>
 
-                {/* Additional Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Pending Orders</p>
-                                    <p className="text-xl font-semibold">{stats.pendingOrders}</p>
-                                </div>
-                                <AlertCircle className="h-5 w-5 text-orange-500" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-6">                            <div className="flex items-center justify-between">
+                {/* Top Products */}
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Product Views</p>
-                                <p className="text-xl font-semibold">{(stats.productViews || 0).toLocaleString()}</p>
+                                <p className="text-sm font-medium text-gray-600">Pending Orders</p>
+                                <p className="text-xl font-semibold">{stats.pendingOrders}</p>
                             </div>
-                            <Eye className="h-5 w-5 text-blue-500" />
-                        </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-6">                            <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                                <p className="text-xl font-semibold">{(stats.conversionRate || 0).toFixed(1)}%</p>
-                            </div>
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                        </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Recent Orders and Top Products */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Recent Orders */}
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <CardTitle>Recent Orders</CardTitle>
-                                    <CardDescription>Your latest customer orders</CardDescription>
-                                </div>
-                                <Button variant="outline" size="sm" asChild>
-                                    <Link href="/vendor/orders">View All</Link>
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {recentOrders.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Order</TableHead>
-                                            <TableHead>Customer</TableHead>
-                                            <TableHead>Total</TableHead>
-                                            <TableHead>Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentOrders.slice(0, 5).map((order) => (
-                                            <TableRow key={order.id}>
-                                                <TableCell>
-                                                    <Link
-                                                        href={`/vendor/orders/${order.id}`}
-                                                        className="font-medium text-blue-600 hover:underline"
-                                                    >
-                                                        #{order.orderNumber}
-                                                    </Link>
-                                                </TableCell>
-                                                <TableCell>{order.customerName}</TableCell>
-                                                <TableCell>${(order.total || 0).toFixed(2)}</TableCell>
-                                                <TableCell>{getStatusBadge(order.status)}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <div className="text-center py-6 text-gray-500">
-                                    No recent orders
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Top Products */}
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <CardTitle>Top Products</CardTitle>
-                                    <CardDescription>Your best performing products</CardDescription>
-                                </div>
-                                <Button variant="outline" size="sm" asChild>
-                                    <Link href="/vendor/products">Manage Products</Link>
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {topProducts.length > 0 ? (
-                                <div className="space-y-4">
-                                    {topProducts.slice(0, 5).map((product) => (
-                                        <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                            <div>
-                                                <p className="font-medium">{product.name}</p>
-                                                <p className="text-sm text-gray-600">
-                                                    ${product.price} • {product.orders} orders
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-semibold">${product.revenue.toFixed(2)}</p>
-                                                <p className="text-sm text-gray-600">{product.inventory} in stock</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-6 text-gray-500">
-                                    No products found
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Quick Actions */}
-                <Card className="mt-8">
-                    <CardHeader>
-                        <CardTitle>Quick Actions</CardTitle>
-                        <CardDescription>Common tasks and shortcuts</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <Button variant="outline" className="h-20 flex-col" asChild>
-                                <Link href="/vendor/products/new">
-                                    <Plus className="h-6 w-6 mb-2" />
-                                    Add Product
-                                </Link>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex-col" asChild>
-                                <Link href="/vendor/orders">
-                                    <ShoppingCart className="h-6 w-6 mb-2" />
-                                    View Orders
-                                </Link>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex-col" asChild>
-                                <Link href="/vendor/analytics">
-                                    <BarChart3 className="h-6 w-6 mb-2" />
-                                    Analytics
-                                </Link>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex-col" asChild>
-                                <Link href="/vendor/settings">
-                                    <Users className="h-6 w-6 mb-2" />
-                                    Settings
-                                </Link>
-                            </Button>
+                            <AlertCircle className="h-5 w-5 text-orange-500" />
                         </div>
                     </CardContent>
                 </Card>
+
+                <Card>
+                    <CardContent className="p-6">                            <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Product Views</p>
+                            <p className="text-xl font-semibold">{(stats.productViews || 0).toLocaleString()}</p>
+                        </div>
+                        <Eye className="h-5 w-5 text-blue-500" />
+                    </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-6">                            <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+                            <p className="text-xl font-semibold">{(stats.conversionRate || 0).toFixed(1)}%</p>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                    </div>
+                    </CardContent>
+                </Card>
             </div>
-        </div>
+
+            {/* Recent Orders and Top Products */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Recent Orders */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle>Recent Orders</CardTitle>
+                                <CardDescription>Your latest customer orders</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href="/vendor/orders">View All</Link>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {recentOrders.length > 0 ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Order</TableHead>
+                                        <TableHead>Customer</TableHead>
+                                        <TableHead>Total</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {recentOrders.slice(0, 5).map((order) => (
+                                        <TableRow key={order.id}>
+                                            <TableCell>
+                                                <Link
+                                                    href={`/vendor/orders/${order.id}`}
+                                                    className="font-medium text-blue-600 hover:underline"
+                                                >
+                                                    #{order.orderNumber}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{order.customerName}</TableCell>
+                                            <TableCell>{formatPrice(order.total || 0, currency)}</TableCell>
+                                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <div className="text-center py-6 text-gray-500">
+                                No recent orders
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Top Products */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle>Top Products</CardTitle>
+                                <CardDescription>Your best performing products</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href="/vendor/products">Manage Products</Link>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingProducts ? (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                                Loading products...
+                            </div>
+                        ) : topProducts.length > 0 ? (
+                            <div className="space-y-4">
+                                {topProducts.slice(0, 5).map((product) => (
+                                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                        <div>
+                                            <p className="font-medium">{product.name}</p>
+                                            <p className="text-sm text-gray-600">
+                                                {formatPrice(product.price, currency)} • {product.orders} orders
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-semibold">{formatPrice(product.revenue, currency)}</p>
+                                            <p className="text-sm text-gray-600">{product.inventory} in stock</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-gray-500">
+                                No products found
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card className="mt-8">
+                <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                    <CardDescription>Common tasks and shortcuts</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Button variant="outline" className="h-20 flex-col" asChild>
+                            <Link href="/vendor/products/new">
+                                <Plus className="h-6 w-6 mb-2" />
+                                Add Product
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="h-20 flex-col" asChild>
+                            <Link href="/vendor/orders">
+                                <ShoppingCart className="h-6 w-6 mb-2" />
+                                View Orders
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="h-20 flex-col" asChild>
+                            <Link href="/vendor/analytics">
+                                <BarChart3 className="h-6 w-6 mb-2" />
+                                Analytics
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="h-20 flex-col" asChild>
+                            <Link href="/vendor/settings">
+                                <Users className="h-6 w-6 mb-2" />
+                                Settings
+                            </Link>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div >
     );
 }

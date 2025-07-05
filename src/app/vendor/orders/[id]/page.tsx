@@ -16,7 +16,8 @@ import {
     ShoppingBag,
     Eye,
     Mail,
-    Phone
+    Phone,
+    Info
 } from "lucide-react";
 import {
     Card,
@@ -26,6 +27,13 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -38,6 +46,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatPrice, type Currency } from "@/lib/currency-utils";
 
 interface OrderAddress {
     firstName: string;
@@ -82,6 +92,7 @@ interface VendorOrderDetail {
     createdAt: string;
     shippingAddress: OrderAddress;
     customer: Customer;
+    currency?: Currency;
 }
 
 export default function VendorOrderDetailPage() {
@@ -90,6 +101,7 @@ export default function VendorOrderDetailPage() {
     const params = useParams();
     const [order, setOrder] = useState<VendorOrderDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [currency, setCurrency] = useState<Currency>("USD");
 
     // Move useEffect before early return to fix React Hooks warning
     useEffect(() => {
@@ -102,7 +114,7 @@ export default function VendorOrderDetailPage() {
 
         const fetchOrder = async () => {
             try {
-                const response = await fetch(`/api/vendor/orders/${params.id}`);
+                const response = await fetch(`/api/vendor/orders/${params.id}?currency=${currency}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch order");
                 }
@@ -118,7 +130,33 @@ export default function VendorOrderDetailPage() {
         };
 
         fetchOrder();
-    }, [params?.id, session, router]);
+    }, [session, params?.id, router, currency]);
+
+    // Function to update order status
+    const updateOrderStatus = async (newStatus: string) => {
+        if (!order) return;
+
+        try {
+            const response = await fetch(`/api/vendor/orders/${order.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update order status');
+            }
+
+            const data = await response.json();
+            setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+            toast.success(`Order status updated to ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            toast.error('Failed to update order status');
+        }
+    };
 
     if (!params?.id) {
         return null; // or redirect to vendor orders page
@@ -257,9 +295,11 @@ export default function VendorOrderDetailPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-center">{item.quantity}</TableCell>
-                                            <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right">
+                                                {formatPrice(item.price, order.currency || currency)}
+                                            </TableCell>
                                             <TableCell className="text-right font-medium">
-                                                ${item.total.toFixed(2)}
+                                                {formatPrice(item.total, order.currency || currency)}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -268,11 +308,30 @@ export default function VendorOrderDetailPage() {
 
                             <Separator className="my-4" />
 
+                            {/* Commission Information Alert */}
+                            <Alert className="mb-4">
+                                <Info className="h-4 w-4" />
+                                <AlertDescription>
+                                    <strong>Your Earnings:</strong> This amount reflects your commission after platform fees have been deducted from the total sale amount.
+                                </AlertDescription>
+                            </Alert>
+
                             <div className="flex justify-end">
-                                <div className="space-y-2 w-48">
+                                <div className="space-y-2 w-64">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Your portion:</span>
-                                        <span className="font-medium">${order.vendorTotal.toFixed(2)}</span>
+                                        <span className="text-sm text-gray-600">Total Sale Value:</span>
+                                        <span className="text-sm">
+                                            {formatPrice(order.vendorItems.reduce((sum, item) => sum + item.total, 0), order.currency || currency)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-t pt-2">
+                                        <span className="text-sm font-medium text-gray-900">Your Net Earnings:</span>
+                                        <span className="font-bold text-green-600">
+                                            {formatPrice(order.vendorTotal, order.currency || currency)}
+                                        </span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 text-right">
+                                        After platform commission & fees
                                     </div>
                                 </div>
                             </div>
@@ -374,23 +433,81 @@ export default function VendorOrderDetailPage() {
                     {/* Actions */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Actions</CardTitle>
+                            <CardTitle className="flex items-center">
+                                <Package className="h-5 w-5 mr-2" />
+                                Update Order Status
+                            </CardTitle>
+                            <CardDescription>
+                                Change the status of this order to keep your customer informed
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => window.print()}
-                            >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Print Order Details
-                            </Button>
-                            <Link href={`/vendor/products`} className="block">
-                                <Button variant="outline" className="w-full">
-                                    <Package className="h-4 w-4 mr-2" />
-                                    View Products
+                        <CardContent>
+                            <div className="flex flex-wrap gap-2">
+                                {/*
+                                    { status: "PENDING", label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+                                    { status: "PROCESSING", label: "Processing", color: "bg-blue-100 text-blue-800" },
+                                    { status: "SHIPPED", label: "Shipped", color: "bg-indigo-100 text-indigo-800" },
+                                    { status: "DELIVERED", label: "Delivered", color: "bg-green-100 text-green-800" },
+                                    { status: "CANCELLED", label: "Cancelled", color: "bg-red-100 text-red-800" },
+                                ].map((item) => (
+                                    <Button
+                                        key={item.status}
+                                        variant={order.status === item.status ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => updateOrderStatus(item.status)}
+                                        disabled={order.status === item.status}
+                                        className={order.status === item.status ? item.color : ""}
+                                    >
+                                        {item.label}
+                                    </Button>
+                                ))}
+                                */}
+                                <Button
+                                    variant={order.status === "PENDING" ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => updateOrderStatus("PENDING")}
+                                    disabled={order.status === "PENDING"}
+                                    className={order.status === "PENDING" ? "bg-yellow-100 text-yellow-800" : ""}
+                                >
+                                    Pending
                                 </Button>
-                            </Link>
+                                <Button
+                                    variant={order.status === "PROCESSING" ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => updateOrderStatus("PROCESSING")}
+                                    disabled={order.status === "PROCESSING"}
+                                    className={order.status === "PROCESSING" ? "bg-blue-100 text-blue-800" : ""}
+                                >
+                                    Processing
+                                </Button>
+                                <Button
+                                    variant={order.status === "SHIPPED" ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => updateOrderStatus("SHIPPED")}
+                                    disabled={order.status === "SHIPPED"}
+                                    className={order.status === "SHIPPED" ? "bg-indigo-100 text-indigo-800" : ""}
+                                >
+                                    Shipped
+                                </Button>
+                                <Button
+                                    variant={order.status === "DELIVERED" ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => updateOrderStatus("DELIVERED")}
+                                    disabled={order.status === "DELIVERED"}
+                                    className={order.status === "DELIVERED" ? "bg-green-100 text-green-800" : ""}
+                                >
+                                    Delivered
+                                </Button>
+                                <Button
+                                    variant={order.status === "CANCELLED" ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => updateOrderStatus("CANCELLED")}
+                                    disabled={order.status === "CANCELLED"}
+                                    className={order.status === "CANCELLED" ? "bg-red-100 text-red-800" : ""}
+                                >
+                                    Cancelled
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { e2Client, e2Bucket, getPreSignedUrl } from "@/lib/idrive-e2";
+import { checkUploadEnvironment, createUploadErrorResponse } from "@/lib/upload-utils";
 
 export async function POST(request: NextRequest) {
     try {
@@ -15,6 +16,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // Check upload environment configuration
+        const envConfig = checkUploadEnvironment();
+
+        if (!envConfig.hasIDriveConfig && !envConfig.hasAWSConfig && !envConfig.hasLocalConfig) {
+            console.error("No upload configuration found:", envConfig.recommendation);
+            return NextResponse.json({
+                error: "Upload service not configured",
+                details: envConfig.recommendation,
+                suggestion: "Please contact administrator to configure file upload service"
+            }, { status: 503 });
+        }
+
         // Process the uploaded file
         const formData = await request.formData();
         const file = formData.get("file") as File;
@@ -22,7 +35,9 @@ export async function POST(request: NextRequest) {
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
-        }        // Validate file type based on folder
+        }
+
+        // Validate file type based on folder
         let validTypes: string[];
         let errorMessage: string;
 
@@ -43,7 +58,9 @@ export async function POST(request: NextRequest) {
                 { error: errorMessage },
                 { status: 400 }
             );
-        }        // Validate file size based on folder
+        }
+
+        // Validate file size based on folder
         let maxSize: number;
         let sizeErrorMessage: string;
 
@@ -60,7 +77,9 @@ export async function POST(request: NextRequest) {
                 { error: sizeErrorMessage },
                 { status: 400 }
             );
-        }        // Generate a unique filename
+        }
+
+        // Generate a unique filename
         const fileExtension = file.name.split(".").pop()?.toLowerCase();
         const uniqueId = uuidv4();
 
@@ -73,7 +92,7 @@ export async function POST(request: NextRequest) {
             fileName = `${uniqueId}.${fileExtension}`;
         }
 
-        // Define the folder structure in iDrive e2 based on user role and folder
+        // Define the folder structure based on user role and folder
         const userRole = session.user.role?.toLowerCase() || "user";
         const folderPath = `${folder}/${userRole}/${new Date().getFullYear()}/${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
         const key = `${folderPath}/${fileName}`;
@@ -82,51 +101,81 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Upload to iDrive e2
-        const uploadParams = {
-            Bucket: e2Bucket,
-            Key: key,
-            Body: buffer,
-            ContentType: file.type,
-        };
+        let uploadUrl: string;
+        let mediaRecord: any;
 
-        await e2Client.send(new PutObjectCommand(uploadParams));
+        // Try iDrive e2 first if configured
+        if (envConfig.hasIDriveConfig) {
+            try {
+                // Upload to iDrive e2
+                const uploadParams = {
+                    Bucket: e2Bucket,
+                    Key: key,
+                    Body: buffer,
+                    ContentType: file.type,
+                };
 
-        // Generate pre-signed URL for the uploaded file (valid for 24 hours)
-        const preSignedUrl = await getPreSignedUrl(key, 86400);
+                await e2Client.send(new PutObjectCommand(uploadParams));
 
-        if (!preSignedUrl) {
-            throw new Error("Failed to generate pre-signed URL");
+                // Generate pre-signed URL for the uploaded file (valid for 24 hours)
+                const preSignedUrl = await getPreSignedUrl(key, 86400);
+
+                if (!preSignedUrl) {
+                    throw new Error("Failed to generate pre-signed URL");
+                }
+
+                uploadUrl = preSignedUrl;
+
+                // Create a media record in the database
+                mediaRecord = await db.media.create({
+                    data: {
+                        id: `media-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                        filename: fileName,
+                        originalFilename: file.name,
+                        url: uploadUrl,
+                        alt: key, // Store the object key for future reference
+                        filesize: file.size,
+                        mimetype: file.type,
+                        userId: session.user.id,
+                        updatedAt: new Date(),
+                    },
+                });
+
+            } catch (error) {
+                console.error("iDrive e2 upload failed:", error);
+                return createUploadErrorResponse(`iDrive e2 upload failed: ${error}`);
+            }
+        } else {
+            // Fallback: create a placeholder URL for development
+            // In production, you should configure proper file storage
+            uploadUrl = `https://via.placeholder.com/400x300/cccccc/666666?text=${encodeURIComponent(file.name)}`;
+
+            mediaRecord = await db.media.create({
+                data: {
+                    id: `media-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    filename: fileName,
+                    originalFilename: file.name,
+                    url: uploadUrl,
+                    alt: `placeholder-${fileName}`,
+                    filesize: file.size,
+                    mimetype: file.type,
+                    userId: session.user.id,
+                    updatedAt: new Date(),
+                },
+            });
+
+            console.warn("Using placeholder image URL - configure iDrive e2 or AWS S3 for production");
         }
 
-        // Create a media record in the database with the key for future reference
-        const media = await db.media.create({
-            data: {
-                id: `media-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                filename: fileName,
-                originalFilename: file.name,
-                // Store both the key and the pre-signed URL
-                url: preSignedUrl,
-                // Add the object key so we can generate new URLs later
-                alt: key, // Using alt field to store the object key
-                filesize: file.size,
-                mimetype: file.type,
-                userId: session.user.id,
-                updatedAt: new Date(),
-            },
-        });
-
         return NextResponse.json({
-            url: preSignedUrl,
-            id: media.id,
-            name: media.filename,
-            key: key, // Return the object key for reference
+            url: uploadUrl,
+            id: mediaRecord.id,
+            name: mediaRecord.filename,
+            key: key,
+            isPlaceholder: !envConfig.hasIDriveConfig && !envConfig.hasAWSConfig
         });
     } catch (error) {
-        console.error("Error uploading file to iDrive e2:", error);
-        return NextResponse.json(
-            { error: "Failed to upload file" },
-            { status: 500 }
-        );
+        console.error("Error in upload API:", error);
+        return createUploadErrorResponse(`Upload failed: ${error}`);
     }
 }

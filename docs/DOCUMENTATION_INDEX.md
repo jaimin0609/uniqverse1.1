@@ -36,6 +36,7 @@ A comprehensive index of all documentation files in the Uniqverse e-commerce pla
 ### Infrastructure & Performance
 - **[PERFORMANCE_OPTIMIZATION_IMPLEMENTATION.md](./PERFORMANCE_OPTIMIZATION_IMPLEMENTATION.md)** - Enterprise-grade performance optimization system with 70-90% improvements
 - **[REDIS_SETUP.md](./REDIS_SETUP.md)** - Redis cache setup and configuration
+- **[SUPABASE_CONNECTION_FIX.md](./SUPABASE_CONNECTION_FIX.md)** - IPv6 transition fix for prepared statement errors
 - **[PERSISTENT_CART_FUNCTIONALITY.md](./PERSISTENT_CART_FUNCTIONALITY.md)** - Cart persistence implementation
 - **[NEXT_IMAGE_SOLUTION.md](./NEXT_IMAGE_SOLUTION.md)** - Image optimization solutions
 

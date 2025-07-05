@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { sendNewVendorApplicationNotification } from "@/lib/email-utils";
 
 // Vendor application schema
 const vendorApplicationSchema = z.object({
@@ -67,9 +68,7 @@ export async function POST(req: NextRequest) {
                 { error: "You have already submitted a vendor application" },
                 { status: 400 }
             );
-        }
-
-        // Create vendor application
+        }        // Create vendor application
         const application = await db.vendorApplication.create({
             data: {
                 userId: session.user.id,
@@ -91,8 +90,13 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // TODO: Send notification email to admin about new vendor application
-        // TODO: Send confirmation email to applicant
+        // Send notification email to admins about new vendor application
+        try {
+            await sendNewVendorApplicationNotification(application.id);
+        } catch (error) {
+            console.error("Failed to send admin notification email:", error);
+            // Don't fail the request if email fails
+        }
 
         return NextResponse.json({
             success: true,

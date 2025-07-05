@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { convertPrice, convertPrices, isSupportedCurrency, type Currency } from "@/lib/currency-utils";
+import { EnhancedVendorCommissionService } from "@/lib/enhanced-vendor-commission-service";
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,7 +14,20 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const vendorId = session.user.id;        // Get vendor's products
+        const vendorId = session.user.id;
+
+        // Get currency from query params
+        const { searchParams } = new URL(request.url);
+        const currencyParam = searchParams.get('currency') || 'USD';
+        const currency = isSupportedCurrency(currencyParam) ? currencyParam : 'USD';
+
+        // Get enhanced vendor dashboard data
+        const enhancedDashboard = await EnhancedVendorCommissionService.getEnhancedVendorDashboard(
+            vendorId,
+            currency
+        );
+
+        // Get vendor's products
         const products = await db.product.findMany({
             where: { vendorId: vendorId },
             select: {
@@ -109,53 +124,76 @@ export async function GET(request: NextRequest) {
         const totalReviews = products.reduce((sum, product) => sum + (product._count.reviews || 0), 0);
 
         // Calculate conversion rate (orders / products)
-        const conversionRate = totalProducts > 0 ? (totalOrders / totalProducts) * 100 : 0;
+        const conversionRate = totalProducts > 0 ? (totalOrders / totalProducts) * 100 : 0;        // Convert monetary values to requested currency
+        const [
+            convertedTotalRevenue,
+            convertedAverageOrderValue
+        ] = await convertPrices([totalRevenue, averageOrderValue], currency);
 
-        // Format recent orders
-        const recentOrders = orders.slice(0, 10).map(order => ({
-            id: order.id,
-            orderNumber: order.orderNumber,
-            customerName: order.user.name || order.user.email,
-            total: order.items.reduce((sum, item) => sum + item.total, 0),
-            status: order.status,
-            createdAt: order.createdAt.toISOString(),
-            items: order.items.length
-        }));
+        // Format recent orders with currency conversion
+        const recentOrders = await Promise.all(
+            orders.slice(0, 10).map(async (order) => {
+                const orderTotal = order.items.reduce((sum, item) => sum + item.total, 0);
+                const convertedTotal = await convertPrice(orderTotal, currency);
 
-        // Format top products (by revenue)
-        const topProducts = products
-            .map(product => {
-                const productOrders = orders.filter(order =>
-                    order.items.some(item => item.product.id === product.id)
-                );
-                const productRevenue = productOrders.reduce((sum, order) => {
-                    const productItems = order.items.filter(item => item.product.id === product.id);
-                    return sum + productItems.reduce((itemSum, item) => itemSum + item.total, 0);
-                }, 0); return {
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    inventory: product.inventory,
-                    orders: product._count.orderItems,
-                    revenue: productRevenue,
-                    status: product.isPublished ? 'Published' : 'Draft'
+                return {
+                    id: order.id,
+                    orderNumber: order.orderNumber,
+                    customerName: order.user.name || order.user.email,
+                    total: convertedTotal,
+                    status: order.status,
+                    createdAt: order.createdAt.toISOString(),
+                    items: order.items.length
                 };
             })
-            .sort((a, b) => b.revenue - a.revenue); const stats = {
-                totalProducts,
-                totalOrders,
-                totalRevenue,
-                averageOrderValue,
-                pendingOrders,
-                monthlyGrowth,
-                productViews: totalReviews, // Use totalReviews as a proxy for productViews
-                conversionRate
-            };
+        );
+
+        // Format top products with currency conversion
+        const topProducts = await Promise.all(
+            products
+                .map(async (product) => {
+                    const productOrders = orders.filter(order =>
+                        order.items.some(item => item.product.id === product.id)
+                    );
+                    const productRevenue = productOrders.reduce((sum, order) => {
+                        const productItems = order.items.filter(item => item.product.id === product.id);
+                        return sum + productItems.reduce((itemSum, item) => itemSum + item.total, 0);
+                    }, 0);
+
+                    const [convertedPrice, convertedRevenue] = await convertPrices([product.price, productRevenue], currency);
+
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        price: convertedPrice,
+                        inventory: product.inventory,
+                        orders: product._count.orderItems,
+                        revenue: convertedRevenue,
+                        status: product.isPublished ? 'Published' : 'Draft'
+                    };
+                })
+        );
+
+        // Sort by revenue (after conversion)
+        topProducts.sort((a, b) => b.revenue - a.revenue);
+
+        const stats = {
+            totalProducts,
+            totalOrders,
+            totalRevenue: convertedTotalRevenue,
+            averageOrderValue: convertedAverageOrderValue,
+            pendingOrders,
+            monthlyGrowth,
+            productViews: totalReviews, // Use totalReviews as a proxy for productViews
+            conversionRate,
+            currency // Include currency in response
+        };
 
         return NextResponse.json({
             stats,
             recentOrders,
-            topProducts: topProducts.slice(0, 10)
+            topProducts: topProducts.slice(0, 10),
+            enhancedDashboard // Include enhanced dashboard data in response
         });
 
     } catch (error) {

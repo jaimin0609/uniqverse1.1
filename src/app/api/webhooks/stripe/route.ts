@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { constructEventFromPayload } from '@/lib/stripe';
 import { db } from '@/lib/db';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { DropshippingService } from '@/services/dropshipping/dropshipping-service';
+import { VendorCommissionService } from '@/lib/vendor-commission-service';
 import {
     sendOrderConfirmationEmail,
     sendPaymentFailureEmail,
@@ -75,20 +75,27 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     if (!order) {
         console.error(`No order found for payment intent: ${paymentIntent.id}`);
         return;
-    }
-
-    // Update order status
+    }    // Update order status
     await db.order.update({
         where: { id: order.id },
         data: {
-            paymentStatus: PaymentStatus.PAID,
-            status: OrderStatus.PROCESSING,
+            paymentStatus: 'PAID',
+            status: 'PROCESSING',
             paidAt: new Date(),
         },
     });
 
     // Send order confirmation email
     await sendOrderConfirmationEmail(order.id);
+
+    // Create vendor commissions for this order
+    try {
+        await VendorCommissionService.createCommissionsForOrder(order.id);
+        console.log(`Created vendor commissions for order ${order.id}`);
+    } catch (error) {
+        console.error(`Error creating vendor commissions for order ${order.id}:`, error);
+        // We don't want to stop the order flow if commission creation fails, just log the error
+    }
 
     // Process dropshipping for this order
     try {
@@ -111,13 +118,11 @@ async function handlePaymentIntentFailed(paymentIntent: any) {
     if (!order) {
         console.error(`No order found for payment intent: ${paymentIntent.id}`);
         return;
-    }
-
-    await db.order.update({
+    } await db.order.update({
         where: { id: order.id },
         data: {
-            paymentStatus: PaymentStatus.FAILED,
-            status: OrderStatus.ON_HOLD,
+            paymentStatus: 'FAILED',
+            status: 'ON_HOLD',
         },
     });
 
@@ -136,13 +141,11 @@ async function handlePaymentIntentCancelled(paymentIntent: any) {
     if (!order) {
         console.error(`No order found for cancelled payment intent: ${paymentIntent.id}`);
         return;
-    }
-
-    await db.order.update({
+    } await db.order.update({
         where: { id: order.id },
         data: {
-            paymentStatus: PaymentStatus.CANCELLED,
-            status: OrderStatus.CANCELLED,
+            paymentStatus: 'CANCELLED',
+            status: 'CANCELLED',
             cancelledAt: new Date(),
         },
     });
@@ -171,13 +174,11 @@ async function handleChargeRefunded(charge: any) {
     }
 
     // Check if it's a full or partial refund
-    const isFullRefund = charge.amount_refunded === charge.amount;
-
-    await db.order.update({
+    const isFullRefund = charge.amount_refunded === charge.amount; await db.order.update({
         where: { id: order.id },
         data: {
-            paymentStatus: isFullRefund ? PaymentStatus.REFUNDED : PaymentStatus.PARTIALLY_REFUNDED,
-            status: isFullRefund ? OrderStatus.REFUNDED : OrderStatus.PROCESSING,
+            paymentStatus: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+            status: isFullRefund ? 'REFUNDED' : 'PROCESSING',
         },
     });
 
@@ -201,13 +202,11 @@ async function handlePaymentIntentProcessing(paymentIntent: any) {
     if (!order) {
         console.error(`No order found for payment intent: ${paymentIntent.id}`);
         return;
-    }
-
-    await db.order.update({
+    } await db.order.update({
         where: { id: order.id },
         data: {
-            paymentStatus: PaymentStatus.PENDING,
-            status: OrderStatus.PROCESSING,
+            paymentStatus: 'PENDING',
+            status: 'PROCESSING',
         },
     });
 

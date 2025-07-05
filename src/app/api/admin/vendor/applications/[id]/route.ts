@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { sendVendorApplicationStatusEmail } from "@/lib/email-utils";
 
 export async function GET(
     req: NextRequest,
@@ -151,9 +152,7 @@ export async function PATCH(
                     role: 'VENDOR'
                 }
             });
-        }
-
-        // Log admin action
+        }        // Log admin action
         await db.adminAuditLog.create({
             data: {
                 id: crypto.randomUUID(),
@@ -163,7 +162,17 @@ export async function PATCH(
             }
         });
 
-        // TODO: Send email notification to applicant about status change
+        // Send email notification to applicant about status change
+        try {
+            await sendVendorApplicationStatusEmail(
+                application.id,
+                newStatus as 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW',
+                rejectionReason
+            );
+        } catch (error) {
+            console.error("Failed to send status notification email:", error);
+            // Don't fail the request if email fails
+        }
 
         const message = action === 'approve'
             ? `Vendor application approved. User ${application.user.name} is now a vendor.`

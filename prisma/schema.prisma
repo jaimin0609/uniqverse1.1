@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id                     String                @id @default(cuid())
+  id                     String                       @id @default(cuid())
   name                   String?
-  email                  String                @unique
+  email                  String                       @unique
   emailVerified          DateTime?
   password               String?
   image                  String?
-  role                   UserRole              @default(CUSTOMER)
-  createdAt              DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
+  role                   UserRole                     @default(CUSTOMER)
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt
   accounts               Account[]
   addresses              Address[]
   AdminAuditLog          AdminAuditLog[]
@@ -37,11 +37,14 @@ model User {
   ticketReplies          TicketReply[]
   UserSecuritySettings   UserSecuritySettings?
   VerificationToken      VerificationToken[]
-  Product                Product[]             @relation("UserWishlist")
-  VendorProducts         Product[]             @relation("VendorProducts")
+  Product                Product[]                    @relation("UserWishlist")
+  VendorProducts         Product[]                    @relation("VendorProducts")
   vendorApplication      VendorApplication?
   jobApplications        JobApplication[]
-  reviewedJobApplications JobApplication[]     @relation("JobApplicationReviewer")
+  reviewedJobApplications JobApplication[]           @relation("JobApplicationReviewer")
+  vendorCommissions      VendorCommission[]           @relation("VendorCommissions")
+  vendorPayouts          VendorPayout[]               @relation("VendorPayouts")
+  vendorCommissionSettings VendorCommissionSettings?
 }
 
 model Account {
@@ -126,6 +129,7 @@ model Product {
   reviews           Review[]
   coupons           Coupon[]           @relation("CouponToProduct")
   User              User[]             @relation("UserWishlist")
+  vendorCommissions VendorCommission[]
 
   @@index([categoryId])
   @@index([createdAt])
@@ -242,6 +246,7 @@ model Order {
   shippingAddress   Address?          @relation(fields: [shippingAddressId], references: [id])
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items             OrderItem[]
+  vendorCommissions VendorCommission[]
 
   @@index([createdAt])
   @@index([fulfillmentStatus])
@@ -251,7 +256,7 @@ model Order {
 }
 
 model OrderItem {
-  id                     String          @id @default(cuid())
+  id                     String             @id @default(cuid())
   quantity               Int
   price                  Float
   total                  Float
@@ -263,12 +268,13 @@ model OrderItem {
   supplierTrackingNumber String?
   supplierTrackingUrl    String?
   profitAmount           Float?
-  createdAt              DateTime        @default(now())
+  createdAt              DateTime           @default(now())
   updatedAt              DateTime
-  order                  Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product                Product         @relation(fields: [productId], references: [id])
-  SupplierOrder          SupplierOrder?  @relation(fields: [supplierOrderId], references: [id])
-  variant                ProductVariant? @relation(fields: [variantId], references: [id])
+  order                  Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product                Product            @relation(fields: [productId], references: [id])
+  SupplierOrder          SupplierOrder?     @relation(fields: [supplierOrderId], references: [id])
+  variant                ProductVariant?    @relation(fields: [variantId], references: [id])
+  vendorCommissions      VendorCommission[]
 
   @@index([orderId])
   @@index([productId])
@@ -933,10 +939,106 @@ model VendorApplication {
   @@index([submittedAt])
 }
 
+model VendorCommission {
+  id               String           @id @default(cuid())
+  vendorId         String
+  orderId          String
+  orderItemId      String
+  productId        String
+  saleAmount       Float
+  commissionRate   Float
+  commissionAmount Float
+  status           CommissionStatus @default(PENDING)
+  processedAt      DateTime?
+  payoutId         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  // Enhanced Commission System fields
+  transactionFee   Decimal?         @db.Decimal(10,2)
+  performanceBonus Decimal?         @db.Decimal(10,2)
+  
+  vendor           User             @relation("VendorCommissions", fields: [vendorId], references: [id], onDelete: Cascade)
+  order            Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem        OrderItem        @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product          Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  payout           VendorPayout?    @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([vendorId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VendorPayout {
+  id               String                @id @default(cuid())
+  vendorId         String
+  totalAmount      Float
+  commissionCount  Int
+  periodStart      DateTime
+  periodEnd        DateTime
+  status           PayoutStatus          @default(PENDING)
+  paymentMethod    String?
+  paymentReference String?
+  processedAt      DateTime?
+  notes            String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  vendor           User                  @relation("VendorPayouts", fields: [vendorId], references: [id], onDelete: Cascade)
+  commissions      VendorCommission[]
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([periodStart])
+}
+
+model VendorCommissionSettings {
+  id                   String        @id @default(cuid())
+  vendorId             String        @unique
+  defaultCommissionRate Float        @default(0.05)
+  tieredRates          Json?
+  minimumPayout        Float         @default(25.00)
+  paymentMethod        String        @default("PAYPAL")
+  paymentDetails       Json?
+  isActive             Boolean       @default(true)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  
+  // Enhanced Commission System fields
+  planType             String        @default("STARTER") // STARTER, PROFESSIONAL, ENTERPRISE
+  subscriptionStatus   String        @default("ACTIVE")  // ACTIVE, CANCELLED, SUSPENDED
+  nextBillingDate      DateTime?
+  features             Json?
+  transactionFee       Decimal?      @db.Decimal(5,2)
+  customerDiscount     Decimal?      @db.Decimal(5,2)
+  
+  vendor               User          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@index([planType])
+  @@index([subscriptionStatus])
+  @@index([nextBillingDate])
+}
+
 enum UserRole {
   ADMIN
   VENDOR
   CUSTOMER
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 enum OrderStatus {

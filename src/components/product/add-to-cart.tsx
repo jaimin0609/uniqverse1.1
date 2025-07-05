@@ -28,6 +28,8 @@ interface AddToCartProps {
     variants?: ProductVariant[];
     onVariantChange?: (variantId: string) => void;
     finalPrice?: number;
+    isOwnProduct?: boolean;
+    vendorName?: string | null;
 }
 
 export function AddToCart({
@@ -40,6 +42,8 @@ export function AddToCart({
     variants = [],
     onVariantChange,
     finalPrice,
+    isOwnProduct = false,
+    vendorName,
 }: AddToCartProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -84,6 +88,12 @@ export function AddToCart({
         }
     };    // Handler for adding to cart
     const handleAddToCart = () => {
+        // Check if user is trying to buy their own product
+        if (isOwnProduct) {
+            toast.error("You cannot purchase your own product");
+            return;
+        }
+
         if (productStock <= 0) {
             toast.error("This product is out of stock");
             return;
@@ -122,7 +132,7 @@ export function AddToCart({
                         <button
                             type="button"
                             onClick={() => handleQuantityChange(-1)}
-                            disabled={quantity <= 1}
+                            disabled={quantity <= 1 || isOwnProduct}
                             className="flex-none w-12 flex items-center justify-center text-gray-600 text-lg font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             -
@@ -132,14 +142,15 @@ export function AddToCart({
                             max={productStock}
                             value={quantity}
                             onChange={handleInputChange}
-                            className="flex-grow w-full text-center focus:outline-none"
+                            disabled={isOwnProduct}
+                            className="flex-grow w-full text-center focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                             style={{ appearance: 'none', MozAppearance: 'textfield' }}
                             aria-label="Product quantity"
                         />
                         <button
                             type="button"
                             onClick={() => handleQuantityChange(1)}
-                            disabled={quantity >= productStock}
+                            disabled={quantity >= productStock || isOwnProduct}
                             className="flex-none w-12 flex items-center justify-center text-gray-600 text-lg font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             +
@@ -151,15 +162,30 @@ export function AddToCart({
                 <Button
                     onClick={handleAddToCart}
                     className="h-12 flex-grow text-base"
-                    disabled={productStock <= 0}
+                    disabled={productStock <= 0 || isOwnProduct}
+                    variant={isOwnProduct ? "outline" : "default"}
                 >
                     <ShoppingCart className="mr-2 h-5 w-5" />
-                    {productStock <= 0 ? "Out of Stock" : "Add to Cart"}
+                    {isOwnProduct
+                        ? "Your Product"
+                        : productStock <= 0
+                            ? "Out of Stock"
+                            : "Add to Cart"
+                    }
                 </Button>
             </div>
 
+            {/* Vendor message for own products */}
+            {isOwnProduct && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                        <strong>This is your product.</strong> You can edit it from your vendor dashboard.
+                    </p>
+                </div>
+            )}
+
             {/* Stock Information */}
-            {productStock > 0 && productStock <= 10 && (
+            {productStock > 0 && productStock <= 10 && !isOwnProduct && (
                 <p className="text-sm text-amber-600">
                     Only {productStock} left in stock - order soon
                 </p>

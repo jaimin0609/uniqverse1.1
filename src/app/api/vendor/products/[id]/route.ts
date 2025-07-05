@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { convertPrice, convertPrices, isSupportedCurrency, type Currency } from "@/lib/currency-utils";
 
 // GET single vendor product
 export async function GET(
@@ -41,16 +42,34 @@ export async function GET(
                     }
                 }
             }
-        });
-
-        if (!product) {
+        }); if (!product) {
             return NextResponse.json(
                 { error: "Product not found" },
                 { status: 404 }
             );
         }
 
-        return NextResponse.json({ product });
+        // Get currency from query params
+        const { searchParams } = new URL(request.url);
+        const currencyParam = searchParams.get('currency') || 'USD';
+        const currency = isSupportedCurrency(currencyParam) ? currencyParam : 'USD';
+
+        // Convert prices to the requested currency
+        const [convertedPrice, convertedCompareAtPrice, convertedCostPrice] = await convertPrices([
+            product.price,
+            product.compareAtPrice || 0,
+            product.costPrice || 0
+        ], currency);
+
+        const productWithConvertedPrices = {
+            ...product,
+            price: convertedPrice,
+            compareAtPrice: product.compareAtPrice ? convertedCompareAtPrice : null,
+            costPrice: product.costPrice ? convertedCostPrice : null,
+            currency
+        };
+
+        return NextResponse.json({ product: productWithConvertedPrices });
 
     } catch (error) {
         console.error("Error fetching vendor product:", error);

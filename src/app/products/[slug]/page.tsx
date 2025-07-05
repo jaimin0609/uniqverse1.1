@@ -8,6 +8,8 @@ import { ArrowLeft, Star } from 'lucide-react';
 import { ProductDetailClient } from '@/components/product/product-detail-client';
 import { Metadata } from 'next';
 import { ClientPrice } from '@/components/ui/client-price';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-utils';
 
 // Define params type - using 'any' to bypass strict type checking
 type Params = { params: any }
@@ -54,6 +56,12 @@ async function getProduct(slug: string) {
             },
             category: true,
             variants: true,
+            vendor: {
+                select: {
+                    id: true,
+                    name: true,
+                }
+            },
             reviews: {
                 where: {
                     status: 'APPROVED',
@@ -149,7 +157,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
     if (!product) {
         notFound();
-    }    // Calculate average rating
+    }
+
+    // Get current user session
+    const session = await getServerSession(authOptions);
+    const currentUserId = session?.user?.id;
+    const isVendor = session?.user?.role === 'VENDOR';
+    const isOwnProduct = isVendor && currentUserId === product.vendorId;
+
+    // Calculate average rating
     const averageRating = product.reviews.length
         ? Math.round(product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length * 10) / 10
         : 0;
@@ -208,6 +224,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 }))} averageRating={averageRating}
                 reviewCount={product.reviews.length}
                 description={product.description}
+                isOwnProduct={isOwnProduct}
+                vendorName={product.vendor?.name}
             />
 
             {/* Product Reviews */}

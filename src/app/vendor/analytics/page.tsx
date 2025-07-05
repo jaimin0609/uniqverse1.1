@@ -41,6 +41,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format, subDays } from "date-fns";
+import { formatPrice, type Currency } from "@/lib/currency-utils";
 
 interface AnalyticsData {
     overview: {
@@ -52,6 +53,12 @@ interface AnalyticsData {
         averageOrderValue: number;
         conversionRate: number;
         productViews: number;
+        // Commission metrics
+        totalCommissions: number; // Vendor earnings (what they get)
+        commissionsChange: number;
+        pendingPayouts: number;
+        completedPayouts: number;
+        commissionRate: number; // Platform commission rate
     };
     salesData: Array<{
         date: string;
@@ -73,6 +80,27 @@ interface AnalyticsData {
         date: string;
         amount?: number;
     }>;
+    commissionData: {
+        dailyCommissions: Array<{
+            date: string;
+            commissions: number;
+            orders: number;
+        }>;
+        topCommissionProducts: Array<{
+            productId: string;
+            productName: string;
+            totalCommissions: number;
+            totalSales: number;
+            commissionRate: number;
+        }>;
+        payoutHistory: Array<{
+            id: string;
+            amount: number;
+            status: string;
+            createdAt: string;
+            processedAt?: string;
+        }>;
+    };
 }
 
 export default function VendorAnalyticsPage() {
@@ -81,6 +109,7 @@ export default function VendorAnalyticsPage() {
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [dateRange, setDateRange] = useState("30");
+    const [currency, setCurrency] = useState<Currency>("USD");
 
     // Redirect if not vendor
     useEffect(() => {
@@ -97,16 +126,55 @@ export default function VendorAnalyticsPage() {
         if (session?.user?.role === "VENDOR") {
             fetchAnalytics();
         }
-    }, [session, dateRange]);
+    }, [session, dateRange, currency]);
 
     const fetchAnalytics = async () => {
         try {
-            const response = await fetch(`/api/vendor/analytics?days=${dateRange}`);
+            const response = await fetch(`/api/vendor/analytics?days=${dateRange}&currency=${currency}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch analytics");
             }
-            const data = await response.json();
-            setAnalytics(data);
+            const result = await response.json();
+
+            // Transform the API response to match our interface
+            if (result.success && result.data) {
+                const transformedData: AnalyticsData = {
+                    overview: {
+                        totalRevenue: result.data.overview?.revenue || 0,
+                        revenueChange: result.data.overview?.revenueGrowth || 0,
+                        totalOrders: result.data.overview?.orders || 0,
+                        ordersChange: result.data.overview?.orderGrowth || 0,
+                        totalProducts: result.data.overview?.totalProducts || 0,
+                        averageOrderValue: result.data.overview?.averageOrderValue || 0,
+                        conversionRate: 0, // Not provided by API
+                        productViews: 0, // Not provided by API
+                        // Commission metrics
+                        totalCommissions: result.data.commissions?.totalCommissions || 0,
+                        commissionsChange: result.data.commissions?.commissionsChange || 0,
+                        pendingPayouts: result.data.commissions?.pendingPayouts || 0,
+                        completedPayouts: result.data.commissions?.completedPayouts || 0,
+                        commissionRate: result.data.commissions?.commissionRate || 0,
+                    },
+                    salesData: result.data.charts?.dailyRevenue || [],
+                    topProducts: result.data.charts?.productPerformance || [],
+                    recentActivity: result.data.recentActivity?.recentOrders?.map((order: any) => ({
+                        id: order.id,
+                        type: 'order',
+                        description: `Order ${order.orderNumber}`,
+                        date: order.createdAt,
+                        amount: order.total
+                    })) || [],
+                    commissionData: {
+                        dailyCommissions: result.data.commissions?.dailyCommissions || [],
+                        topCommissionProducts: result.data.commissions?.topCommissionProducts || [],
+                        payoutHistory: result.data.commissions?.payoutHistory || []
+                    }
+                };
+
+                setAnalytics(transformedData);
+            } else {
+                throw new Error("Invalid API response structure");
+            }
         } catch (error) {
             console.error("Error fetching analytics:", error);
             toast.error("Failed to load analytics data");
@@ -117,7 +185,7 @@ export default function VendorAnalyticsPage() {
 
     const exportData = async () => {
         try {
-            const response = await fetch(`/api/vendor/analytics/export?days=${dateRange}`);
+            const response = await fetch(`/api/vendor/analytics/export?days=${dateRange}&currency=${currency}`);
             if (!response.ok) {
                 throw new Error("Failed to export data");
             }
@@ -127,7 +195,7 @@ export default function VendorAnalyticsPage() {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `vendor-analytics-${dateRange}days.csv`;
+            a.download = `vendor-analytics-${dateRange}days-${currency}.csv`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -151,7 +219,7 @@ export default function VendorAnalyticsPage() {
         return null;
     }
 
-    if (!analytics) {
+    if (!analytics || !analytics.overview) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -175,6 +243,19 @@ export default function VendorAnalyticsPage() {
                             </p>
                         </div>
                         <div className="flex gap-3 items-center">
+                            <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
+                                <SelectTrigger className="w-[100px]">
+                                    <SelectValue placeholder="Currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD</SelectItem>
+                                    <SelectItem value="EUR">EUR</SelectItem>
+                                    <SelectItem value="GBP">GBP</SelectItem>
+                                    <SelectItem value="JPY">JPY</SelectItem>
+                                    <SelectItem value="CAD">CAD</SelectItem>
+                                    <SelectItem value="AUD">AUD</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <Select value={dateRange} onValueChange={setDateRange}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Select date range" />
@@ -203,7 +284,9 @@ export default function VendorAnalyticsPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                    <p className="text-2xl font-bold">${analytics.overview.totalRevenue.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold">
+                                        {formatPrice(analytics.overview.totalRevenue, currency)}
+                                    </p>
                                     <div className="flex items-center mt-1">
                                         {analytics.overview.revenueChange >= 0 ? (
                                             <ArrowUpRight className="h-4 w-4 text-green-500" />
@@ -253,7 +336,9 @@ export default function VendorAnalyticsPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Average Order Value</p>
-                                    <p className="text-2xl font-bold">${analytics.overview.averageOrderValue.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold">
+                                        {formatPrice(analytics.overview.averageOrderValue, currency)}
+                                    </p>
                                 </div>
                                 <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
                                     <TrendingUp className="h-6 w-6 text-purple-600" />
@@ -322,7 +407,7 @@ export default function VendorAnalyticsPage() {
                                                 {product.name}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                ${product.revenue.toFixed(2)}
+                                                {formatPrice(product.revenue, currency)}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {product.orders}
@@ -365,7 +450,7 @@ export default function VendorAnalyticsPage() {
                                         </div>
                                         {activity.amount && (
                                             <Badge variant="default">
-                                                ${activity.amount.toFixed(2)}
+                                                {formatPrice(activity.amount, currency)}
                                             </Badge>
                                         )}
                                     </div>

@@ -51,11 +51,16 @@ const navigation = [
         href: "/vendor/orders",
         icon: ShoppingCart,
         current: false,
-    },
-    {
+    }, {
         name: "Analytics",
         href: "/vendor/analytics",
         icon: BarChart3,
+        current: false,
+    },
+    {
+        name: "Plans",
+        href: "/vendor/plans",
+        icon: Store,
         current: false,
     },
     {

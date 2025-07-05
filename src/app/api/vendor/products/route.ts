@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { convertPrice, convertPrices, isSupportedCurrency, type Currency } from "@/lib/currency-utils";
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,6 +19,8 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search") || "";
         const status = searchParams.get("status");
         const category = searchParams.get("category");
+        const currencyParam = searchParams.get('currency') || 'USD';
+        const currency = isSupportedCurrency(currencyParam) ? currencyParam : 'USD';
 
         const skip = (page - 1) * limit;
         const vendorId = session.user.id;
@@ -73,11 +76,29 @@ export async function GET(request: NextRequest) {
                     }
                 }
             }),
-            db.product.count({ where })
-        ]);
+            db.product.count({ where })]);
+
+        // Convert prices to the requested currency
+        const productsWithConvertedPrices = await Promise.all(
+            products.map(async (product) => {
+                const [convertedPrice, convertedCompareAtPrice, convertedCostPrice] = await convertPrices([
+                    product.price,
+                    product.compareAtPrice || 0,
+                    product.costPrice || 0
+                ], currency);
+
+                return {
+                    ...product,
+                    price: convertedPrice,
+                    compareAtPrice: product.compareAtPrice ? convertedCompareAtPrice : null,
+                    costPrice: product.costPrice ? convertedCostPrice : null,
+                    currency
+                };
+            })
+        );
 
         return NextResponse.json({
-            products,
+            products: productsWithConvertedPrices,
             total,
             page,
             totalPages: Math.ceil(total / limit)
@@ -168,9 +189,7 @@ export async function POST(request: NextRequest) {
                     updatedAt: now,
                 })),
             });
-        }
-
-        // Fetch the complete product with relations
+        }        // Fetch the complete product with relations
         const completeProduct = await db.product.findUnique({
             where: { id: product.id },
             include: {
@@ -178,7 +197,36 @@ export async function POST(request: NextRequest) {
                 variants: true,
                 category: true
             }
-        }); return NextResponse.json({
+        });
+
+        // Get currency from query params for response conversion
+        const { searchParams } = new URL(request.url);
+        const currencyParam = searchParams.get('currency') || 'USD';
+        const currency = isSupportedCurrency(currencyParam) ? currencyParam : 'USD';
+
+        // Convert prices for response
+        if (completeProduct) {
+            const [convertedPrice, convertedCompareAtPrice, convertedCostPrice] = await convertPrices([
+                completeProduct.price,
+                completeProduct.compareAtPrice || 0,
+                completeProduct.costPrice || 0
+            ], currency);
+
+            const productWithConvertedPrices = {
+                ...completeProduct,
+                price: convertedPrice,
+                compareAtPrice: completeProduct.compareAtPrice ? convertedCompareAtPrice : null,
+                costPrice: completeProduct.costPrice ? convertedCostPrice : null,
+                currency
+            };
+
+            return NextResponse.json({
+                success: true,
+                product: productWithConvertedPrices
+            }, { status: 201 });
+        }
+
+        return NextResponse.json({
             success: true,
             product: completeProduct
         }, { status: 201 });

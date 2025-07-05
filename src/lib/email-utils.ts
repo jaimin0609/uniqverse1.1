@@ -1068,3 +1068,312 @@ export async function sendEmailVerificationEmail(email: string, token: string, n
     throw error; // Re-throw to handle in calling function
   }
 }
+
+/**
+ * Send vendor application status change notification email
+ */
+export async function sendVendorApplicationStatusEmail(
+  applicationId: string,
+  status: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW',
+  adminNotes?: string
+) {
+  try {
+    const application = await db.vendorApplication.findUnique({
+      where: { id: applicationId },
+      include: {
+        user: true
+      }
+    });
+
+    if (!application || !application.user?.email) {
+      console.error(`Vendor application ${applicationId} not found or user email missing`);
+      return;
+    }
+
+    const transporter = getEmailTransporter();
+
+    if (!transporter) {
+      console.log(`[DEV MODE] Vendor application status email for ${application.user.email}:`);
+      console.log(`Application for ${application.businessName} - Status: ${status}`);
+      return;
+    }
+
+    const baseUrl = getBaseUrl();
+    const dashboardUrl = status === 'APPROVED'
+      ? `${baseUrl}/vendor`
+      : `${baseUrl}/vendor/apply`;
+
+    let subject: string;
+    let statusText: string;
+    let statusColor: string;
+    let actionText: string;
+    let actionUrl: string;
+
+    switch (status) {
+      case 'APPROVED':
+        subject = `✅ Vendor Application Approved - Welcome to Uniqverse!`;
+        statusText = 'Congratulations! Your vendor application has been approved.';
+        statusColor = '#10b981';
+        actionText = 'Access Vendor Dashboard';
+        actionUrl = dashboardUrl;
+        break;
+      case 'REJECTED':
+        subject = `❌ Vendor Application Update - ${application.businessName}`;
+        statusText = 'Unfortunately, your vendor application has been declined.';
+        statusColor = '#ef4444';
+        actionText = 'Resubmit Application';
+        actionUrl = dashboardUrl;
+        break;
+      case 'UNDER_REVIEW':
+        subject = `🔍 Vendor Application Under Review - ${application.businessName}`;
+        statusText = 'Your vendor application is currently under review.';
+        statusColor = '#f59e0b';
+        actionText = 'Check Application Status';
+        actionUrl = dashboardUrl;
+        break;
+    }
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      to: application.user.email,
+      subject: subject,
+      text: `
+        Hi ${application.user.name || 'there'},
+        
+        ${statusText}
+        
+        Business Name: ${application.businessName}
+        Application Status: ${status}
+        ${adminNotes ? `Review Notes: ${adminNotes}` : ''}
+        ${status === 'APPROVED' ? `
+        You can now access your vendor dashboard to start listing products and managing your store.
+        
+        Next Steps:
+        1. Complete your vendor profile
+        2. Add your first products
+        3. Configure your notification preferences
+        ` : ''}
+        ${status === 'REJECTED' && adminNotes ? `
+        Reason for decline: ${adminNotes}
+        
+        You may resubmit your application after addressing the concerns mentioned above.
+        ` : ''}
+        
+        Dashboard: ${dashboardUrl}
+        
+        Best regards,
+        The Uniqverse Team
+      `,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(to right, ${statusColor}, ${statusColor}dd); padding: 20px; border-radius: 8px 8px 0 0; }
+            .header h1 { color: #ffffff; margin: 0; }
+            .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; background: white; }
+            .button { display: inline-block; padding: 12px 24px; background-color: ${statusColor}; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; }
+            .status-box { background: ${status === 'APPROVED' ? '#f0fdf4' : status === 'REJECTED' ? '#fef2f2' : '#fffbeb'}; border: 1px solid ${status === 'APPROVED' ? '#bbf7d0' : status === 'REJECTED' ? '#fecaca' : '#fed7aa'}; padding: 15px; border-radius: 6px; margin: 20px 0; }
+            .notes-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin: 15px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Vendor Application Update</h1>
+            </div>
+            <div class="content">
+              <p>Hi ${application.user.name || 'there'},</p>
+              
+              <div class="status-box">
+                <h4>Application Status: ${status.replace('_', ' ')}</h4>
+                <p><strong>Business Name:</strong> ${application.businessName}</p>
+                <p><strong>Application Date:</strong> ${new Date(application.submittedAt).toLocaleDateString()}</p>
+                ${application.reviewedAt ? `<p><strong>Review Date:</strong> ${new Date(application.reviewedAt).toLocaleDateString()}</p>` : ''}
+              </div>
+              
+              <p>${statusText}</p>
+              
+              ${adminNotes ? `
+                <div class="notes-box">
+                  <strong>Review Notes:</strong>
+                  <p>${adminNotes}</p>
+                </div>
+              ` : ''}
+              
+              ${status === 'APPROVED' ? `
+                <h4>🎉 Welcome to the Uniqverse Vendor Community!</h4>
+                <p>You can now access your vendor dashboard to start your journey:</p>
+                <ul>
+                  <li>Complete your vendor profile</li>
+                  <li>Add your first products</li>
+                  <li>Configure notification preferences</li>
+                  <li>Start selling to customers</li>
+                </ul>
+              ` : ''}
+              
+              ${status === 'REJECTED' ? `
+                <p>Don't worry - you can address the feedback and resubmit your application at any time.</p>
+              ` : ''}
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${actionUrl}" class="button">${actionText}</a>
+              </p>
+              
+              <p>If you have any questions, please don't hesitate to contact our support team.</p>
+              <p>Best regards,<br>The Uniqverse Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    console.log(`Vendor application ${status} email sent to ${application.user.email} for ${application.businessName}`);
+  } catch (error) {
+    console.error('Error sending vendor application status email:', error);
+    throw new Error('Failed to send vendor application status email');
+  }
+}
+
+/**
+ * Send new vendor application notification to admins
+ */
+export async function sendNewVendorApplicationNotification(applicationId: string) {
+  try {
+    const application = await db.vendorApplication.findUnique({
+      where: { id: applicationId },
+      include: {
+        user: true
+      }
+    });
+
+    if (!application) {
+      console.error(`Vendor application ${applicationId} not found`);
+      return;
+    }
+
+    // Get admin users
+    const adminUsers = await db.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { email: true, name: true }
+    });
+
+    if (adminUsers.length === 0) {
+      console.log('No admin users found to notify');
+      return;
+    }
+
+    const transporter = getEmailTransporter();
+
+    if (!transporter) {
+      console.log(`[DEV MODE] New vendor application notification:`);
+      console.log(`${application.businessName} submitted by ${application.user.email}`);
+      return;
+    }
+
+    const baseUrl = getBaseUrl();
+    const adminUrl = `${baseUrl}/admin/vendor-applications`;
+
+    for (const admin of adminUsers) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+        to: admin.email,
+        subject: `🏪 New Vendor Application - ${application.businessName}`,
+        text: `
+          Hi ${admin.name || 'Admin'},
+          
+          A new vendor application has been submitted and requires your review.
+          
+          Business Details:
+          - Business Name: ${application.businessName}
+          - Business Type: ${application.businessType}
+          - Applicant: ${application.user.name} (${application.user.email})
+          - Expected Monthly Volume: ${application.expectedMonthlyVolume || 'Not specified'}
+          - Product Categories: ${application.productCategories.join(', ')}
+          - Submitted: ${new Date(application.submittedAt).toLocaleDateString()}
+          
+          Please review and approve/reject the application in the admin dashboard.
+          
+          Review Application: ${adminUrl}
+          
+          Best regards,
+          Uniqverse System
+        `,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(to right, #3b82f6, #1d4ed8); padding: 20px; border-radius: 8px 8px 0 0; }
+              .header h1 { color: #ffffff; margin: 0; }
+              .content { padding: 20px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; background: white; }
+              .button { display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; }
+              .info-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 6px; margin: 20px 0; }
+              .detail-row { display: flex; justify-content: space-between; margin: 8px 0; }
+              .detail-label { font-weight: 600; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🏪 New Vendor Application</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${admin.name || 'Admin'},</p>
+                <p>A new vendor application has been submitted and requires your review.</p>
+                
+                <div class="info-box">
+                  <h4>Application Details:</h4>
+                  <div class="detail-row">
+                    <span class="detail-label">Business Name:</span>
+                    <span>${application.businessName}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Business Type:</span>
+                    <span>${application.businessType}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Applicant:</span>
+                    <span>${application.user.name} (${application.user.email})</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Expected Volume:</span>
+                    <span>${application.expectedMonthlyVolume || 'Not specified'}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Categories:</span>
+                    <span>${application.productCategories.join(', ')}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Submitted:</span>
+                    <span>${new Date(application.submittedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                
+                <p style="text-align: center; margin: 30px 0;">
+                  <a href="${adminUrl}" class="button">Review Application</a>
+                </p>
+                
+                <p>Please review the application and make a decision as soon as possible.</p>
+                <p>Best regards,<br>Uniqverse System</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      });
+    }
+
+    console.log(`New vendor application notification sent to ${adminUsers.length} admins for ${application.businessName}`);
+  } catch (error) {
+    console.error('Error sending new vendor application notification:', error);
+    throw new Error('Failed to send new vendor application notification');
+  }
+}

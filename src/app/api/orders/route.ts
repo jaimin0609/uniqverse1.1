@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { v4 as uuidv4 } from 'uuid';
 import { createPaymentIntent } from "@/lib/stripe";
+import { VendorCommissionService } from "@/lib/vendor-commission-service";
 
 export async function POST(req: Request) {
     try {
@@ -194,6 +195,14 @@ export async function POST(req: Request) {
                     });
                 }
             }
+        }
+
+        // Create commission records for vendor products
+        try {
+            await VendorCommissionService.createCommissionsForOrder(order.id);
+        } catch (commissionError) {
+            console.error("Error creating commission records:", commissionError);
+            // Don't fail the order creation, just log the error
         }
 
         return NextResponse.json({
