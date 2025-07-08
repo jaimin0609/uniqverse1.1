@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star } from 'lucide-react';
 import { ProductDetailClient } from '@/components/product/product-detail-client';
+import { ProductReviews } from '@/components/product/product-reviews';
 import { Metadata } from 'next';
 import { ClientPrice } from '@/components/ui/client-price';
 import { getServerSession } from 'next-auth';
@@ -72,6 +73,7 @@ async function getProduct(slug: string) {
                 include: {
                     user: {
                         select: {
+                            id: true,
                             name: true,
                             image: true,
                         },
@@ -232,63 +234,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             />
 
             {/* Product Reviews */}
-            <div className="mt-16 border-t pt-8">
-                <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-
-                {product.reviews.length === 0 ? (
-                    <p className="text-gray-600">This product has no reviews yet. Be the first to leave a review!</p>
-                ) : (
-                    <div className="space-y-6">
-                        {product.reviews.map((review) => (
-                            <div key={review.id} className="border-b pb-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center">
-                                        {review.user?.image ? (
-                                            <Image
-                                                src={review.user.image}
-                                                alt={review.user.name || 'Anonymous'}
-                                                width={40}
-                                                height={40}
-                                                className="rounded-full mr-3"
-                                            />
-                                        ) : (
-                                            <div className="w-10 h-10 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full mr-3">
-                                                {(review.user?.name || 'A')[0].toUpperCase()}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <p className="font-medium">{review.user?.name || 'Anonymous'}</p>
-                                            <div className="flex text-yellow-400">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <Star
-                                                        key={star}
-                                                        size={14}
-                                                        fill={star <= review.rating ? "currentColor" : "none"}
-                                                        className={star <= review.rating ? "text-yellow-400" : "text-gray-300"}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <span className="text-sm text-gray-500">
-                                        {new Date(review.createdAt).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                {review.title && (
-                                    <h4 className="font-medium mb-1">{review.title}</h4>
-                                )}
-                                <p className="text-gray-700">{review.content}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                <div className="mt-8">
-                    <Button variant="outline" asChild>
-                        <Link href={`/products/${slug}/review`}>Write a Review</Link>
-                    </Button>
-                </div>
-            </div>            {/* Related Products Section */}
+            <ProductReviews
+                productId={product.id}
+                productName={product.name}
+                initialReviews={product.reviews}
+                averageRating={averageRating}
+                totalReviews={product.reviews.length}
+            />            {/* Related Products Section */}
             <div className="mt-16 border-t pt-8">
                 <div className="mb-6">
                     <h2 className="text-2xl font-bold">You May Also Like</h2>

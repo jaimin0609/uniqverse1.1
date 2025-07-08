@@ -22,6 +22,7 @@ import {
     HomeIcon, // Add Home icon
     Mail, // Add Mail icon for newsletter
     Activity, // Add Activity icon for performance
+    Star, // Add Star icon for reviews
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { handleLogout } from '@/utils/logout-utils';
@@ -92,6 +93,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Commissions",
             href: "/admin/commissions",
             icon: <Activity className="h-5 w-5" />
+        },
+        {
+            title: "Reviews",
+            href: "/admin/reviews",
+            icon: <Star className="h-5 w-5" />
         },
         {
             title: "Jobs",

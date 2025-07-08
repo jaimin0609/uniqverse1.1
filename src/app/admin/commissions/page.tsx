@@ -206,7 +206,7 @@ export default function AdminCommissionDashboard() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Platform Earnings</p>
                                     <p className="text-2xl font-bold text-green-600">
-                                        ${data.overview.totalPlatformEarnings.toFixed(2)}
+                                        ${data?.overview?.totalPlatformEarnings?.toFixed(2) || '0.00'}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">
                                         Commissions + Fees
@@ -225,7 +225,7 @@ export default function AdminCommissionDashboard() {
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Vendor Earnings</p>
                                     <p className="text-2xl font-bold text-blue-600">
-                                        ${data.overview.totalVendorEarnings.toFixed(2)}
+                                        ${data?.overview?.totalVendorEarnings?.toFixed(2) || '0.00'}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">
                                         Paid to vendors
@@ -243,9 +243,9 @@ export default function AdminCommissionDashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Active Vendors</p>
-                                    <p className="text-2xl font-bold">{data.overview.activeVendors}</p>
+                                    <p className="text-2xl font-bold">{data?.overview?.activeVendors || 0}</p>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        of {data.overview.totalVendors} total
+                                        of {data?.overview?.totalVendors || 0} total
                                     </p>
                                 </div>
                                 <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -260,9 +260,9 @@ export default function AdminCommissionDashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                                    <p className="text-2xl font-bold">{data.overview.totalOrders}</p>
+                                    <p className="text-2xl font-bold">{data?.overview?.totalOrders || 0}</p>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        Avg: {data.overview.averageCommissionRate.toFixed(1)}% commission
+                                        Avg: {data?.overview?.averageCommissionRate?.toFixed(1) || '0.0'}% commission
                                     </p>
                                 </div>
                                 <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -294,7 +294,7 @@ export default function AdminCommissionDashboard() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.topVendors.map((vendor) => (
+                                {data?.topVendors?.map((vendor) => (
                                     <TableRow key={vendor.id}>
                                         <TableCell className="font-medium">
                                             {vendor.name}
@@ -315,7 +315,7 @@ export default function AdminCommissionDashboard() {
                                             {(vendor.commissionRate * 100).toFixed(1)}%
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )) || []}
                             </TableBody>
                         </Table>
                     </CardContent>
@@ -343,7 +343,7 @@ export default function AdminCommissionDashboard() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.recentTransactions.map((transaction) => (
+                                {data?.recentTransactions?.map((transaction) => (
                                     <TableRow key={transaction.id}>
                                         <TableCell className="font-medium">
                                             {transaction.orderNumber}
@@ -372,7 +372,7 @@ export default function AdminCommissionDashboard() {
                                             </Badge>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )) || []}
                             </TableBody>
                         </Table>
                     </CardContent>
