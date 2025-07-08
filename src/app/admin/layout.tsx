@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 { title: "Suppliers", href: "/admin/suppliers" },
                 { title: "Settings", href: "/admin/dropshipping/settings" }
             ]
-        }, {
+        },        {
             title: "Customers",
             href: "/admin/customers",
             icon: <Users className="h-5 w-5" />
@@ -87,6 +87,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Vendor Applications",
             href: "/admin/vendor-applications",
             icon: <Users className="h-5 w-5" />
+        },
+        {
+            title: "Commissions",
+            href: "/admin/commissions",
+            icon: <Activity className="h-5 w-5" />
         },
         {
             title: "Jobs",
