@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, ShoppingBag, Star, Truck, Shield, Store, TrendingUp, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
+import { StarRating } from "@/components/ui/star-rating";
 import { InfiniteProducts } from "@/components/product/infinite-products";
 import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
@@ -37,8 +38,68 @@ async function getInitialFeaturedProducts() {
   return products;
 }
 
+// Fetch top-rated products based on reviews
+async function getTopRatedProducts() {
+  const products = await db.product.findMany({
+    where: {
+      isPublished: true,
+      reviews: {
+        some: {
+          status: 'APPROVED'
+        }
+      }
+    },
+    include: {
+      images: {
+        where: {
+          position: 0
+        },
+        take: 1
+      },
+      category: true,
+      reviews: {
+        where: {
+          status: 'APPROVED'
+        },
+        select: {
+          rating: true
+        }
+      }
+    },
+    take: 50 // Get more products to calculate averages
+  });
+
+  // Calculate average ratings and filter products with good ratings
+  const productsWithRatings = products
+    .map(product => {
+      const totalRatings = product.reviews.reduce((sum, review) => sum + review.rating, 0);
+      const averageRating = product.reviews.length > 0 ? totalRatings / product.reviews.length : 0;
+      const reviewCount = product.reviews.length;
+
+      return {
+        ...product,
+        averageRating,
+        reviewCount
+      };
+    })
+    .filter(product => product.averageRating >= 4.0 && product.reviewCount >= 2) // At least 4 stars and 2 reviews
+    .sort((a, b) => {
+      // Sort by average rating first, then by review count
+      if (b.averageRating !== a.averageRating) {
+        return b.averageRating - a.averageRating;
+      }
+      return b.reviewCount - a.reviewCount;
+    })
+    .slice(0, 8); // Take top 8 products
+
+  return productsWithRatings;
+}
+
 export default async function Home() {
-  const featuredProducts = await getInitialFeaturedProducts();
+  const [featuredProducts, topRatedProducts] = await Promise.all([
+    getInitialFeaturedProducts(),
+    getTopRatedProducts()
+  ]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -249,6 +310,120 @@ export default async function Home() {
               <Button variant="gradient" size="lg" className="hover-shine" asChild>
                 <Link href="/shop">
                   View All Products
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Top Rated Products Section - Customer favorites based on reviews */}
+        <section className="py-24 relative overflow-hidden bg-gradient-to-b from-white to-gray-50/50">
+          <div className="container-custom relative z-10">
+            <div className="flex justify-between items-center mb-12 animate-fade-in">
+              <div>
+                <h2 className="text-responsive-lg font-bold text-gradient mb-2">
+                  ⭐ Top Rated Products
+                </h2>
+                <p className="text-gray-600">Customer favorites with 4+ star ratings and verified reviews</p>
+              </div>
+              <Button variant="outline" className="hover-lift hidden md:block" asChild>
+                <Link href="/shop?sort=rating">
+                  View All Rated Products
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            {topRatedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in animate-delay-200">
+                {topRatedProducts.map((product, index) => (
+                  <div
+                    key={product.id}
+                    className="glass rounded-2xl overflow-hidden border border-white/20 hover-lift group"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative h-64 overflow-hidden">
+                      <Link href={`/products/${product.slug}`}>
+                        <Image
+                          src={product.images[0]?.url || '/placeholder-product.jpg'}
+                          alt={product.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        {/* Rating badge */}
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg">
+                          <Star className="h-3 w-3 fill-current" />
+                          {product.averageRating.toFixed(1)}
+                        </div>
+                        {/* Review count badge */}
+                        <div className="absolute top-3 right-3 bg-black/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs">
+                          {product.reviewCount} reviews
+                        </div>
+                      </Link>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="mb-2">
+                        {product.category && (
+                          <span className="text-xs text-gray-500 uppercase tracking-wide">
+                            {product.category.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <Link href={`/products/${product.slug}`}>
+                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          {product.name}
+                        </h3>
+                      </Link>
+
+                      {/* Star rating display */}
+                      <div className="mb-3">
+                        <StarRating
+                          rating={product.averageRating}
+                          reviewCount={product.reviewCount}
+                          className="text-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-bold text-gray-900">
+                          ${Number(product.price).toFixed(2)}
+                        </div>
+                        <Button size="sm" variant="gradient" className="hover-shine" asChild>
+                          <Link href={`/products/${product.slug}`}>
+                            View Product
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 animate-fade-in animate-delay-200">
+                <div className="glass rounded-2xl p-8 max-w-md mx-auto">
+                  <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No Rated Products Yet</h3>
+                  <p className="text-gray-500">
+                    Be the first to leave a review and help other customers discover great products!
+                  </p>
+                  <Button className="mt-4" asChild>
+                    <Link href="/shop">
+                      Browse Products
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* View All button for mobile */}
+            <div className="text-center mt-12 md:hidden animate-fade-in animate-delay-300">
+              <Button variant="gradient" size="lg" className="hover-shine" asChild>
+                <Link href="/shop?sort=rating">
+                  View All Rated Products
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
