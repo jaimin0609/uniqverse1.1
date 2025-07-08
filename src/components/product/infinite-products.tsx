@@ -51,7 +51,9 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
                 hasMore: initialProducts.length === prev.limit // Only hasMore if we got a full page
             }));
         }
-    }, [initialized, initialProducts]);// Function to fetch more products
+    }, [initialized, initialProducts]);
+
+    // Function to fetch more products with useCallback to prevent recreating on every render
     const fetchMoreProducts = useCallback(async () => {
         // Prevent multiple simultaneous fetches
         if (loading || !pagination.hasMore || fetchInProgress.current) return;
@@ -97,8 +99,12 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
                 fetchInProgress.current = false;
             }, 500);
         }
-    }, [loading, pagination.hasMore, pagination.page, pagination.limit]);    // Set up intersection observer for infinite scrolling with debounce
+    }, [loading, pagination.hasMore, pagination.page, pagination.limit]);
+
+    // Set up intersection observer for infinite scrolling with debounce
     useEffect(() => {
+        if (!pagination.hasMore || loading) return;
+
         let timeout: NodeJS.Timeout;
         let observer: IntersectionObserver;
 
@@ -107,7 +113,7 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
             // Clear any previous timeout to prevent rapid multiple calls
             if (timeout) clearTimeout(timeout);
 
-            if (target.isIntersecting && pagination.hasMore && !loading && !fetchInProgress.current) {
+            if (target.isIntersecting && !fetchInProgress.current) {
                 // Add a small delay to avoid multiple rapid fetches
                 timeout = setTimeout(() => {
                     fetchMoreProducts();
@@ -132,7 +138,7 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
                 clearTimeout(timeout);
             }
         };
-    }, [pagination.hasMore, loading]);
+    }, [pagination.hasMore, loading, fetchMoreProducts]);
 
     return (<div className={className}>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

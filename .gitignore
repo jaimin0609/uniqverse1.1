@@ -50,8 +50,4 @@ dist/
 *.db
 *.sqlite
 
-# Prevent sensitive setup scripts
-scripts/setup-vercel-env-production.js
-scripts/*env*.js
-
 .vercel
