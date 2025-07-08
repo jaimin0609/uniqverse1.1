@@ -42,6 +42,7 @@ interface Review {
     status: "PENDING" | "APPROVED" | "REJECTED";
     createdAt: string;
     updatedAt: string;
+    adminResponse?: string;
     user: {
         id: string;
         name: string;
@@ -100,7 +101,7 @@ export default function AdminReviewsPage() {
         setActionLoading(reviewId);
         try {
             const res = await fetch(`/api/admin/reviews/${reviewId}`, {
-                method: "PUT",
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -110,22 +111,24 @@ export default function AdminReviewsPage() {
                 }),
             });
 
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to update review");
+            }
+
             const data = await res.json();
 
-            if (data.success) {
-                setReviews(prev =>
-                    prev.map(review =>
-                        review.id === reviewId
-                            ? { ...review, status: status as any }
-                            : review
-                    )
-                );
-                toast.success(`Review ${status.toLowerCase()} successfully`);
-                setSelectedReview(null);
-                setAdminResponse("");
-            } else {
-                toast.error(data.error || "Failed to update review");
-            }
+            // Update the reviews list with the new data
+            setReviews(prev =>
+                prev.map(review =>
+                    review.id === reviewId
+                        ? { ...review, status: status as any, adminResponse: response || review.adminResponse }
+                        : review
+                )
+            );
+            toast.success(`Review ${status.toLowerCase()} successfully`);
+            setSelectedReview(null);
+            setAdminResponse("");
         } catch (error) {
             console.error("Error updating review:", error);
             toast.error("Failed to update review");
@@ -191,8 +194,8 @@ export default function AdminReviewsPage() {
                     <Star
                         key={star}
                         className={`h-4 w-4 ${star <= rating
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
                             }`}
                     />
                 ))}

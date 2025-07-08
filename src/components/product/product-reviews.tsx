@@ -49,6 +49,34 @@ export function ProductReviews({
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(initialReviews.length >= 10);
+    const [canReview, setCanReview] = useState<{
+        eligible: boolean;
+        reason: string;
+        message: string;
+        existingReview?: any;
+    } | null>(null);
+
+    // Check if user can review this product
+    useEffect(() => {
+        if (session?.user) {
+            checkReviewEligibility();
+        }
+    }, [session, productId]);
+
+    const checkReviewEligibility = async () => {
+        try {
+            const response = await fetch(`/api/reviews/can-review?productId=${productId}`);
+            const data = await response.json();
+            setCanReview({
+                eligible: data.canReview,
+                reason: data.reason,
+                message: data.message,
+                existingReview: data.existingReview
+            });
+        } catch (error) {
+            console.error("Error checking review eligibility:", error);
+        }
+    };
 
     // Load more reviews
     const loadMoreReviews = async () => {
@@ -123,14 +151,56 @@ export function ProductReviews({
                     </div>
                 </div>
 
-                {session && (
-                    <Button
-                        onClick={() => setShowReviewForm(!showReviewForm)}
-                        className="flex items-center gap-2"
-                    >
-                        <MessageCircle className="h-4 w-4" />
-                        Write a Review
-                    </Button>
+                {session ? (
+                    <div className="flex flex-col items-end gap-2">
+                        {canReview?.eligible ? (
+                            <Button
+                                onClick={() => setShowReviewForm(!showReviewForm)}
+                                className="flex items-center gap-2"
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                                Write a Review
+                            </Button>
+                        ) : canReview?.reason === "ALREADY_REVIEWED" ? (
+                            <div className="text-center">
+                                <Badge variant="secondary" className="mb-2">
+                                    You've already reviewed this product
+                                </Badge>
+                                <div className="text-sm text-gray-600">
+                                    Review status: {canReview.existingReview?.status}
+                                </div>
+                            </div>
+                        ) : canReview?.reason === "NOT_PURCHASED" ? (
+                            <div className="text-center">
+                                <Button variant="outline" disabled className="mb-2">
+                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                    Write a Review
+                                </Button>
+                                <div className="text-sm text-gray-600 max-w-48">
+                                    Only customers who have purchased and received this product can write reviews
+                                </div>
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={() => setShowReviewForm(!showReviewForm)}
+                                className="flex items-center gap-2"
+                                disabled={canReview === null}
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                                {canReview === null ? "Checking..." : "Write a Review"}
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="text-center">
+                        <Button variant="outline" disabled className="mb-2">
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Write a Review
+                        </Button>
+                        <div className="text-sm text-gray-600">
+                            Please log in to write a review
+                        </div>
+                    </div>
                 )}
             </div>
 

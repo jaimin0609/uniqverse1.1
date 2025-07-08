@@ -119,23 +119,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if user has purchased this product (optional - can be enabled later)
-        // const hasPurchased = await db.orderItem.findFirst({
-        //     where: {
-        //         productId: validatedData.productId,
-        //         order: {
-        //             userId: session.user.id,
-        //             status: "DELIVERED",
-        //         },
-        //     },
-        // });
+        // Check if user has purchased this product
+        const hasPurchased = await db.orderItem.findFirst({
+            where: {
+                productId: validatedData.productId,
+                order: {
+                    userId: session.user.id,
+                    status: {
+                        in: ["DELIVERED", "COMPLETED"] // Only allow reviews for delivered/completed orders
+                    },
+                },
+            },
+        });
 
-        // if (!hasPurchased) {
-        //     return NextResponse.json(
-        //         { error: "You can only review products you have purchased" },
-        //         { status: 400 }
-        //     );
-        // }
+        if (!hasPurchased) {
+            return NextResponse.json(
+                { error: "You can only review products you have purchased and received" },
+                { status: 400 }
+            );
+        }
 
         const review = await db.review.create({
             data: {
@@ -146,6 +148,7 @@ export async function POST(request: NextRequest) {
                 content: validatedData.content,
                 images: validatedData.images,
                 status: "PENDING", // Reviews need approval
+                isVerified: true, // Mark as verified since user has purchased
             },
             include: {
                 user: {

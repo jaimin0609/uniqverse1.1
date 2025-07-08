@@ -192,6 +192,14 @@ export async function PATCH(
     }
 }
 
+// Update a review (moderation) - PUT alias for PATCH
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    return PATCH(request, { params });
+}
+
 // Delete a review
 export async function DELETE(
     request: NextRequest,
