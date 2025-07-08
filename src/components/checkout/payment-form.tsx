@@ -20,8 +20,25 @@ import { ClientPrice } from "@/components/ui/client-price";
 import { useCurrency } from "@/contexts/currency-provider";
 import { calculateShippingCost } from "@/utils/shipping";
 
+// Validate and load Stripe with proper error handling
+const getStripePublishableKey = () => {
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+    if (!key) {
+        console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set');
+        return "pk_test_placeholder";
+    }
+
+    if (!key.startsWith('pk_')) {
+        console.error('Invalid Stripe publishable key format');
+        return "pk_test_placeholder";
+    }
+
+    return key;
+};
+
 // Load Stripe outside of component render to avoid recreating on every render
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+const stripePromise = loadStripe(getStripePublishableKey());
 
 // Define the payment form schema
 const paymentFormSchema = z.object({

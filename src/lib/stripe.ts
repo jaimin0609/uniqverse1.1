@@ -1,8 +1,21 @@
 import Stripe from 'stripe';
 
+// Validate Stripe secret key
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  console.error('STRIPE_SECRET_KEY environment variable is not set');
+  throw new Error('Stripe configuration error: Secret key missing');
+}
+
+if (!stripeSecretKey.startsWith('sk_')) {
+  console.error('Invalid Stripe secret key format');
+  throw new Error('Stripe configuration error: Invalid secret key format');
+}
+
 // Initialize Stripe with the secret key from environment variables
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-03-31.basil', // Use the latest stable API version
+export const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: '2025-03-31.basil', // Use a stable API version
 });
 
 // Function to create a payment intent
@@ -16,7 +29,7 @@ export async function createPaymentIntent(amount: number, customerId?: string) {
         enabled: true,
       },
     });
-    
+
     return { success: true, clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id };
   } catch (error) {
     console.error('Error creating payment intent:', error);
@@ -41,7 +54,7 @@ export async function createCustomer(email: string, name?: string) {
       email,
       name,
     });
-    
+
     return customer;
   } catch (error) {
     console.error('Error creating customer:', error);
@@ -52,11 +65,11 @@ export async function createCustomer(email: string, name?: string) {
 // Function to verify a webhook signature
 export function constructEventFromPayload(signature: string, payload: Buffer) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  
+
   if (!webhookSecret) {
     throw new Error('Missing Stripe webhook secret');
   }
-  
+
   try {
     return stripe.webhooks.constructEvent(
       payload,
