@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Loader2, ArrowRight } from "lucide-react";
@@ -52,7 +52,7 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
             }));
         }
     }, [initialized, initialProducts]);// Function to fetch more products
-    const fetchMoreProducts = async () => {
+    const fetchMoreProducts = useCallback(async () => {
         // Prevent multiple simultaneous fetches
         if (loading || !pagination.hasMore || fetchInProgress.current) return;
 
@@ -97,7 +97,7 @@ export function InfiniteProducts({ initialProducts, className = "" }: InfinitePr
                 fetchInProgress.current = false;
             }, 500);
         }
-    };    // Set up intersection observer for infinite scrolling with debounce
+    }, [loading, pagination.hasMore, pagination.page, pagination.limit]);    // Set up intersection observer for infinite scrolling with debounce
     useEffect(() => {
         let timeout: NodeJS.Timeout;
         let observer: IntersectionObserver;
