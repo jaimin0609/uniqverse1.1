@@ -4,11 +4,11 @@
 ### ✅ **Brand Assets Created:**
 
 #### 🖼️ **Logo Files**
-- **Primary Logo**: `public/uselfunik-logo.svg` (300x100px, full color with gradient)
-- **Icon Only**: `public/uselfunik-icon.svg` (64x64px, for favicons/avatars)
-- **Monochrome Black**: `public/uselfunik-mono-black.svg` (for light backgrounds)
-- **Monochrome White**: `public/uselfunik-mono-white.svg` (for dark backgrounds)
-- **Updated Favicon**: `public/favicon.svg` (new UselfUnik icon)
+- **Primary Logo**: `public/uselfunik-logo-new.svg` (320x80px, full color with gradient and tagline)
+- **Main Icon**: `public/uselfunik-icon-new.svg` (64x64px, colorful version with star)
+- **Monochrome Dark**: `public/uselfunik-icon-mono-dark.svg` (for light backgrounds)
+- **Monochrome White**: `public/uselfunik-icon-mono-white.svg` (for dark backgrounds)
+- **Updated Favicon**: `public/favicon.svg` (simplified version for browser tabs)
 
 #### 🎨 **Brand Colors**
 - **Primary Purple**: `#6C5CE7` (main brand color)
@@ -39,14 +39,21 @@
 
 #### **Logo Usage in Components:**
 ```jsx
-// Primary logo (hero, headers)
-<img src="/uselfunik-logo.svg" alt="UselfUnik - Be Uniquely You" className="h-12" />
+// Using the new Logo component (recommended)
+import { Logo } from '@/components/ui/logo';
 
-// Icon only (navbar, favicon)
-<img src="/uselfunik-icon.svg" alt="UselfUnik" className="h-8 w-8" />
+// Primary logo with text and tagline
+<Logo variant="full" size="lg" showTagline />
 
-// Dark backgrounds
-<img src="/uselfunik-mono-white.svg" alt="UselfUnik" className="h-12" />
+// Icon only
+<Logo variant="icon" size="md" />
+
+// For dark backgrounds
+<Logo variant="full" theme="mono-white" size="lg" />
+
+// Legacy direct usage (if needed)
+<img src="/uselfunik-logo-new.svg" alt="UselfUnik - Be Uniquely You" className="h-12" />
+<img src="/uselfunik-icon-new.svg" alt="UselfUnik" className="h-8 w-8" />
 ```
 
 #### **CSS Brand Colors:**

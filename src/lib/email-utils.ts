@@ -33,27 +33,37 @@ export function getEmailTransporter() {
     host: host ? '✓ Set' : '✗ Missing',
     port: port ? '✓ Set' : '✗ Missing',
     user: user ? '✓ Set' : '✗ Missing',
-    pass: pass ? '✓ Set' : '✗ Missing'
+    pass: pass ? '✓ Set' : '✗ Missing',
+    userEmail: user ? user.substring(0, 3) + '***' + user.substring(user.lastIndexOf('@')) : 'Not set'
   });
 
   if (!host || !port || !user || !pass) {
-    console.warn('Email configuration incomplete. Emails will be logged to console.');
+    console.warn('⚠️  Email configuration incomplete. Emails will be logged to console.');
     console.warn('Required environment variables: EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_USER, EMAIL_SERVER_PASSWORD');
     return null;
   }
 
+  // Remove spaces from app password if they exist
+  const cleanPassword = pass.replace(/\s+/g, '');
+
+  console.log('🔧 Creating email transporter with cleaned password...');
+
   return nodemailer.createTransport({
     host: host,
     port: parseInt(port),
-    secure: false, // Gmail SMTP with STARTTLS
+    secure: false, // Use STARTTLS
     auth: {
       user: user,
-      pass: pass
+      pass: cleanPassword
     },
     tls: {
-      // For Gmail SMTP
+      // Don't fail on invalid certs
       rejectUnauthorized: false
-    }
+    },
+    // Add connection timeout
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000
   });
 }
 
@@ -61,10 +71,14 @@ export function getEmailTransporter() {
  * Send a password reset email
  */
 export async function sendPasswordResetEmail(email: string, token: string) {
+  // Create the reset URL outside try block so it's accessible in catch
+  const baseUrl = getBaseUrl();
+  const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+  
   try {
-    const transporter = getEmailTransporter();    // Create the reset URL
-    const baseUrl = getBaseUrl();
-    const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;// If no email config, log the reset URL to console
+    const transporter = getEmailTransporter();
+    
+    // If no email config, log the reset URL to console
     if (!transporter) {
       console.log(`[DEV MODE] Password reset link for ${email}:`);
       console.log(resetUrl);
@@ -127,9 +141,17 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       `
     });
 
-    console.log(`Password reset email sent to ${email}`);
+    console.log(`✅ Password reset email sent to ${email}`);
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error('❌ Error sending password reset email:', error);
+
+    // Don't throw error in development - just log it
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔧 [DEV MODE] Password reset would have been sent to: ${email}`);
+      console.log(`🔗 Reset URL: ${resetUrl}`);
+      return; // Don't throw error in development
+    }
+
     throw new Error('Failed to send password reset email');
   }
 }

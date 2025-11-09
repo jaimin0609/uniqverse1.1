@@ -10,6 +10,7 @@ import { Menu, X, User, Search, ChevronDown, Heart, Settings, ShoppingCart, Load
 import { CartButton } from "@/components/cart/cart-button";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Logo } from "@/components/ui/logo";
 import { CurrencySelector } from "@/components/layout/currency-selector";
 import { formatCurrency } from "@/utils/format";
 
@@ -232,16 +233,7 @@ export function Header() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <img
-                                src="/uselfunik-icon.svg"
-                                alt="UselfUnik"
-                                className="h-8 w-8"
-                            />
-                            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
-                                U self UniQ
-                            </span>
-                        </Link>
+                        <Logo variant="full" size="lg" href="/" />
                     </div>                    {/* Desktop Navigation */}
                     <nav className="hidden md:flex space-x-6" role="navigation">                        {navLinks.map((link) => (
                         link.children ? (

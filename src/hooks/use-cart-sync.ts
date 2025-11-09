@@ -21,7 +21,6 @@ export function useCartSync() {
 
         // If user has changed (logout or different user login), clear the cart
         if (lastUserId !== currentUserId) {
-            console.log('User session changed, clearing cart data');
             clearCart();
             clearCartData(); // Clear localStorage data too
             setCartId(null);
@@ -47,8 +46,6 @@ export function useCartSync() {
                     ? `/api/cart?cartId=${storedCartId}&_t=${timestamp}`
                     : `/api/cart?_t=${timestamp}`;
 
-                console.log('Loading cart from server:', url);
-
                 const response = await fetch(url, {
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -62,7 +59,6 @@ export function useCartSync() {
                 }
 
                 const data = await response.json();
-                console.log('Server cart data received:', data);
 
                 // Store the cart ID for future use (useful for guest users)
                 if (data.cartId) {
@@ -73,18 +69,18 @@ export function useCartSync() {
                 const currentLocalItems = useCartStore.getState().items;
 
                 if (!isInitialized) {
-                    console.log('Initial cart load from server:', data.items?.length || 0, 'items');
-                    // On first load, always use the server state as the source of truth
-                    clearCart();
-
-                    if (data.items?.length > 0) {
+                    // Only load from server if local cart is empty
+                    // This prevents overwriting local changes with stale server data
+                    if (currentLocalItems.length === 0 && data.items?.length > 0) {
                         data.items.forEach((item: CartItem) => {
                             addItem(item);
                         });
+                    } else if (currentLocalItems.length > 0) {
+                        // Local cart has items, sync them to server instead of loading from server
+                        // This happens in the next useEffect
                     }
                 } else if (currentLocalItems.length === 0 && data.items?.length > 0) {
                     // Local cart is empty but server has items - load from server
-                    console.log('Loading cart from server (local empty):', data.items.length, 'items');
                     data.items.forEach((item: CartItem) => {
                         addItem(item);
                     });
@@ -102,13 +98,10 @@ export function useCartSync() {
     useEffect(() => {
         const syncCartToServer = async () => {
             if (!isInitialized) {
-                console.log('Skipping sync to server - not initialized yet');
                 return;
             }
 
             try {
-                console.log('Syncing cart to server:', items.length, 'items');
-
                 // Prepare the request payload
                 const payload = {
                     cartId: cartId,
@@ -141,8 +134,6 @@ export function useCartSync() {
                     localStorage.setItem('uniqverse-cart-id', data.cartId);
                     setCartId(data.cartId);
                 }
-
-                console.log('Cart synced to server successfully');
             } catch (error) {
                 console.error('Error syncing cart with server:', error);
             }
