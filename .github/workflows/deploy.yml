@@ -47,5 +47,5 @@ jobs:
           echo "Waiting for Vercel deployment to be ready..."
           sleep 30
           # Health check against production endpoint
-          curl -f https://uniqverse-v1.vercel.app/api/health || exit 1
+          curl -f https://uselfunik.com/api/health || exit 1
           echo "✅ Health check passed - deployment successful!"

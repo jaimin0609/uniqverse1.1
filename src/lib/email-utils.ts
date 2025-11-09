@@ -12,7 +12,7 @@ function getBaseUrl(): string {
 
   // If in production (Vercel), use the production URL
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return 'https://uniqverse-v1.vercel.app';
+    return 'https://uselfunik.com';
   }
 
   // Default to localhost for development
@@ -73,14 +73,14 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
     // Send the email
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"UselfUnik" <no-reply@uselfunik.com>',
       to: email,
-      subject: 'Reset Your Uniqverse Password',
+      subject: 'Reset Your UselfUnik Password',
       text: `
         Hello,
-        
-        You requested to reset your password on Uniqverse.
-        
+
+        You requested to reset your password on UselfUnik.
+
         Please click the link below to reset your password:
         ${resetUrl}
         
@@ -89,7 +89,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
         If you didn't request this, please ignore this email.
         
         Thanks,
-        The Uniqverse Team
+        The UselfUnik Team
       `,
       html: `
         <!DOCTYPE html>
@@ -108,18 +108,18 @@ export async function sendPasswordResetEmail(email: string, token: string) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Uniqverse Password Reset</h1>
+              <h1>UselfUnik Password Reset</h1>
             </div>
             <div class="content">
               <p>Hello,</p>
-              <p>You requested to reset your password on Uniqverse.</p>
+              <p>You requested to reset your password on UselfUnik.</p>
               <p>Please click the button below to reset your password:</p>
               <p style="text-align: center; margin: 30px 0;">
                 <a href="${resetUrl}" class="button">Reset My Password</a>
               </p>
               <p>This link is valid for 24 hours.</p>
               <p>If you didn't request this, please ignore this email.</p>
-              <p>Thanks,<br>The Uniqverse Team</p>
+              <p>Thanks,<br>The UselfUnik Team</p>
             </div>
           </div>
         </body>
@@ -189,7 +189,7 @@ export async function sendOrderConfirmationEmail(orderId: string) {
 
     // Send the email
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"UselfUnik" <no-reply@uselfunik.com>',
       to: order.user.email,
       subject: `Order Confirmation - #${order.orderNumber}`,
       text: `
@@ -205,11 +205,11 @@ export async function sendOrderConfirmationEmail(orderId: string) {
         ${itemsList}
         
         You can track your order status at: ${orderUrl}
-        
-        Thanks for shopping with Uniqverse!
-        
+
+        Thanks for shopping with UselfUnik!
+
         Best regards,
-        The Uniqverse Team
+        The UselfUnik Team
       `,
       html: `
         <!DOCTYPE html>
@@ -256,9 +256,9 @@ export async function sendOrderConfirmationEmail(orderId: string) {
               <p style="text-align: center; margin: 30px 0;">
                 <a href="${orderUrl}" class="button">Track Your Order</a>
               </p>
-              
-              <p>Thanks for shopping with Uniqverse!</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+
+              <p>Thanks for shopping with UselfUnik!</p>
+              <p>Best regards,<br>The UselfUnik Team</p>
             </div>
           </div>
         </body>
@@ -298,7 +298,7 @@ export async function sendPaymentFailureEmail(orderId: string, errorMessage?: st
     const orderUrl = `${baseUrl}/account/orders/${order.id}`;
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: order.user.email,
       subject: `Payment Failed - Order #${order.orderNumber}`,
       text: `
@@ -315,7 +315,7 @@ export async function sendPaymentFailureEmail(orderId: string, errorMessage?: st
         If you continue to experience issues, please contact our support team.
         
         Best regards,
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -354,7 +354,7 @@ export async function sendPaymentFailureEmail(orderId: string, errorMessage?: st
               </p>
               
               <p>If you continue to experience issues, please contact our support team.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The UselfUnik Team</p>
             </div>
           </div>
         </body>
@@ -391,7 +391,7 @@ export async function sendPaymentCancellationEmail(orderId: string) {
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: order.user.email,
       subject: `Order Cancelled - #${order.orderNumber}`,
       text: `
@@ -407,7 +407,7 @@ export async function sendPaymentCancellationEmail(orderId: string) {
         If you'd like to place a new order, you can visit our website anytime.
         
         Best regards,
-        The Uniqverse Team
+        The U self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -445,7 +445,7 @@ export async function sendPaymentCancellationEmail(orderId: string) {
               </p>
               
               <p>If you'd like to place a new order, you can visit our website anytime.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -483,7 +483,7 @@ export async function sendRefundNotificationEmail(orderId: string, isFullRefund:
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: order.user.email,
       subject: `${refundType} Processed - Order #${order.orderNumber}`,
       text: `
@@ -504,7 +504,7 @@ export async function sendRefundNotificationEmail(orderId: string, isFullRefund:
         If you have any questions about this refund, please contact our support team.
         
         Best regards,
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -542,7 +542,7 @@ export async function sendRefundNotificationEmail(orderId: string, isFullRefund:
               ${isFullRefund ? '<p>Any inventory from this order has been restored to our system.</p>' : ''}
               
               <p>If you have any questions about this refund, please contact our support team.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -583,7 +583,7 @@ export async function sendActionRequiredEmail(orderId: string, actionType?: stri
     const orderUrl = `${baseUrl}/account/orders/${order.id}`;
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: order.user.email,
       subject: `Action Required - Order #${order.orderNumber}`,
       text: `
@@ -601,7 +601,7 @@ export async function sendActionRequiredEmail(orderId: string, actionType?: stri
         If you have any questions, please contact our support team.
         
         Best regards,
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -639,7 +639,7 @@ export async function sendActionRequiredEmail(orderId: string, actionType?: stri
               <p><strong>Important:</strong> If you don't complete this action within 24 hours, your order may be cancelled automatically.</p>
               
               <p>If you have any questions, please contact our support team.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -671,16 +671,16 @@ export async function sendNewsletterWelcomeEmail(email: string, unsubscribeToken
     }
 
     const mailOptions = {
-      from: `"Uniqverse" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER}>`,
+      from: `"U Self UniQ" <${process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER}>`,
       to: email,
-      subject: 'Welcome to Uniqverse Newsletter!',
+      subject: 'Welcome to U Self UniQ Newsletter!',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to Uniqverse Newsletter</title>
+          <title>Welcome to U Self UniQ Newsletter</title>
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -727,16 +727,16 @@ export async function sendNewsletterWelcomeEmail(email: string, unsubscribeToken
         </head>
         <body>
           <div class="header">
-            <h1>Welcome to Uniqverse!</h1>
+            <h1>Welcome to U Self UniQ!</h1>
             <p>Thank you for subscribing to our newsletter</p>
           </div>
           
           <div class="content">
             <h2>🎉 You're all set!</h2>
             <p>Hi there!</p>
-            
-            <p>Welcome to the Uniqverse community! We're thrilled to have you on board.</p>
-            
+
+            <p>Welcome to the U Self UniQ community! We're thrilled to have you on board.</p>
+
             <p>Here's what you can expect from our newsletter:</p>
             <ul>
               <li>🆕 <strong>New Product Launches</strong> - Be the first to know about our latest products</li>
@@ -750,7 +750,7 @@ export async function sendNewsletterWelcomeEmail(email: string, unsubscribeToken
             <a href="${baseUrl}" class="button">Start Shopping</a>
             
             <div class="footer">
-              <p>Need help? Contact us at <a href="mailto:support@uniqverse.com">support@uniqverse.com</a></p>
+              <p>Need help? Contact us at <a href="mailto:support@uselfunik.com">support@uselfunik.com</a></p>
               <p>Follow us on social media for daily updates and inspiration!</p>
             </div>
             
@@ -781,19 +781,19 @@ export async function sendWelcomeEmail(email: string, name: string) {
     const baseUrl = getBaseUrl();    // If no email config, log to console
     if (!transporter) {
       console.log(`[DEV MODE] Welcome email for ${email} (${name}):`);
-      console.log(`Welcome to Uniqverse!`);
+      console.log(`Welcome to U Self UniQ!`);
       return;
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: email,
-      subject: 'Welcome to Uniqverse! 🎉',
+      subject: 'Welcome to U Self UniQ! 🎉',
       text: `
         Hi ${name},
-        
-        Welcome to Uniqverse! We're thrilled to have you join our community.
-        
+
+        Welcome to U Self UniQ! We're thrilled to have you join our community.
+
         Your account has been successfully created and you can now:
         • Browse our unique product collection
         • Save items to your wishlist
@@ -801,11 +801,11 @@ export async function sendWelcomeEmail(email: string, name: string) {
         • Get exclusive member offers
         
         Ready to start shopping? Visit us at: ${baseUrl}
-        
-        If you have any questions, our support team is here to help at support@uniqverse.com
-        
+
+        If you have any questions, our support team is here to help at support@uselfunik.com
+
         Welcome aboard!
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -828,12 +828,12 @@ export async function sendWelcomeEmail(email: string, name: string) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to Uniqverse! 🎉</h1>
+              <h1>Welcome to U Self UniQ! 🎉</h1>
               <p>Your journey to unique products starts here</p>
             </div>
             <div class="content">
               <p>Hi ${name},</p>
-              <p>Welcome to Uniqverse! We're thrilled to have you join our community of unique product enthusiasts.</p>
+              <p>Welcome to U Self UniQ! We're thrilled to have you join our community of unique product enthusiasts.</p>
               
               <div class="features">
                 <h3>Your account is ready! Here's what you can do:</h3>
@@ -847,9 +847,9 @@ export async function sendWelcomeEmail(email: string, name: string) {
                 <a href="${baseUrl}" class="button">Start Shopping</a>
               </p>
               
-              <p>If you have any questions, our support team is here to help at <a href="mailto:support@uniqverse.com">support@uniqverse.com</a></p>
+              <p>If you have any questions, our support team is here to help at <a href="mailto:support@uselfunik.com">support@uselfunik.com</a></p>
               
-              <p>Welcome aboard!<br>The Uniqverse Team</p>
+              <p>Welcome aboard!<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -880,14 +880,14 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: email,
-      subject: 'You\'ve been unsubscribed from Uniqverse Newsletter',
+      subject: 'You\'ve been unsubscribed from U Self UniQ Newsletter',
       text: `
         Hi there,
-        
-        You have been successfully unsubscribed from the Uniqverse newsletter.
-        
+
+        You have been successfully unsubscribed from the U Self UniQ newsletter.
+
         We're sorry to see you go! You will no longer receive marketing emails from us.
         
         If you unsubscribed by mistake or change your mind later, you can always resubscribe at: ${baseUrl}
@@ -897,7 +897,7 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
         Thank you for being part of our community.
         
         Best regards,
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -921,7 +921,7 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
             </div>
             <div class="content">
               <p>Hi there,</p>
-              <p>You have been successfully unsubscribed from the Uniqverse newsletter.</p>
+              <p>You have been successfully unsubscribed from the U Self UniQ newsletter.</p>
               
               <div class="info-box">
                 <p><strong>What this means:</strong></p>
@@ -937,7 +937,7 @@ export async function sendUnsubscribeConfirmationEmail(email: string) {
               </p>
               
               <p>Thank you for being part of our community.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -983,16 +983,16 @@ export async function sendEmailVerificationEmail(email: string, token: string, n
 
     // Send the verification email
     const result = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@uniqverse.com',
+      from: process.env.EMAIL_FROM || 'noreply@uselfunik.com',
       to: email,
-      subject: 'Verify Your UniQVerse Account',
+      subject: 'Verify Your U Self UniQ Account',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Verify Your Email - UniQVerse</title>
+          <title>Verify Your Email - U Self UniQ</title>
           <style>
             .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
@@ -1015,13 +1015,13 @@ export async function sendEmailVerificationEmail(email: string, token: string, n
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Welcome to UniQVerse!</h1>
+              <h1>🎉 Welcome to U Self UniQ!</h1>
             </div>
             
             <div class="content">
               <h2>Hi ${name || 'there'}!</h2>
               
-              <p>Thank you for joining UniQVerse! We're excited to have you as part of our community of unique individuals.</p>
+              <p>Thank you for joining U Self UniQ! We're excited to have you as part of our community of unique individuals.</p>
               
               <p>To complete your registration and start exploring our exclusive products, please verify your email address by clicking the button below:</p>
               
@@ -1051,8 +1051,8 @@ export async function sendEmailVerificationEmail(email: string, token: string, n
             </div>
             
             <div class="footer">
-              <p>© 2025 UniQVerse. All rights reserved.</p>
-              <p>Need help? Contact us at support@uniqverse.com</p>
+              <p>© 2025 U Self UniQ. All rights reserved.</p>
+              <p>Need help? Contact us at support@uselfunik.com</p>
             </div>
           </div>
         </body>
@@ -1111,7 +1111,7 @@ export async function sendVendorApplicationStatusEmail(
 
     switch (status) {
       case 'APPROVED':
-        subject = `✅ Vendor Application Approved - Welcome to Uniqverse!`;
+        subject = `✅ Vendor Application Approved - Welcome to U Self UniQ!`;
         statusText = 'Congratulations! Your vendor application has been approved.';
         statusColor = '#10b981';
         actionText = 'Access Vendor Dashboard';
@@ -1134,7 +1134,7 @@ export async function sendVendorApplicationStatusEmail(
     }
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+      from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
       to: application.user.email,
       subject: subject,
       text: `
@@ -1162,7 +1162,7 @@ export async function sendVendorApplicationStatusEmail(
         Dashboard: ${dashboardUrl}
         
         Best regards,
-        The Uniqverse Team
+        The U Self UniQ Team
       `,
       html: `
         <!DOCTYPE html>
@@ -1205,7 +1205,7 @@ export async function sendVendorApplicationStatusEmail(
               ` : ''}
               
               ${status === 'APPROVED' ? `
-                <h4>🎉 Welcome to the Uniqverse Vendor Community!</h4>
+                <h4>🎉 Welcome to the U Self UniQ Vendor Community!</h4>
                 <p>You can now access your vendor dashboard to start your journey:</p>
                 <ul>
                   <li>Complete your vendor profile</li>
@@ -1224,7 +1224,7 @@ export async function sendVendorApplicationStatusEmail(
               </p>
               
               <p>If you have any questions, please don't hesitate to contact our support team.</p>
-              <p>Best regards,<br>The Uniqverse Team</p>
+              <p>Best regards,<br>The U Self UniQ Team</p>
             </div>
           </div>
         </body>
@@ -1280,7 +1280,7 @@ export async function sendNewVendorApplicationNotification(applicationId: string
 
     for (const admin of adminUsers) {
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Uniqverse" <no-reply@uniqverse.com>',
+        from: process.env.EMAIL_FROM || '"U Self UniQ" <no-reply@uselfunik.com>',
         to: admin.email,
         subject: `🏪 New Vendor Application - ${application.businessName}`,
         text: `
@@ -1301,7 +1301,7 @@ export async function sendNewVendorApplicationNotification(applicationId: string
           Review Application: ${adminUrl}
           
           Best regards,
-          Uniqverse System
+          U Self UniQ System
         `,
         html: `
           <!DOCTYPE html>
@@ -1362,7 +1362,7 @@ export async function sendNewVendorApplicationNotification(applicationId: string
                 </p>
                 
                 <p>Please review the application and make a decision as soon as possible.</p>
-                <p>Best regards,<br>Uniqverse System</p>
+                <p>Best regards,<br>U Self UniQ System</p>
               </div>
             </div>
           </body>

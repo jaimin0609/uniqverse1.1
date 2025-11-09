@@ -23,7 +23,7 @@ console.log('Value should be: postgresql://postgres:[PASSWORD]@db.xxx.supabase.c
 console.log('⚠️  Important: Use the DIRECT connection (port 5432), not pooling\n');
 
 console.log('🔑 NEXTAUTH_URL');
-console.log('Value should be: https://your-domain.vercel.app');
+console.log('Value should be: https://uselfunik.com');
 console.log('(Replace with your actual Vercel domain)\n');
 
 console.log('🔑 NEXTAUTH_SECRET');

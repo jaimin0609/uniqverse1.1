@@ -45,18 +45,18 @@ async function setVercelEnv(name, value, environment = 'production') {
 
 async function main() {
   console.log('📋 We\'ll set up your Supabase configuration for Vercel production environment.\n');
-  
+
   // Get Supabase database password
   const dbPassword = await promptForInput('Enter your Supabase database password');
-  
+
   if (!dbPassword) {
     console.log('❌ Database password is required. You can find it in your Supabase dashboard under Settings > Database.');
     process.exit(1);
   }
 
   // Get production domain
-  const domain = await promptForInput('Enter your production domain', 'uniqverse-v1.vercel.app');
-  
+  const domain = await promptForInput('Enter your production domain', 'uselfunik.com');
+
   // Generate NextAuth secret
   const nextAuthSecret = await promptForInput('Enter NextAuth secret (or press Enter to generate)', '');
   const finalNextAuthSecret = nextAuthSecret || require('crypto').randomBytes(32).toString('base64');
@@ -82,7 +82,7 @@ async function main() {
   console.log('2. Configure Cloudinary for image management');
   console.log('3. Set up Redis/Upstash for caching');
   console.log('4. Deploy to production: vercel --prod');
-  
+
   rl.close();
 }
 

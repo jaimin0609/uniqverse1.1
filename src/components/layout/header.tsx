@@ -232,9 +232,14 @@ export function Header() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <Link href="/" className="flex items-center">
-                            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                                UniQVerse
+                        <Link href="/" className="flex items-center space-x-2">
+                            <img
+                                src="/uselfunik-icon.svg"
+                                alt="UselfUnik"
+                                className="h-8 w-8"
+                            />
+                            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                                U self UniQ
                             </span>
                         </Link>
                     </div>                    {/* Desktop Navigation */}

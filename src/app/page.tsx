@@ -193,10 +193,10 @@ export default async function Home() {
           <div className="container-custom relative z-10">
             <div className="text-center mb-16">
               <h2 className="text-responsive-lg font-bold text-gradient mb-4 animate-fade-in">
-                Why Choose UniQVerse?
+                Why Choose UselfUnik?
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto animate-fade-in animate-delay-200">
-                Experience the difference with our premium quality, lightning-fast delivery, and secure shopping.
+                Express your unique style with our curated collection, personalized experience, and premium quality products.
               </p>
             </div>
 
@@ -443,7 +443,7 @@ export default async function Home() {
             <div className="max-w-4xl mx-auto text-center text-white">
               <div className="animate-fade-in">
                 <h2 className="text-responsive-lg font-bold mb-6 text-shadow">
-                  Stay Updated with UniQVerse
+                  Stay Updated with UselfUnik
                 </h2>
                 <p className="text-xl mb-8 leading-relaxed opacity-95 smooth-edges">
                   Subscribe to our newsletter for exclusive deals, new product announcements,
@@ -491,7 +491,7 @@ export default async function Home() {
         <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white text-lg font-bold mb-4">UniQVerse</h3>
+              <h3 className="text-white text-lg font-bold mb-4">UselfUnik</h3>
               <p className="mb-4">Custom-designed products that reflect your unique personality.</p>
               <div className="flex space-x-4">
                 {/* Social Media Icons would go here */}
@@ -548,7 +548,7 @@ export default async function Home() {
             </div>
 
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p>© {new Date().getFullYear()} UniQVerse. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} UselfUnik. All rights reserved.</p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <span className="text-sm">Made with ❤️ for unique individuals</span>
               </div>

@@ -1,11 +1,11 @@
 {
-    "name": "Uniqverse E-Commerce",
-    "short_name": "Uniqverse",
-    "description": "A modern e-commerce platform for unique products",
+    "name": "UselfUnik - Be Uniquely You",
+    "short_name": "UselfUnik",
+    "description": "Express your unique style through our curated collection of personalized products",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#6366F1",
+    "theme_color": "#6C5CE7",
     "orientation": "portrait",
     "icons": [
         {

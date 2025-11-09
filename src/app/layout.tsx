@@ -20,8 +20,8 @@ import { CartProvider } from "@/components/cart/cart-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "UniQVerse | Modern E-Commerce Platform",
-  description: "A modern e-commerce platform for unique products",
+  title: "UselfUnik | Be Uniquely You",
+  description: "Express your unique style through our curated collection of personalized products",
   icons: {
     icon: [
       { url: "/icons/icon-32x32.svg", sizes: "32x32", type: "image/svg+xml" },
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "UniQVerse",
+    title: "UselfUnik",
   },
   formatDetection: {
     telephone: false,
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#6366F1",
+  themeColor: "#6C5CE7",
 };
 
 export default async function RootLayout({
@@ -60,7 +60,7 @@ export default async function RootLayout({
         <meta name="application-name" content="UniQVerse" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="UniQVerse" />
+        <meta name="apple-mobile-web-app-title" content="UselfUnik" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#6366F1" />
         <meta name="msapplication-tap-highlight" content="no" />

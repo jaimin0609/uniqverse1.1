@@ -1,0 +1,92 @@
+/* UselfUnik Brand Colors and Styles */
+:root {
+    /* Brand Colors */
+    --uselfunik-purple: #6C5CE7;
+    --uselfunik-light-purple: #A29BFE;
+    --uselfunik-yellow: #FFD43B;
+    --uselfunik-dark: #2D3436;
+    --uselfunik-white: #FFFFFF;
+
+    /* Legacy color mappings for gradual migration */
+    --primary: var(--uselfunik-purple);
+    --primary-light: var(--uselfunik-light-purple);
+    --accent: var(--uselfunik-yellow);
+    --text-dark: var(--uselfunik-dark);
+}
+
+/* Brand Typography */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@600&family=Inter:wght@400&display=swap');
+
+.font-logo {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+}
+
+.font-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+
+.font-body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+}
+
+/* Brand Components */
+.btn-uselfunik-primary {
+    background-color: var(--uselfunik-purple);
+    color: var(--uselfunik-white);
+    transition: background-color 0.3s ease;
+}
+
+.btn-uselfunik-primary:hover {
+    background-color: var(--uselfunik-light-purple);
+}
+
+.text-uselfunik-purple {
+    color: var(--uselfunik-purple);
+}
+
+.text-uselfunik-yellow {
+    color: var(--uselfunik-yellow);
+}
+
+.bg-uselfunik-purple {
+    background-color: var(--uselfunik-purple);
+}
+
+.bg-uselfunik-gradient {
+    background: linear-gradient(135deg, var(--uselfunik-purple) 0%, var(--uselfunik-light-purple) 100%);
+}
+
+/* Brand Logo Styles */
+.uselfunik-logo {
+    max-height: 48px;
+    width: auto;
+}
+
+.uselfunik-icon {
+    width: 32px;
+    height: 32px;
+}
+
+/* Spark Accent */
+.spark {
+    color: var(--uselfunik-yellow);
+    display: inline-block;
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
