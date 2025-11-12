@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="uselfunik-favicon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6C5CE7" />
-      <stop offset="100%" stop-color="#A29BFE" />
-    </linearGradient>
-    <filter id="glow-small" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-      <feMerge> 
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
+  <!-- Solar System Favicon - Clean minimal design -->
   
-  <!-- Professional "U" Letter Design for Favicon -->
+  <!-- Central "U" shape -->
   <path
-    d="M6 8 
-       L6 19 
+    d="M10 6C10 6 10 12 10 15C10 18.314 12.686 21 16 21C19.314 21 22 18.314 22 15C22 12 22 6 22 6"
+    stroke="#2563eb"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <!-- Orbiting dot with animation -->
+  <circle
+    cx="16"
+    cy="3"
+    r="1.8"
+    fill="#dc2626"
+  >
+    <!-- Solar system orbit animation -->
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 16 16"
+      to="360 16 16"
+      dur="4s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg> 
        Q6 25 12 25 
        L20 25 
        Q26 25 26 19 

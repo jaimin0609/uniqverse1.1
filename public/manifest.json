@@ -1,11 +1,11 @@
 {
     "name": "UselfUnik - Be Uniquely You",
     "short_name": "UselfUnik",
-    "description": "Express your unique style through our curated collection of personalized products",
+    "description": "Express your unique style through our curated collection of personalized products. Solar system inspired brand.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#6C5CE7",
+    "theme_color": "#2563eb",
     "orientation": "portrait",
     "icons": [
         {

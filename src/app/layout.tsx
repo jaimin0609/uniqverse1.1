@@ -22,15 +22,17 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   metadataBase: new URL('https://uselfunik.com'),
   title: "UselfUnik | Be Uniquely You",
-  description: "Express your unique style through our curated collection of personalized products",
+  description: "Express your unique style through our curated collection of personalized products. Solar system inspired logo with orbiting animation.",
   icons: {
     icon: [
-      { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "16x16 32x32", type: "image/x-icon" },
+      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/favicon-16x16.svg", sizes: "16x16", type: "image/svg+xml" },
       { url: "/uselfunik-app-icon.svg", sizes: "192x192", type: "image/svg+xml" },
     ],
-    apple: "/uselfunik-app-icon.svg",
-    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/uselfunik-app-icon.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
   },
   manifest: "/manifest.json",
   appleWebApp: {
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "UselfUnik | Be Uniquely You",
-    description: "Express your unique style through our curated collection of personalized products",
+    description: "Express your unique style through our curated collection of personalized products. Solar system inspired logo with orbiting animation.",
     url: "https://uselfunik.com",
     siteName: "UselfUnik",
     images: [
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
         url: "/uselfunik-app-icon.svg",
         width: 192,
         height: 192,
-        alt: "UselfUnik Logo",
+        alt: "UselfUnik Solar System Logo",
       },
     ],
     locale: "en_US",
