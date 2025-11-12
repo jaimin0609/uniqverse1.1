@@ -1,26 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="uGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="uselfunik-favicon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#6C5CE7" />
       <stop offset="100%" stop-color="#A29BFE" />
     </linearGradient>
-    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFD43B" />
-      <stop offset="100%" stop-color="#FDCB6E" />
-    </linearGradient>
+    <filter id="glow-small" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
   
-  <!-- Main U shape (simplified for favicon) -->
-  <path d="M9 8 L9 17 C9 21, 12 24, 16 24 C20 24, 23 21, 23 17 L23 8" 
-        fill="none" 
-        stroke="url(#uGrad)" 
-        stroke-width="3" 
-        stroke-linecap="round"/>
+  <!-- Professional "U" Letter Design for Favicon -->
+  <path
+    d="M6 8 
+       L6 19 
+       Q6 25 12 25 
+       L20 25 
+       Q26 25 26 19 
+       L26 8 
+       L22 8 
+       L22 19 
+       Q22 22 20 22 
+       L12 22 
+       Q10 22 10 19 
+       L10 8 
+       Z"
+    fill="url(#uselfunik-favicon-gradient)"
+    filter="url(#glow-small)"
+  />
   
-  <!-- Star (simplified) -->
-  <g transform="translate(16, 14)">
-    <path d="M0 -3 L1 -1 L3 0 L1 1 L0 3 L-1 1 L-3 0 L-1 -1 Z" 
-          fill="url(#starGrad)"/>
-  </g>
+  <!-- Inner highlight for depth -->
+  <path
+    d="M10 8 
+       L10 19 
+       Q10 24 15 24 
+       L17 24 
+       Q22 24 22 19 
+       L22 8"
+    fill="none"
+    stroke="rgba(255,255,255,0.3)"
+    stroke-width="0.5"
+    stroke-linecap="round"
+  />
 </svg>

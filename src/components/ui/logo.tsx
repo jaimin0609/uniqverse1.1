@@ -1,92 +1,126 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface LogoProps {
-    variant?: 'full' | 'icon' | 'text';
-    theme?: 'default' | 'mono-dark' | 'mono-white';
     size?: 'sm' | 'md' | 'lg' | 'xl';
-    className?: string;
+    theme?: 'default' | 'mono-dark' | 'mono-white';
     href?: string;
-    showTagline?: boolean;
+    className?: string;
 }
 
-const sizeClasses = {
-    sm: { icon: 'h-6 w-6', text: 'text-lg' },
-    md: { icon: 'h-8 w-8', text: 'text-xl' },
-    lg: { icon: 'h-10 w-10', text: 'text-2xl' },
-    xl: { icon: 'h-12 w-12', text: 'text-3xl' }
-};
-
 export const Logo: React.FC<LogoProps> = ({
-    variant = 'full',
-    theme = 'default',
     size = 'md',
-    className = '',
+    theme = 'default',
     href = '/',
-    showTagline = false
+    className = ''
 }) => {
-    const getIconSrc = () => {
-        switch (theme) {
-            case 'mono-dark':
-                return '/uselfunik-icon-mono-dark.svg';
-            case 'mono-white':
-                return '/uselfunik-icon-mono-white.svg';
-            default:
-                return '/uselfunik-icon-new.svg';
+    const sizeClasses = {
+        sm: 'h-8',
+        md: 'h-10',
+        lg: 'h-12',
+        xl: 'h-16'
+    };
+
+    const textSizes = {
+        sm: 'text-xl',
+        md: 'text-2xl',
+        lg: 'text-3xl',
+        xl: 'text-4xl'
+    };
+
+    // Color schemes for different themes
+    const colors = {
+        default: {
+            primary: '#2563eb',
+            text: '#1f2937',
+            dot: '#dc2626'
+        },
+        'mono-dark': {
+            primary: '#374151',
+            text: '#1f2937',
+            dot: '#6b7280'
+        },
+        'mono-white': {
+            primary: '#ffffff',
+            text: '#ffffff',
+            dot: '#e5e7eb'
         }
     };
 
-    const getTextClasses = () => {
-        const baseClasses = `font-bold ${sizeClasses[size].text}`;
+    const currentColors = colors[theme];
 
-        switch (theme) {
-            case 'mono-dark':
-                return `${baseClasses} text-gray-900 dark:text-gray-100`;
-            case 'mono-white':
-                return `${baseClasses} text-white`;
-            default:
-                return `${baseClasses} bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent`;
-        }
-    };
+    const LogoContent = (
+        <div className={`flex items-center space-x-3 ${className}`}>
+            {/* Solar System Logo: U in circle with orbiting dot */}
+            <div className={`${sizeClasses[size]} flex items-center justify-center relative`}>
+                <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 48 48"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full h-full"
+                >
+                    {/* Outer circle (orbit path - invisible guide) */}
+                    <circle
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        stroke="none"
+                        fill="none"
+                    />
 
-    const LogoContent = () => (
-        <div className={`flex items-center ${variant === 'full' ? 'space-x-3' : ''} ${className}`}>
-            {variant !== 'text' && (
-                <Image
-                    src={getIconSrc()}
-                    alt="UselfUnik Logo"
-                    width={48}
-                    height={48}
-                    className={sizeClasses[size].icon}
-                    priority
-                />
-            )}
+                    {/* Main U shape in center */}
+                    <path
+                        d="M14 12C14 12 14 18 14 22C14 26.418 17.582 30 22 30C26.418 30 30 26.418 30 22C30 18 30 12 30 12"
+                        stroke={currentColors.primary}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        fill="none"
+                    />
 
-            {variant !== 'icon' && (
-                <div className="flex flex-col">
-                    <span className={getTextClasses()}>
-                        UselfUnik
-                    </span>
-                    {showTagline && (
-                        <span className="text-xs text-blue-500 opacity-80 font-normal tracking-wider">
-                            BE UNIQUELY YOU
-                        </span>
-                    )}
-                </div>
-            )}
+                    {/* Orbiting dot with animation */}
+                    <circle
+                        cx="24"
+                        cy="4"
+                        r="2.5"
+                        fill={currentColors.dot}
+                    >
+                        {/* Solar system orbit animation */}
+                        <animateTransform
+                            attributeName="transform"
+                            attributeType="XML"
+                            type="rotate"
+                            from="0 24 24"
+                            to="360 24 24"
+                            dur="4s"
+                            repeatCount="indefinite"
+                        />
+                    </circle>
+                </svg>
+            </div>
+
+            {/* Brand name */}
+            <div className="flex flex-col">
+                <span
+                    className={`font-bold tracking-tight leading-none ${textSizes[size]}`}
+                    style={{ color: currentColors.text }}
+                >
+                    uselfunik
+                </span>
+            </div>
         </div>
     );
 
     if (href) {
         return (
-            <Link href={href} className="hover:opacity-90 transition-opacity">
-                <LogoContent />
+            <Link href={href} className="inline-flex items-center hover:opacity-80 transition-opacity">
+                {LogoContent}
             </Link>
         );
     }
 
-    return <LogoContent />;
+    return LogoContent;
 };
 
 export default Logo;

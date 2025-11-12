@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://uselfunik.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and internal pages
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /vendor/
+Disallow: /_next/
+Disallow: /checkout/
+Disallow: /account/
+
+# Allow important pages
+Allow: /
+Allow: /shop
+Allow: /products
+Allow: /categories
+Allow: /about
+Allow: /contact
+Allow: /support
+Allow: /blog

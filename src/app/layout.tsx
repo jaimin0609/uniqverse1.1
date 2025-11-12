@@ -20,23 +20,48 @@ import { CartProvider } from "@/components/cart/cart-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://uselfunik.com'),
   title: "UselfUnik | Be Uniquely You",
   description: "Express your unique style through our curated collection of personalized products",
   icons: {
     icon: [
-      { url: "/icons/icon-32x32.svg", sizes: "32x32", type: "image/svg+xml" },
-      { url: "/icons/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "16x16 32x32", type: "image/x-icon" },
+      { url: "/uselfunik-app-icon.svg", sizes: "192x192", type: "image/svg+xml" },
     ],
-    apple: "/icons/icon-192x192.svg",
+    apple: "/uselfunik-app-icon.svg",
+    shortcut: "/favicon.ico",
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "UselfUnik",
+    title: "UselfUnik | Be Uniquely You",
   },
   formatDetection: {
     telephone: false,
+  },
+  openGraph: {
+    title: "UselfUnik | Be Uniquely You",
+    description: "Express your unique style through our curated collection of personalized products",
+    url: "https://uselfunik.com",
+    siteName: "UselfUnik",
+    images: [
+      {
+        url: "/uselfunik-app-icon.svg",
+        width: 192,
+        height: 192,
+        alt: "UselfUnik Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "UselfUnik | Be Uniquely You",
+    description: "Express your unique style through our curated collection of personalized products",
+    images: ["/uselfunik-app-icon.svg"],
   },
 };
 
@@ -57,14 +82,14 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="UniQVerse" />
+        <meta name="application-name" content="UselfUnik" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="UselfUnik" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#6366F1" />
+        <meta name="msapplication-TileColor" content="#6C5CE7" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/uselfunik-app-icon.svg" />
       </head>
       <body className={`${inter.className} h-full flex flex-col`} suppressHydrationWarning>
         <ThemeProvider

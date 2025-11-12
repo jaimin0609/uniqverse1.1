@@ -1,0 +1,81 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="uselfunik-app-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6C5CE7" />
+            <stop offset="100%" stop-color="#A29BFE" />
+        </linearGradient>
+        <filter id="glow-large" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+            <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <filter id="inner-shadow">
+            <feOffset dx="0" dy="2"/>
+            <feGaussianBlur stdDeviation="3" result="offset-blur"/>
+            <feFlood flood-color="#4C51BF" flood-opacity="0.3"/>
+            <feComposite in2="offset-blur" operator="in"/>
+            <feMerge> 
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/> 
+            </feMerge>
+        </filter>
+    </defs>
+    
+    <!-- Background circle with subtle gradient -->
+    <circle cx="96" cy="96" r="88" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+    
+    <!-- Professional "U" Letter Design -->
+    <path
+        d="M48 60 
+           L48 140 
+           Q48 168 76 168 
+           L116 168 
+           Q144 168 144 140 
+           L144 60 
+           L124 60 
+           L124 140 
+           Q124 148 116 148 
+           L76 148 
+           Q68 148 68 140 
+           L68 60 
+           Z"
+        fill="url(#uselfunik-app-gradient)"
+        filter="url(#glow-large)"
+    />
+    
+    <!-- Inner highlight for depth -->
+    <path
+        d="M68 60 
+           L68 140 
+           Q68 158 86 158 
+           L106 158 
+           Q124 158 124 140 
+           L124 60"
+        fill="none"
+        stroke="rgba(255,255,255,0.4)"
+        stroke-width="3"
+        stroke-linecap="round"
+    />
+    
+    <!-- Additional depth with inner shadow -->
+    <path
+        d="M58 60 
+           L58 140 
+           Q58 163 81 163 
+           L111 163 
+           Q134 163 134 140 
+           L134 60 
+           L128 60 
+           L128 140 
+           Q128 153 115 153 
+           L77 153 
+           Q64 153 64 140 
+           L64 60 
+           Z"
+        fill="none"
+        stroke="rgba(108,92,231,0.2)"
+        stroke-width="1"
+    />
+</svg>

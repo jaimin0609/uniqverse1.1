@@ -4,11 +4,11 @@ import { ArrowRight, ShoppingBag, Star, Truck, Shield, Store, TrendingUp, Users 
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/star-rating";
-import { Logo } from "@/components/ui/logo";
 import { InfiniteProducts } from "@/components/product/infinite-products";
 import { PromotionalFeature } from "@/components/promotion/promotional-feature";
 import { EventShowcase } from "@/components/events/event-showcase";
 import NewsletterForm from "@/components/newsletter/NewsletterForm";
+import { Logo } from "@/components/ui/logo";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -492,8 +492,8 @@ export default async function Home() {
         <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <Logo variant="full" size="lg" theme="mono-white" href="/" showTagline />
-              <p className="mb-4 mt-4">Custom-designed products that reflect your unique personality.</p>
+              <Logo size="lg" theme="mono-white" href="/" />
+              <div className="text-white text-1xl font-bold mb-4">Be Uniquely You</div>
               <div className="flex space-x-4">
                 {/* Social Media Icons would go here */}
               </div>
