@@ -233,7 +233,7 @@ export function Header() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <Logo variant="full" size="lg" href="/" />
+                        <Logo size="lg" href="/" />
                     </div>                    {/* Desktop Navigation */}
                     <nav className="hidden md:flex space-x-6" role="navigation">                        {navLinks.map((link) => (
                         link.children ? (
