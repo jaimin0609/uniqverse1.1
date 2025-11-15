@@ -28,7 +28,7 @@ export function Header() {
     const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Debug session information
-    console.log("Header session data:", session);    // Normalize role check to match Prisma UserRole enum (ADMIN not admin)
+    // Normalize role check to match Prisma UserRole enum (ADMIN not admin)
     const isAdmin = session?.user?.role === 'ADMIN';
     const isVendor = session?.user?.role === 'VENDOR'; const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -286,12 +286,13 @@ export function Header() {
                     </div>
 
                     {/* Desktop Navigation - Show fewer items on medium screens */}
-                    <nav className="hidden lg:flex space-x-4 xl:space-x-6 flex-1 justify-center overflow-hidden" role="navigation">
+                    <nav className="hidden lg:flex space-x-4 xl:space-x-6 flex-1 justify-center" style={{ overflow: 'visible' }} role="navigation">
                         {primaryNavLinks.map((link) => (
                             link.children ? (
                                 <div
                                     key={link.name}
                                     className="relative dropdown-container"
+                                    style={{ position: 'relative', zIndex: 1000 }}
                                     onMouseEnter={() => handleDropdownEnter(link.name)}
                                     onMouseLeave={handleDropdownLeave}
                                 >
@@ -303,7 +304,15 @@ export function Header() {
                                         <ChevronDown className="ml-1 h-4 w-4" />
                                     </button>
                                     <div
-                                        className={`absolute left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 border border-slate-200 dark:border-slate-700 ${activeDropdown === link.name ? 'block' : 'hidden'}`}
+                                        className={`absolute left-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden ${activeDropdown === link.name ? 'block opacity-100 transform translate-y-0' : 'hidden opacity-0 transform -translate-y-2'} transition-all duration-200 ease-out z-50`}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: '0',
+                                            zIndex: 50,
+                                            display: activeDropdown === link.name ? 'block' : 'none',
+                                            visibility: activeDropdown === link.name ? 'visible' : 'hidden'
+                                        }}
                                         onMouseEnter={() => handleDropdownEnter(link.name)}
                                         onMouseLeave={handleDropdownLeave}
                                     >
@@ -311,7 +320,7 @@ export function Header() {
                                             <Link
                                                 key={childLink.name}
                                                 href={childLink.href}
-                                                className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                className="block px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-150 border-b border-slate-100 dark:border-slate-700 last:border-b-0 first:rounded-t-lg last:rounded-b-lg"
                                             >
                                                 {childLink.name}
                                             </Link>
