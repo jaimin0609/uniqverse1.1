@@ -15,17 +15,17 @@ export const Logo: React.FC<LogoProps> = ({
     className = ''
 }) => {
     const sizeClasses = {
-        sm: 'h-8',
-        md: 'h-10',
-        lg: 'h-12',
-        xl: 'h-16'
+        sm: 'h-6',
+        md: 'h-8',
+        lg: 'h-10',
+        xl: 'h-12'
     };
 
     const textSizes = {
-        sm: 'text-xl',
-        md: 'text-2xl',
-        lg: 'text-3xl',
-        xl: 'text-4xl'
+        sm: 'text-lg',
+        md: 'text-xl',
+        lg: 'text-2xl',
+        xl: 'text-3xl'
     };
 
     // Color schemes for different themes
@@ -50,7 +50,7 @@ export const Logo: React.FC<LogoProps> = ({
     const currentColors = colors[theme];
 
     const LogoContent = (
-        <div className={`flex items-center space-x-3 ${className}`}>
+        <div className={`flex items-center space-x-2.5 ${className}`}>
             {/* Solar System Logo: U in circle with orbiting dot */}
             <div className={`${sizeClasses[size]} flex items-center justify-center relative`}>
                 <svg
@@ -103,10 +103,10 @@ export const Logo: React.FC<LogoProps> = ({
             {/* Brand name */}
             <div className="flex flex-col">
                 <span
-                    className={`font-bold tracking-tight leading-none ${textSizes[size]}`}
+                    className={`font-semibold tracking-tight leading-none ${textSizes[size]}`}
                     style={{ color: currentColors.text }}
                 >
-                    uselfunik
+                    UselfUnik
                 </span>
             </div>
         </div>

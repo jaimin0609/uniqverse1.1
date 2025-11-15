@@ -38,14 +38,27 @@ export function Header() {
     const handleDropdownEnter = (dropdownName: string) => {
         if (dropdownTimeoutRef.current) {
             clearTimeout(dropdownTimeoutRef.current);
+            dropdownTimeoutRef.current = null;
         }
         setActiveDropdown(dropdownName);
     };
 
     const handleDropdownLeave = () => {
+        if (dropdownTimeoutRef.current) {
+            clearTimeout(dropdownTimeoutRef.current);
+        }
         dropdownTimeoutRef.current = setTimeout(() => {
             setActiveDropdown(null);
-        }, 150); // Small delay to allow moving to dropdown content
+        }, 200); // Slightly longer delay to allow moving to dropdown content
+    };
+
+    // Click handler for dropdown toggle (fallback for mobile)
+    const handleDropdownClick = (dropdownName: string) => {
+        if (activeDropdown === dropdownName) {
+            setActiveDropdown(null);
+        } else {
+            setActiveDropdown(dropdownName);
+        }
     };// Add keyboard listener for search shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -95,6 +108,21 @@ export function Header() {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [isSearchOpen, suggestions.length]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target?.closest('.dropdown-container')) {
+                setActiveDropdown(null);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, []);
 
     // Cleanup debounce timer on unmount to prevent memory leaks
     useEffect(() => {
@@ -210,10 +238,11 @@ export function Header() {
         setIsSearchOpen(false);
         setSuggestions([]);
         router.push(`/products/${slug}`);
-    };    // Define navigation links
-    const navLinks = [
+    };    // Define navigation links with responsive visibility
+    const primaryNavLinks = [
         { name: "Home", href: "/" },
-        { name: "Shop", href: "/shop" }, {
+        { name: "Shop", href: "/shop" },
+        {
             name: "Categories",
             href: "#",
             children: [
@@ -221,62 +250,94 @@ export function Header() {
                 { name: "Shop Featured", href: "/shop/featured" },
                 { name: "New Arrivals", href: "/shop/new" },
             ]
-        }, { name: "About", href: "/about" },
+        },
+        { name: "About", href: "/about" },
         { name: "Careers", href: "/careers" },
         { name: "Support", href: "/support" },
         { name: "Contact", href: "/contact" },
     ];
 
+    // Compact navigation for medium screens (hide some items to prevent overflow)
+    const compactNavLinks = [
+        { name: "Shop", href: "/shop" },
+        {
+            name: "Categories",
+            href: "#",
+            children: [
+                { name: "All Categories", href: "/categories" },
+                { name: "Shop Featured", href: "/shop/featured" },
+                { name: "New Arrivals", href: "/shop/new" },
+            ]
+        },
+        { name: "About", href: "/about" },
+        { name: "Support", href: "/support" },
+    ];
+
+    // Full navigation for mobile menu
+    const allNavLinks = primaryNavLinks;
+
     return (
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-sm">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-14">
                     {/* Logo */}
-                    <div className="flex-shrink-0">
-                        <Logo size="lg" href="/" />
-                    </div>                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex space-x-6" role="navigation">                        {navLinks.map((link) => (
-                        link.children ? (
-                            <div
-                                key={link.name}
-                                className="relative"
-                                onMouseEnter={() => handleDropdownEnter(link.name)}
-                                onMouseLeave={handleDropdownLeave}
-                            >
-                                <button className={`flex items-center text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}>
-                                    {link.name}
-                                    <ChevronDown className="ml-1 h-4 w-4" />
-                                </button>
-                                <div className={`absolute left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 border border-slate-200 dark:border-slate-700 ${activeDropdown === link.name ? 'block' : 'hidden'}`}>
-                                    {link.children.map((childLink) => (
-                                        <Link
-                                            key={childLink.name}
-                                            href={childLink.href}
-                                            className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                        >
-                                            {childLink.name}
-                                        </Link>
-                                    ))}
+                    <div className="flex-shrink-0 min-w-0">
+                        <Logo size="md" href="/" />
+                    </div>
+
+                    {/* Desktop Navigation - Show fewer items on medium screens */}
+                    <nav className="hidden lg:flex space-x-4 xl:space-x-6 flex-1 justify-center overflow-hidden" role="navigation">
+                        {primaryNavLinks.map((link) => (
+                            link.children ? (
+                                <div
+                                    key={link.name}
+                                    className="relative dropdown-container"
+                                    onMouseEnter={() => handleDropdownEnter(link.name)}
+                                    onMouseLeave={handleDropdownLeave}
+                                >
+                                    <button
+                                        className={`flex items-center text-slate-700 dark:text-slate-300 hover:text-primary transition-colors duration-200 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap ${pathname === link.href ? "text-primary font-semibold" : ""}`}
+                                        onClick={() => handleDropdownClick(link.name)}
+                                    >
+                                        {link.name}
+                                        <ChevronDown className="ml-1 h-4 w-4" />
+                                    </button>
+                                    <div
+                                        className={`absolute left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg py-1 z-50 border border-slate-200 dark:border-slate-700 ${activeDropdown === link.name ? 'block' : 'hidden'}`}
+                                        onMouseEnter={() => handleDropdownEnter(link.name)}
+                                        onMouseLeave={handleDropdownLeave}
+                                    >
+                                        {link.children.map((childLink) => (
+                                            <Link
+                                                key={childLink.name}
+                                                href={childLink.href}
+                                                className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            >
+                                                {childLink.name}
+                                            </Link>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className={`text-slate-600 dark:text-slate-300 hover:text-primary px-2 py-1 rounded-md text-sm font-medium ${pathname === link.href ? "text-primary" : ""}`}
-                            >
-                                {link.name}
-                            </Link>
-                        )
-                    ))}
+                            ) : (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    className={`text-slate-700 dark:text-slate-300 hover:text-primary transition-colors duration-200 px-2 py-2 rounded-md text-sm font-medium whitespace-nowrap ${pathname === link.href ? "text-primary font-semibold" : ""}`}
+                                >
+                                    {link.name}
+                                </Link>
+                            )
+                        ))}
                     </nav>
 
                     {/* Right side - Search, Settings (Theme + Currency), User actions (Wishlist + Account) */}
-                    <div className="flex items-center space-x-2">                        {/* Search Button */}
+                    <div className="flex items-center space-x-1 flex-shrink-0">
+
+                        {/* Search Button */}
                         <div className="relative group">
                             <button
                                 onClick={toggleSearch}
-                                className="p-2 text-slate-600 dark:text-slate-300 hover:text-primary focus:outline-none"
+                                className="p-2.5 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 aria-label="Search"
                             >
                                 <Search className="h-5 w-5" />
@@ -290,7 +351,7 @@ export function Header() {
                         <div className="relative">
                             <button
                                 onClick={toggleSettings}
-                                className="p-2 text-slate-600 dark:text-slate-300 hover:text-primary focus:outline-none"
+                                className="p-2.5 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 aria-label="Settings"
                             >
                                 <Settings className="h-5 w-5" />
@@ -325,7 +386,7 @@ export function Header() {
                                 onMouseEnter={() => handleDropdownEnter('user')}
                                 onMouseLeave={handleDropdownLeave}
                             >
-                                <button className="flex items-center space-x-1 p-2 text-slate-600 dark:text-slate-300 hover:text-primary focus:outline-none">
+                                <button className="flex items-center space-x-2 p-2.5 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20">
                                     <User className="h-5 w-5" />
                                     <span className="hidden lg:inline-block text-sm font-medium">
                                         {session.user?.name?.split(' ')[0] || 'Account'}
@@ -370,18 +431,18 @@ export function Header() {
                             </div>
                         ) : (
                             <Link href="/auth/login">
-                                <Button variant="outline" size="sm" className="flex items-center">
-                                    <User className="h-4 w-4 mr-2" />
-                                    Sign In
+                                <Button variant="outline" size="sm" className="flex items-center space-x-2 hover:bg-primary hover:text-white transition-colors duration-200">
+                                    <User className="h-4 w-4" />
+                                    <span>Sign In</span>
                                 </Button>
                             </Link>
                         )}
 
                         {/* Mobile menu button */}
-                        <div className="md:hidden">
+                        <div className="lg:hidden">
                             <button
                                 onClick={toggleMenu}
-                                className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:text-primary focus:outline-none"
+                                className="p-2.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                             >
                                 {isMenuOpen ? (
@@ -395,14 +456,14 @@ export function Header() {
                 </div>                {/* Mobile menu - improved organization */}
                 {
                     isMenuOpen && (
-                        <div className="md:hidden" role="navigation">
+                        <div className="lg:hidden" role="navigation">
                             <div className="px-2 pt-2 pb-3 border-t border-slate-200 dark:border-slate-700">
                                 <div className="py-2">
                                     <div className="font-medium px-3 py-2 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                                         Main Navigation
                                     </div>
 
-                                    {navLinks.map((link) => (
+                                    {allNavLinks.map((link) => (
                                         link.children ? (
                                             <div key={link.name} className="py-1">
                                                 <div className="font-medium px-3 py-2 text-slate-900 dark:text-white">
@@ -617,6 +678,6 @@ export function Header() {
                     )
                 }
             </div>
-        </header>
+        </header >
     );
 }
