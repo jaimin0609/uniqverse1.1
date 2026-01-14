@@ -159,13 +159,13 @@ export default function AboutPage() {
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
                                 <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
                                     <Image
-                                        src="/team/alex-chen.jpg"
-                                        alt="Alex Chen"
+                                        src="https://ui-avatars.com/api/?name=Jaimin+Prajapati&background=6366f1&color=fff&size=128&bold=true"
+                                        alt="Jaimin Prajapati"
                                         fill
                                         className="object-cover"
                                     />
                                 </div>
-                                <h3 className="text-xl font-semibold">Alex Chen</h3>
+                                <h3 className="text-xl font-semibold">Jaimin Prajapati</h3>
                                 <p className="text-blue-600 mb-3">Founder & CEO</p>
                                 <p className="text-gray-600 text-sm">
                                     Passionate about unique products and exceptional customer experiences.
