@@ -83,7 +83,8 @@ const nextConfig = {
       'img01.cjdropshipping.com', // Additional numbered subdomains
       'img02.cjdropshipping.com',
       'img03.cjdropshipping.com',
-      'cbu01.alicdn.com'
+      'cbu01.alicdn.com',
+      'ui-avatars.com' // UI Avatars for team member photos
     ],
     remotePatterns: [
       {
