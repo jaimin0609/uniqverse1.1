@@ -175,7 +175,7 @@ export default function AboutPage() {
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
                                 <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
                                     <Image
-                                        src="/team/sarah-johnson.jpg"
+                                        src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=6366f1&color=fff&size=128&bold=true"
                                         alt="Sarah Johnson"
                                         fill
                                         className="object-cover"
@@ -191,7 +191,7 @@ export default function AboutPage() {
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
                                 <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
                                     <Image
-                                        src="/team/mike-rodriguez.jpg"
+                                        src="https://ui-avatars.com/api/?name=Mike+Rodriguez&background=6366f1&color=fff&size=128&bold=true"
                                         alt="Mike Rodriguez"
                                         fill
                                         className="object-cover"
@@ -207,7 +207,7 @@ export default function AboutPage() {
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
                                 <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
                                     <Image
-                                        src="/team/lisa-patel.jpg"
+                                        src="https://ui-avatars.com/api/?name=Lisa+Patel&background=6366f1&color=fff&size=128&bold=true"
                                         alt="Lisa Patel"
                                         fill
                                         className="object-cover"
