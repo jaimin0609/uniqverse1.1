@@ -9,10 +9,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Enable CSS optimization
-  experimental: {
-    optimizeCss: true,
-  },
+  // Empty turbopack config to allow webpack config
+  turbopack: {},
   // Production security headers
   async headers() {
     return [
